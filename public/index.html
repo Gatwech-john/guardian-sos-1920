@@ -1,0 +1,4031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guardian SOS | Emergency Assistance</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    html, body {
+        width: 100%;
+        height: 100%;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #080808;
+        color: #ffffff;
+        overflow: hidden;
+    }
+
+    body {
+        min-height: 100vh;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+        font: inherit;
+    }
+
+    button {
+        cursor: pointer;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    /* =========================
+       APP
+    ========================== */
+
+    #app {
+        width: 100%;
+        height: 100vh;
+        position: relative;
+    }
+
+    .page {
+        display: none;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .page.active {
+        display: flex;
+    }
+
+    .page-content {
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        padding: 90px 25px 100px;
+    }
+
+    /* =========================
+       AUTH
+    ========================== */
+
+    .auth-page {
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background:
+            radial-gradient(circle at top right, rgba(255, 20, 147, .25), transparent 35%),
+            radial-gradient(circle at bottom left, rgba(255, 0, 80, .18), transparent 35%),
+            #050505;
+    }
+
+    .auth-box {
+        width: 100%;
+        max-width: 440px;
+        background: rgba(20, 20, 20, .96);
+        border: 1px solid rgba(255, 20, 147, .35);
+        border-radius: 22px;
+        padding: 35px;
+        box-shadow: 0 0 40px rgba(255, 20, 147, .15);
+    }
+
+    .auth-logo {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 30px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        color: #ff1493;
+    }
+
+    .auth-subtitle {
+        text-align: center;
+        color: #aaa;
+        margin-bottom: 30px;
+    }
+
+    .auth-box h2 {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .form-group {
+        margin-bottom: 17px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 7px;
+        color: #ddd;
+        font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1px solid #333;
+        border-radius: 10px;
+        background: #111;
+        color: white;
+        outline: none;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #ff1493;
+        box-shadow: 0 0 0 2px rgba(255, 20, 147, .12);
+    }
+
+    .auth-button {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        background: #ff1493;
+        color: white;
+        font-weight: bold;
+        transition: .2s;
+    }
+
+    .auth-button:hover {
+        background: #ff3ba5;
+        transform: translateY(-1px);
+    }
+
+    .auth-button:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .auth-message {
+        min-height: 24px;
+        text-align: center;
+        margin: 15px 0;
+        font-size: 14px;
+    }
+
+    .auth-links {
+        text-align: center;
+        margin-top: 20px;
+        color: #aaa;
+        line-height: 2;
+    }
+
+    .auth-links a {
+        color: #ff1493;
+        font-weight: bold;
+    }
+
+    /* =========================
+       TOP NAVIGATION
+    ========================== */
+
+    .top-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 25px;
+        background: rgba(8, 8, 8, .96);
+        border-bottom: 1px solid #292929;
+        backdrop-filter: blur(12px);
+        font-weight: bolder; 
+        
+        
+    }
+
+    .logo {
+        color: #ff1493;
+        font-size: 22px;
+        font-weight: 900;
+        letter-spacing: 1.5px;
+        white-space: nowrap;
+         -webkit-text-stroke: 1px white;
+    }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        height: 100%;
+    }
+
+    .nav-link {
+        border: none;
+        background: transparent;
+        color: white;
+        padding: 10px 12px;
+        border-radius: 8px;
+        transition: .2s;
+        white-space: nowrap;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+        color: white;
+        background: rgba(255, 20, 147, .12);
+    }
+
+    .nav-link.active {
+        color: #ff1493;
+    }
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+
+    .logout-button {
+        border: 1px solid #ff1493;
+        background: transparent;
+        color: #ff1493;
+        padding: 9px 14px;
+        border-radius: 8px;
+        font-weight: bolder;
+        -webkit-text-stroke: 1px white;
+
+
+    }
+
+    .logout-button:hover {
+        background: #ff1493;
+        color: white;
+    }
+
+    /* =========================
+       MOBILE NAV
+    ========================== */
+
+    .mobile-nav {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 68px;
+        background: rgba(8, 8, 8, .98);
+        border-top: 1px solid #292929;
+        z-index: 1000;
+        justify-content: space-around;
+        align-items: center;
+    }
+
+    .mobile-nav button {
+        border: none;
+        background: transparent;
+        color: white;
+        font-size: 11px;
+        padding: 6px;
+    }
+
+    .mobile-nav button.active {
+        color: #ff1493;
+    }
+
+    .mobile-nav-icon {
+        display: block;
+        font-size: 20px;
+        margin-bottom: 2px;
+    }
+
+    /* =========================
+       GENERAL
+    ========================== */
+
+    .section-title {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    .section-subtitle {
+        color: #999;
+        margin-bottom: 25px;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    .card {
+        background: #111;
+        border: 1px solid #292929;
+        border-radius: 16px;
+        padding: 22px;
+    }
+
+    .card h3 {
+        margin-bottom: 10px;
+    }
+
+    .muted {
+        color: #999;
+    }
+
+    .pink {
+        color: #ff1493;
+    }
+
+    .green {
+        color: #00ff88;
+    }
+
+    .red {
+        color: #ff4444;
+    }
+
+    /* =========================
+       HOME
+    ========================== */
+
+    #homePage .page-content {
+        padding-top: 70px;
+    }
+
+    .home-hero {
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background:
+            radial-gradient(circle at center, rgba(255, 20, 147, .13), transparent 45%),
+            #080808;
+    }
+
+    .home-inner {
+        width: 100%;
+        max-width: 1000px;
+        padding: 30px;
+    }
+
+    .home-badge {
+        display: inline-block;
+        color: #ff1493;
+        border: 1px solid rgba(255, 20, 147, .4);
+        background: rgba(255, 20, 147, .08);
+        border-radius: 30px;
+        padding: 8px 16px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        font-weight: bold;
+    }
+
+    .home-title {
+    font-size: clamp(42px, 8vw, 85px);
+    font-weight: 900;
+    line-height: .95;
+    margin-bottom: 20px;
+
+    color: white;
+    -webkit-text-stroke: 2px #ff1493;
+    text-shadow: 0 0 8px rgba(255, 20, 147, .35);
+}
+
+.home-title span {
+    color: #ff1493;
+    -webkit-text-stroke: 2px white;
+    text-shadow: 0 0 8px rgba(255, 255, 255, .35);
+}
+
+    .home-description {
+        max-width: 700px;
+        margin: auto;
+        color: #aaa;
+        font-size: 18px;
+        line-height: 1.7;
+    }
+
+    .home-actions {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-top: 30px;
+    }
+
+    .primary-button,
+    .secondary-button {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: #171717;
+    border: 3px solid #ff1493;
+    color: white;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    box-shadow:
+        0 0 15px rgba(255, 20, 147, .35),
+        0 0 30px rgba(255, 20, 147, .15);
+    animation: dashboardPulse 1.8s infinite;
+    transition: .2s;
+}
+
+@keyframes dashboardPulse {
+
+    0% {
+        transform: scale(1);
+        box-shadow:
+            0 0 15px rgba(255, 20, 147, .35),
+            0 0 30px rgba(255, 20, 147, .15);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow:
+            0 0 25px rgba(255, 20, 147, .65),
+            0 0 45px rgba(255, 20, 147, .30);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow:
+            0 0 15px rgba(255, 20, 147, .35),
+            0 0 30px rgba(255, 20, 147, .15);
+    }
+
+}
+    .primary-button {
+        background: #ff1493;
+        color: white;
+    }
+
+    .secondary-button {
+        background: #171717;
+        border: 1px solid #333;
+        color: white;
+    }
+
+    .primary-button:hover {
+        background: #ff3ba5;
+    }
+
+    .secondary-button:hover {
+        border-color: #ff1493;
+    }
+
+    .home-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        max-width: 800px;
+        margin: 45px auto 0;
+    }
+
+    .stat {
+        padding: 20px;
+        background: rgba(17, 17, 17, .8);
+        border: 1px solid #252525;
+        border-radius: 14px;
+    }
+
+    .stat-number {
+        font-size: 25px;
+        font-weight: bold;
+        color: #ff1493;
+         -webkit-text-stroke: 1px white;
+    }
+
+    .stat-label {
+        color: #faf6f6;
+        margin-top: 5px;
+        font-size: 13px;
+    }
+
+    /* =========================
+       DASHBOARD
+    ========================== */
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+
+    .dashboard-card {
+        min-height: 170px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        
+        
+    }
+
+    .dashboard-icon {
+        font-size: 35px;
+        margin-bottom: 12px;
+        
+    }
+
+    .dashboard-card p {
+        color: white;
+        line-height: 1.5;
+        font-size: 14px;
+        font-weight: bolder;
+        font-family: 'Times New Roman';
+        
+    }
+
+    .card-button {
+        margin-top: 15px;
+        width: 100%;
+        border: 1px solid #333;
+        background: deeppink;
+        color: white;
+        border-radius: 9px;
+        padding: 11px;
+        font-weight: bolder;
+    }
+
+    .card-button:hover {
+        border-color: #f6f2f4;
+        color: #efecee;
+    }
+
+    .sos-card {
+        border-color: rgba(255, 20, 147, .4);
+        background:
+            radial-gradient(circle at top right, rgba(255, 20, 147, .13), transparent 50%),
+            #111;
+    }
+
+    .sos-main-button {
+    width: 150px;
+    height: 150px;
+    min-height: 150px;
+    border-radius: 50%;
+    border: 4px solid #ff1493;
+    background: #ff1493;
+    color: white;
+    font-size: 20px;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.2;
+    padding: 15px;
+    box-shadow:
+        0 0 15px rgba(255, 20, 147, .5),
+        0 0 35px rgba(255, 20, 147, .3);
+    animation: sosPulse 1.5s infinite;
+    transition: .2s;
+}
+
+@keyframes sosPulse {
+
+    0% {
+        transform: scale(1);
+        box-shadow:
+            0 0 15px rgba(255, 20, 147, .5),
+            0 0 35px rgba(255, 20, 147, .3);
+    }
+
+    50% {
+        transform: scale(1.08);
+        box-shadow:
+            0 0 25px rgba(255, 20, 147, .8),
+            0 0 55px rgba(255, 20, 147, .5);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow:
+            0 0 15px rgba(255, 20, 147, .5),
+            0 0 35px rgba(255, 20, 147, .3);
+    }
+
+}
+
+    .sos-main-button:hover {
+        background: #ff3ba5;
+    }
+
+    .status-box {
+        margin-top: 12px;
+        min-height: 25px;
+        font-size: 13px;
+    }
+
+    /* =========================
+       FORMS
+    ========================== */
+
+    .form-card {
+        max-width: 700px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    /* =========================
+       LISTS
+    ========================== */
+
+    .list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .list-item {
+        background: #111;
+        border: 1px solid #292929;
+        border-radius: 13px;
+        padding: 17px;
+    }
+
+    .list-item-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 8px;
+    }
+
+    .list-item-title {
+        font-weight: bold;
+    }
+
+    .list-item p {
+        color: #999;
+        font-size: 14px;
+        margin: 5px 0;
+    }
+
+    .delete-button,
+    .small-button {
+        border: 1px solid #444;
+        background: #171717;
+        color: white;
+        border-radius: 7px;
+        padding: 7px 10px;
+        font-size: 12px;
+    }
+
+    .delete-button:hover {
+        border-color: #ff4444;
+        color: #ff4444;
+    }
+
+    .small-button:hover {
+        border-color: #ff1493;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 45px 20px;
+        color: #777;
+        background: #111;
+        border: 1px dashed #333;
+        border-radius: 14px;
+    }
+
+    /* =========================
+       PROFILE
+    ========================== */
+
+    .profile-card {
+        max-width: 650px;
+    }
+
+    .profile-avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: #ff1493;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 35px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .profile-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 15px 0;
+        border-bottom: 1px solid #252525;
+    }
+
+    .profile-row:last-child {
+        border-bottom: none;
+    }
+
+    .profile-label {
+        color: #888;
+    }
+
+    /* =========================
+       ABOUT
+    ========================== */
+
+    .about-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+
+    .about-card {
+        line-height: 1.7;
+        color: #aaa;
+    }
+
+    .about-card h3 {
+        color: white;
+    }
+
+    .about-card strong {
+        color: #ff1493;
+    }
+
+    /* =========================
+       MODAL
+    ========================== */
+
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: rgba(0, 0, 0, .82);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-box {
+        width: 100%;
+        max-width: 450px;
+        background: #111;
+        border: 1px solid #ff1493;
+        border-radius: 18px;
+        padding: 28px;
+        text-align: center;
+    }
+
+    .modal-box h2 {
+        margin-bottom: 10px;
+    }
+
+    .modal-box p {
+        color: #aaa;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .modal-actions button {
+        flex: 1;
+    }
+
+    /* =========================
+       TOAST
+    ========================== */
+
+    #toast {
+        position: fixed;
+        right: 20px;
+        bottom: 25px;
+        z-index: 3000;
+        background: #171717;
+        color: white;
+        border: 1px solid #ff1493;
+        border-radius: 10px;
+        padding: 13px 17px;
+        max-width: 350px;
+        display: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
+    }
+
+    #toast.show {
+        display: block;
+    }
+
+    /* =========================
+       RESPONSIVE
+    ========================== */
+
+    @media (max-width: 1000px) {
+        .nav-links {
+            gap: 0;
+        }
+
+        .nav-link {
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .dashboard-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 760px) {
+        html, body {
+            overflow: hidden;
+        }
+
+        .top-nav {
+            height: 62px;
+            padding: 0 15px;
+        }
+
+        .logo {
+            font-size: 18px;
+        }
+
+        .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    max-width: 78%;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+}
+
+.nav-links::-webkit-scrollbar {
+    display: none;
+}
+
+.nav-link {
+    padding: 7px 5px;
+    font-size: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+        .logout-button {
+            padding: 7px 10px;
+            font-size: 12px;
+        }
+
+        .mobile-nav {
+            display: flex;
+        }
+
+        .page-content {
+            padding: 82px 15px 90px;
+        }
+
+        #homePage .page-content {
+            padding-top: 62px;
+            padding-bottom: 68px;
+        }
+
+        .home-hero {
+            min-height: calc(100vh - 62px - 68px);
+        }
+
+        .home-inner {
+            padding: 20px;
+        }
+
+        .home-description {
+            font-size: 15px;
+        }
+
+        .home-stats {
+            grid-template-columns: 1fr;
+            margin-top: 25px;
+        }
+
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .about-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .section-title {
+            font-size: 24px;
+        }
+
+        .profile-row {
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .list-item-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .auth-box {
+            padding: 25px 20px;
+        }
+
+        #toast {
+            left: 15px;
+            right: 15px;
+            bottom: 85px;
+            max-width: none;
+        }
+    }
+/* CENTER SOS PAGE */
+#sosPage .page-content {
+    text-align: center;
+}
+
+#sosPage .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+#sosPage .sos-main-button {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#sosPage .card {
+    width: 100%;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+
+/* CENTER CONTACTS PAGE */
+#contactsPage .page-content {
+    text-align: center;
+}
+
+#contactsPage .container {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    text-align: left;
+}
+
+#contactsPage .card {
+    width: 100%;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+    <!-- =====================================================
+         LOGIN PAGE
+    ====================================================== -->
+
+    <section id="loginPage" class="page auth-page">
+
+        <div class="auth-box">
+
+            <div class="auth-logo">SOS GUARDIAN</div>
+
+            <div class="auth-subtitle">
+                Emergency Assistance & Personal Safety
+            </div>
+
+            <h2>Welcome Back</h2>
+
+            <form id="loginForm">
+
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input
+                        type="email"
+                        id="loginEmail"
+                        required
+                        autocomplete="email"
+                        placeholder="Enter your email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input
+                        type="password"
+                        id="loginPassword"
+                        required
+                        autocomplete="current-password"
+                        placeholder="Enter your password"
+                    >
+                </div>
+
+                <div id="loginMessage" class="auth-message"></div>
+
+                <button
+                    type="submit"
+                    id="loginButton"
+                    class="auth-button"
+                >
+                    LOGIN
+                </button>
+
+            </form>
+
+            <div class="auth-links">
+                Don't have an account?
+                <a href="#register">Create Account</a>
+                <br>
+                <a href="#about">About Guardian SOS</a>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         REGISTER PAGE
+    ====================================================== -->
+
+    <section id="registerPage" class="page auth-page">
+
+        <div class="auth-box">
+
+            <div class="auth-logo">SOS GUARDIAN</div>
+
+            <div class="auth-subtitle">
+                Create your emergency assistance account
+            </div>
+
+            <h2>Create Account</h2>
+
+            <form id="registerForm">
+
+                <div class="form-group">
+                    <label for="registerName">Full Name</label>
+                    <input
+                        type="text"
+                        id="registerName"
+                        required
+                        placeholder="Enter your full name"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input
+                        type="email"
+                        id="registerEmail"
+                        required
+                        autocomplete="email"
+                        placeholder="Enter your email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="registerPhone">Phone</label>
+                    <input
+                        type="tel"
+                        id="registerPhone"
+                        required
+                        placeholder="Enter your phone number"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input
+                        type="password"
+                        id="registerPassword"
+                        required
+                        minlength="8"
+                        autocomplete="new-password"
+                        placeholder="Minimum 8 characters"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        required
+                        minlength="8"
+                        autocomplete="new-password"
+                        placeholder="Confirm your password"
+                    >
+                </div>
+
+                <div id="registerMessage" class="auth-message"></div>
+
+                <button
+                    type="submit"
+                    id="registerButton"
+                    class="auth-button"
+                >
+                    CREATE ACCOUNT
+                </button>
+
+            </form>
+
+            <div class="auth-links">
+                Already have an account?
+                <a href="#login">Login</a>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         APP NAVIGATION
+    ====================================================== -->
+
+    <header id="mainNavigation" class="top-nav" style="display:none;">
+
+        <div class="logo">
+            GUARDIAN SOS
+        </div>
+
+        <nav class="nav-links">
+
+            <!-- HOME IS FIRST -->
+            <button class="nav-link" data-page="home">
+                Home
+            </button>
+
+            <button class="nav-link" data-page="dashboard">
+                Dashboard
+            </button>
+
+            <button class="nav-link" data-page="sos">
+                SOS
+            </button>
+
+            <button class="nav-link" data-page="contacts">
+                Contacts
+            </button>
+
+            <button class="nav-link" data-page="location">
+                Location
+            </button>
+
+            <button class="nav-link" data-page="history">
+                History
+            </button>
+
+            <button class="nav-link" data-page="profile">
+                Profile
+            </button>
+
+            <button class="nav-link" data-page="about">
+                About
+            </button>
+
+        </nav>
+
+        <button
+            class="logout-button"
+            onclick="logout()"
+        >
+            LOGOUT
+        </button>
+
+    </header>
+
+
+    <!-- =====================================================
+         MOBILE NAVIGATION
+    ====================================================== -->
+
+    <nav id="mobileNavigation" class="mobile-nav" style="display:none;">
+
+        <button data-page="home">
+            <span class="mobile-nav-icon">🏠</span>
+            Home
+        </button>
+
+        <button data-page="dashboard">
+            <span class="mobile-nav-icon">📊</span>
+            Dashboard
+        </button>
+
+        <button data-page="sos">
+            <span class="mobile-nav-icon">🚨</span>
+            SOS
+        </button>
+
+        <button data-page="contacts">
+            <span class="mobile-nav-icon">👥</span>
+            Contacts
+        </button>
+
+        <button data-page="profile">
+            <span class="mobile-nav-icon">👤</span>
+            Profile
+        </button>
+
+    </nav>
+
+
+    <!-- =====================================================
+         HOME PAGE
+         THIS IS NOW THE FIRST PAGE AFTER LOGIN
+    ====================================================== -->
+
+    <section id="homePage" class="page protected-page">
+
+        <div class="page-content">
+
+            <div class="home-hero">
+
+                <div class="home-inner">
+
+                    <div class="home-badge">
+                        🛡️ YOUR SAFETY COMES FIRST
+                    </div>
+
+                    <h1 class="home-title">
+                        HELP WHEN<br>
+                        <span>YOU NEED IT.</span>
+                    </h1>
+
+                    <p class="home-description">
+                        Guardian SOS gives you quick access to emergency
+                        assistance, trusted contacts, location sharing,
+                        and your personal safety information.
+                    </p>
+
+                    <div class="home-actions">
+
+                        <button
+                            class="sos-main-button"
+                            
+                            onclick="activateSOS()"
+                        >
+                            🚨 ACTIVATE SOS
+                        </button>
+
+                        <button
+                            class="secondary-button"
+                            onclick="navigateTo('dashboard')"
+                        >
+                            Open Dashboard
+                        </button>
+
+                    </div>
+
+                    <div class="home-stats">
+
+                        <div class="stat">
+                            <div class="stat-number">SOS</div>
+                            <div class="stat-label">
+                                Emergency assistance
+                            </div>
+                        </div>
+
+                        <div class="stat">
+                            <div class="stat-number">GPS</div>
+                            <div class="stat-label">
+                                Location support
+                            </div>
+                        </div>
+
+                        <div class="stat">
+                            <div class="stat-number">24/7</div>
+                            <div class="stat-label">
+                                Quick access
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         DASHBOARD PAGE
+    ====================================================== -->
+
+    <section id="dashboardPage" class="page protected-page">
+
+        <div class="page-content">
+
+            <div class="container">
+
+                <h1 class="section-title">
+                    Dashboard
+                </h1>
+
+                <p class="section-subtitle">
+                    Welcome, <span id="dashboardUserName" class="pink">User</span>
+                </p>
+
+                <div class="dashboard-grid">
+
+                    <!-- My Account -->
+                    <div class="card dashboard-card">
+
+                        <div>
+                            <div class="dashboard-icon">👤</div>
+
+                            <h3>My Account</h3>
+
+                            <p>
+                                View your Guardian SOS profile information.
+                            </p>
+                        </div>
+
+                        <button
+                            class="card-button"
+                            onclick="navigateTo('profile')"
+                        >
+                            View Profile
+                        </button>
+
+                    </div>
+
+
+                    <!-- Emergency SOS -->
+                    <div class="card dashboard-card sos-card">
+
+                        <div>
+                            <div class="dashboard-icon">🚨</div>
+
+                            <h3>Emergency SOS</h3>
+
+                            <p>
+                                Activate an emergency SOS request and
+                                record your current location.
+                            </p>
+                        </div>
+
+                        <button
+                            class="card-button"
+                            onclick="activateSOS()"
+                        >
+                            ACTIVATE SOS
+                        </button>
+
+                        <div id="dashboardSosStatus" class="status-box"></div>
+
+                    </div>
+
+
+                    <!-- My Location -->
+                    <div class="card dashboard-card">
+
+                        <div>
+                            <div class="dashboard-icon">📍</div>
+
+                            <h3>My Location</h3>
+
+                            <p>
+                                Save and view your current GPS location.
+                            </p>
+                        </div>
+
+                        <button
+                            class="card-button"
+                            onclick="getLocation()"
+                        >
+                            GET MY LOCATION
+                        </button>
+
+                        <div id="dashboardLocationStatus" class="status-box"></div>
+
+                    </div>
+
+
+                    <!-- Contacts -->
+                    <div class="card dashboard-card">
+
+                        <div>
+                            <div class="dashboard-icon">👥</div>
+
+                            <h3>Emergency Contacts</h3>
+
+                            <p>
+                                Manage the people you trust during an emergency.
+                            </p>
+                        </div>
+
+                        <button
+                            class="card-button"
+                            onclick="navigateTo('contacts')"
+                        >
+                            MANAGE CONTACTS
+                        </button>
+
+                    </div>
+
+
+                    <!-- History -->
+                    <div class="card dashboard-card">
+
+                        <div>
+                            <div class="dashboard-icon">📋</div>
+
+                            <h3>SOS History</h3>
+
+                            <p>
+                                View your previous emergency SOS requests.
+                            </p>
+                        </div>
+
+                        <button
+                            class="card-button"
+                            onclick="navigateTo('history')"
+                        >
+                            VIEW HISTORY
+                        </button>
+
+                    </div>
+
+
+                    <!-- Location History -->
+                    <div class="card dashboard-card">
+
+                        <div>
+                            <div class="dashboard-icon">🗺️</div>
+
+                            <h3>Location History</h3>
+
+                            <p>
+                                View your previously saved locations.
+                            </p>
+                        </div>
+
+                        <button
+                            class="card-button"
+                            onclick="navigateTo('location')"
+                        >
+                            VIEW LOCATIONS
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         SOS PAGE
+    ====================================================== -->
+
+    <section id="sosPage" class="page protected-page">
+
+        <div class="page-content">
+
+            <div class="container">
+
+                <h1 class="section-title">
+                    Emergency SOS
+                </h1>
+
+                <p class="section-subtitle">
+                    Use this page when you need emergency assistance.
+                </p>
+
+                <div class="card form-card">
+
+                    <div style="text-align:center;">
+
+                        <div style="font-size:70px; margin-bottom:15px;">
+                            🚨
+                        </div>
+
+                        <h2>
+                            Emergency SOS
+                        </h2>
+
+                        <p
+                            class="muted"
+                            style="line-height:1.7; margin:15px 0 25px;"
+                        >
+                            Activating SOS will send your emergency request
+                            to the Guardian SOS server and attempt to include
+                            your current GPS location.
+                        </p>
+
+                        <button
+                            class="sos-main-button"
+                            onclick="activateSOS()"
+                        >
+                            ACTIVATE SOS
+                        </button>
+
+                        <div
+                            id="sosPageStatus"
+                            class="status-box"
+                            style="margin-top:20px;"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CONTACTS PAGE
+    ====================================================== -->
+
+    <section id="contactsPage" class="page protected-page">
+
+        <div class="page-content">
+
+            <div class="container">
+
+                <h1 class="section-title">
+                    Emergency Contacts
+                </h1>
+
+                <p class="section-subtitle">
+                    Add and manage people you trust.
+                </p>
+
+                <div class="form-card card">
+
+                    <h3>
+                        Add Emergency Contact
+                    </h3>
+
+                    <br>
+
+                    <div class="form-row">
+
+                        <div class="form-group">
+                            <label for="contactName">
+                                Contact Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="contactName"
+                                placeholder="Enter contact name"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contactPhone">
+                                Phone Number
+                            </label>
+
+                            <input
+                                type="tel"
+                                id="contactPhone"
+                                placeholder="Enter phone number"
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="form-row">
+
+                        <div class="form-group">
+                            <label for="relationship">
+                                Relationship
+                            </label>
+
+                            <input
+                                type="text"
+                                id="relationship"
+                                placeholder="e.g. Brother, Mother, Friend"
+                            >
+                        </div>
+
+                        <div class="form-group">
+
+                            <label for="priority">
+                                Priority
+                            </label>
+
+                            <select id="priority">
+
+                                <option value="1">
+                                    Priority 1
+                                </option>
+
+                                <option value="2">
+                                    Priority 2
+                                </option>
+
+                                <option value="3">
+                                    Priority 3
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="contactStatus"
+                        class="status-box"
+                    ></div>
+
+                    <button
+                        class="primary-button"
+                        onclick="addContact()"
+                    >
+                        ADD CONTACT
+                    </button>
+
+                </div>
+
+                <br><br>
+
+                <h2 style="margin-bottom:15px;">
+                    My Emergency Contacts
+                </h2>
+
+                <div
+                    id="contactsList"
+                    class="list"
+                ></div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         LOCATION PAGE
+    ====================================================== -->
+
+    <section id="locationPage" class="page protected-page">
+
+        <div class="page-content">
+
+            <div class="container">
+
+                <h1 class="section-title">
+                    My Location
+                </h1>
+
+                <p class="section-subtitle">
+                    Save your current GPS location and view location history.
+                </p>
+
+                <div class="card">
+
+                    <h3>
+                        Current Location
+                    </h3>
+
+                    <p
+                        class="muted"
+                        style="margin:10px 0 20px; line-height:1.6;"
+                    >
+                        Your browser will ask for permission to access your
+                        location.
+                    </p>
+
+                    <button
+                        class="primary-button"
+                        onclick="getLocation()"
+                    >
+                        📍 GET MY LOCATION
+                    </button>
+
+                    <div
+                        id="locationPageStatus"
+                        class="status-box"
+                    ></div>
+
+                </div>
+
+                <br><br>
+
+                <h2 style="margin-bottom:15px;">
+                    Location History
+                </h2>
+
+                <div
+                    id="locationsList"
+                    class="list"
+                ></div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         HISTORY PAGE
+    ====================================================== -->
+
+    <section id="historyPage" class="page protected-page">
+
+        <div class="page-content">
+
+            <div class="container">
+
+                <h1 class="section-title">
+                    SOS History
+                </h1>
+
+                <p class="section-subtitle">
+                    View and manage your previous emergency requests.
+                </p>
+
+                <div
+                    id="historyList"
+                    class="list"
+                ></div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PROFILE PAGE
+    ====================================================== -->
+
+    <section id="profilePage" class="page protected-page">
+
+        <div class="page-content">
+
+            <div class="container">
+
+                <h1 class="section-title">
+                    My Profile
+                </h1>
+
+                <p class="section-subtitle">
+                    Your Guardian SOS account information.
+                </p>
+
+                <div class="card profile-card">
+
+                    <div
+                        id="profileAvatar"
+                        class="profile-avatar"
+                    >
+                        U
+                    </div>
+
+                    <div class="profile-row">
+
+                        <div class="profile-label">
+                            Full Name
+                        </div>
+
+                        <div id="profileName">
+                            Loading...
+                        </div>
+
+                    </div>
+
+                    <div class="profile-row">
+
+                        <div class="profile-label">
+                            Email
+                        </div>
+
+                        <div id="profileEmail">
+                            Loading...
+                        </div>
+
+                    </div>
+
+                    <div class="profile-row">
+
+                        <div class="profile-label">
+                            Phone
+                        </div>
+
+                        <div id="profilePhone">
+                            Loading...
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ABOUT PAGE
+    ====================================================== -->
+
+    <section id="aboutPage" class="page">
+
+        <div class="page-content">
+
+            <div class="container">
+
+                <h1 class="section-title">
+                    About Guardian SOS
+                </h1>
+
+                <p class="section-subtitle">
+                    Emergency assistance and personal safety.
+                </p>
+
+                <div class="about-grid">
+
+                    <div class="card about-card">
+
+                        <h3>
+                            🛡️ Personal Safety
+                        </h3>
+
+                        <br>
+
+                        <p>
+                            Guardian SOS is designed to provide quick access
+                            to emergency assistance features when you need
+                            them.
+                        </p>
+
+                    </div>
+
+
+                    <div class="card about-card">
+
+                        <h3>
+                            🚨 Emergency SOS
+                        </h3>
+
+                        <br>
+
+                        <p>
+                            The SOS feature creates an emergency request
+                            through the Guardian SOS system and can include
+                            your current GPS coordinates.
+                        </p>
+
+                    </div>
+
+
+                    <div class="card about-card">
+
+                        <h3>
+                            👥 Trusted Contacts
+                        </h3>
+
+                        <br>
+
+                        <p>
+                            You can store emergency contacts and manage their
+                            relationship and priority.
+                        </p>
+
+                    </div>
+
+
+                    <div class="card about-card">
+
+                        <h3>
+                            📍 Location
+                        </h3>
+
+                        <br>
+
+                        <p>
+                            Guardian SOS can use your browser's GPS location
+                            permission to save your coordinates and display
+                            them on Google Maps.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         SOS CONFIRMATION MODAL
+    ====================================================== -->
+
+    <div id="sosModal" class="modal">
+
+        <div class="modal-box">
+
+            <h2>
+                🚨 Activate SOS?
+            </h2>
+
+            <p>
+                This will create an emergency SOS request. Your current
+                location will be included if GPS access is available.
+            </p>
+
+            <div class="modal-actions">
+
+                <button
+                    class="secondary-button"
+                    onclick="closeSOSModal()"
+                >
+                    CANCEL
+                </button>
+
+                <button
+                    class="primary-button"
+                    onclick="confirmSOS()"
+                >
+                    ACTIVATE SOS
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         TOAST
+    ====================================================== -->
+
+    <div id="toast"></div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   CONFIGURATION
+========================================================= */
+
+const TOKEN_KEY = "guardianToken";
+const USER_KEY = "guardianUser";
+
+
+/* =========================================================
+   ROUTES
+========================================================= */
+
+const protectedPages = [
+    "home",
+    "dashboard",
+    "sos",
+    "contacts",
+    "location",
+    "history",
+    "profile"
+];
+
+const allPages = [
+    "login",
+    "register",
+    "home",
+    "dashboard",
+    "sos",
+    "contacts",
+    "location",
+    "history",
+    "profile",
+    "about"
+];
+
+
+/* =========================================================
+   TOKEN
+========================================================= */
+
+function getToken() {
+    return localStorage.getItem(TOKEN_KEY);
+}
+
+
+/* =========================================================
+   USER
+========================================================= */
+
+function getStoredUser() {
+
+    try {
+
+        const user = localStorage.getItem(USER_KEY);
+
+        return user ? JSON.parse(user) : null;
+
+    } catch (error) {
+
+        return null;
+
+    }
+
+}
+
+
+/* =========================================================
+   HTML ESCAPE
+========================================================= */
+
+function escapeHTML(value) {
+
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+let toastTimer;
+
+function showToast(message) {
+
+    const toast = document.getElementById("toast");
+
+    toast.textContent = message;
+    toast.classList.add("show");
+
+    clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(function() {
+
+        toast.classList.remove("show");
+
+    }, 3500);
+
+}
+
+
+/* =========================================================
+   API HELPER
+========================================================= */
+
+async function api(url, options = {}) {
+
+    const token = getToken();
+
+    if (!token) {
+
+        navigateTo("login");
+
+        throw new Error("Please login first.");
+
+    }
+
+    options.headers = options.headers || {};
+
+    options.headers["Authorization"] = "Bearer " + token;
+
+    if (
+        options.body &&
+        typeof options.body !== "string"
+    ) {
+
+        options.headers["Content-Type"] = "application/json";
+
+        options.body = JSON.stringify(options.body);
+
+    }
+
+    let response;
+
+    try {
+
+        response = await fetch(url, options);
+
+    } catch (error) {
+
+        throw new Error(
+            "Unable to connect to the server."
+        );
+
+    }
+
+    let data = {};
+
+    try {
+
+        data = await response.json();
+
+    } catch (error) {
+
+        data = {};
+
+    }
+
+    if (response.status === 401) {
+
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+
+        navigateTo("login");
+
+        throw new Error(
+            "Your session has expired."
+        );
+
+    }
+
+    if (!response.ok) {
+
+        throw new Error(
+            data.message || "Request failed."
+        );
+
+    }
+
+    return data;
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function navigateTo(page) {
+
+    if (!allPages.includes(page)) {
+
+        page = "home";
+
+    }
+
+    if (
+        protectedPages.includes(page) &&
+        !getToken()
+    ) {
+
+        page = "login";
+
+    }
+
+    window.location.hash = page;
+
+}
+
+
+/* =========================================================
+   SHOW PAGE
+========================================================= */
+
+function showPage(page) {
+
+    if (!allPages.includes(page)) {
+
+        page = getToken() ? "home" : "login";
+
+    }
+
+    if (
+        protectedPages.includes(page) &&
+        !getToken()
+    ) {
+
+        page = "login";
+
+    }
+
+    if (
+        (page === "login" || page === "register") &&
+        getToken()
+    ) {
+
+        page = "home";
+
+    }
+
+
+    document.querySelectorAll(".page").forEach(function(element) {
+
+        element.classList.remove("active");
+
+    });
+
+
+    const pageElement =
+        document.getElementById(page + "Page");
+
+    if (pageElement) {
+
+        pageElement.classList.add("active");
+
+    }
+
+
+    const loggedIn = !!getToken();
+
+    document.getElementById("mainNavigation").style.display =
+        loggedIn ? "flex" : "none";
+
+    document.getElementById("mobileNavigation").style.display =
+        loggedIn ? "flex" : "none";
+
+
+    document.querySelectorAll(".nav-link").forEach(function(button) {
+
+        button.classList.toggle(
+            "active",
+            button.dataset.page === page
+        );
+
+    });
+
+
+    document.querySelectorAll(".mobile-nav button").forEach(function(button) {
+
+        button.classList.toggle(
+            "active",
+            button.dataset.page === page
+        );
+
+    });
+
+
+    if (page === "home") {
+
+        updateHomeUser();
+
+    }
+
+    if (page === "dashboard") {
+
+        loadDashboard();
+
+    }
+
+    if (page === "contacts") {
+
+        loadContacts();
+
+    }
+
+    if (page === "location") {
+
+        loadLocations();
+
+    }
+
+    if (page === "history") {
+
+        loadHistory();
+
+    }
+
+    if (page === "profile") {
+
+        loadProfile();
+
+    }
+
+}
+
+
+/* =========================================================
+   HASH ROUTER
+========================================================= */
+
+function handleRoute() {
+
+    let page =
+        window.location.hash.replace("#", "").trim();
+
+    if (!page) {
+
+        /*
+         * IMPORTANT:
+         * When the user has logged in, HOME is the
+         * first page opened.
+         */
+
+        page = getToken() ? "home" : "login";
+
+    }
+
+    showPage(page);
+
+}
+
+
+window.addEventListener(
+    "hashchange",
+    handleRoute
+);
+
+
+/* =========================================================
+   NAVIGATION BUTTONS
+========================================================= */
+
+document.querySelectorAll(
+    ".nav-link, .mobile-nav button"
+).forEach(function(button) {
+
+    button.addEventListener("click", function() {
+
+        navigateTo(this.dataset.page);
+
+    });
+
+});
+
+
+/* =========================================================
+   UPDATE HOME USER
+========================================================= */
+
+function updateHomeUser() {
+
+    const user = getStoredUser();
+
+    if (!user) {
+        return;
+    }
+
+    const name =
+        user.name ||
+        user.fullName ||
+        "User";
+
+    const dashboardName =
+        document.getElementById("dashboardUserName");
+
+    if (dashboardName) {
+
+        dashboardName.textContent = name;
+
+    }
+
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+const loginForm =
+    document.getElementById("loginForm");
+
+loginForm.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+        const email =
+            document.getElementById("loginEmail")
+                .value
+                .trim();
+
+        const password =
+            document.getElementById("loginPassword")
+                .value;
+
+        const message =
+            document.getElementById("loginMessage");
+
+        const button =
+            document.getElementById("loginButton");
+
+
+        message.textContent = "Logging in...";
+        message.style.color = "#ff1493";
+
+        button.disabled = true;
+
+
+        try {
+
+            const response = await fetch(
+                "/api/auth/login",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                }
+            );
+
+
+            let data = {};
+
+            try {
+
+                data = await response.json();
+
+            } catch (error) {
+
+                data = {};
+
+            }
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                throw new Error(
+                    data.message ||
+                    "Login failed."
+                );
+
+            }
+
+
+            localStorage.setItem(
+                TOKEN_KEY,
+                data.token
+            );
+
+            localStorage.setItem(
+                USER_KEY,
+                JSON.stringify(data.user)
+            );
+
+
+            message.textContent =
+                "Login successful. Opening Home...";
+
+            message.style.color =
+                "#00ff88";
+
+
+            /*
+             * HOME IS NOW THE FIRST PAGE AFTER LOGIN.
+             */
+
+            setTimeout(function() {
+
+                navigateTo("home");
+
+            }, 500);
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            message.textContent =
+                error.message ||
+                "Unable to login.";
+
+            message.style.color =
+                "#ff4444";
+
+            button.disabled = false;
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   REGISTER
+========================================================= */
+
+const registerForm =
+    document.getElementById("registerForm");
+
+registerForm.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+
+        const name =
+            document.getElementById("registerName")
+                .value
+                .trim();
+
+        const email =
+            document.getElementById("registerEmail")
+                .value
+                .trim();
+
+        const phone =
+            document.getElementById("registerPhone")
+                .value
+                .trim();
+
+        const password =
+            document.getElementById("registerPassword")
+                .value;
+
+        const confirmPassword =
+            document.getElementById("confirmPassword")
+                .value;
+
+        const message =
+            document.getElementById("registerMessage");
+
+        const button =
+            document.getElementById("registerButton");
+
+
+        if (password !== confirmPassword) {
+
+            message.textContent =
+                "Passwords do not match.";
+
+            message.style.color =
+                "#ff4444";
+
+            return;
+
+        }
+
+
+        if (password.length < 8) {
+
+            message.textContent =
+                "Password must contain at least 8 characters.";
+
+            message.style.color =
+                "#ff4444";
+
+            return;
+
+        }
+
+
+        button.disabled = true;
+
+        message.textContent =
+            "Creating account...";
+
+        message.style.color =
+            "#ff1493";
+
+
+        try {
+
+            const response = await fetch(
+                "/api/auth/register",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        password: password
+                    })
+                }
+            );
+
+
+            let data = {};
+
+            try {
+
+                data = await response.json();
+
+            } catch (error) {
+
+                data = {};
+
+            }
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                throw new Error(
+                    data.message ||
+                    "Registration failed."
+                );
+
+            }
+
+
+            localStorage.setItem(
+                TOKEN_KEY,
+                data.token
+            );
+
+            localStorage.setItem(
+                USER_KEY,
+                JSON.stringify(data.user)
+            );
+
+
+            message.textContent =
+                "Account created successfully!";
+
+            message.style.color =
+                "#00ff88";
+
+
+            /*
+             * HOME IS NOW THE FIRST PAGE AFTER
+             * REGISTRATION AS WELL.
+             */
+
+            setTimeout(function() {
+
+                navigateTo("home");
+
+            }, 500);
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            message.textContent =
+                error.message ||
+                "Unable to create account.";
+
+            message.style.color =
+                "#ff4444";
+
+            button.disabled = false;
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   LOAD DASHBOARD
+========================================================= */
+
+async function loadDashboard() {
+
+    updateHomeUser();
+
+    const user = getStoredUser();
+
+    if (user) {
+
+        document.getElementById(
+            "dashboardUserName"
+        ).textContent =
+            user.name ||
+            user.fullName ||
+            "User";
+
+    }
+
+}
+
+
+/* =========================================================
+   LOAD PROFILE
+========================================================= */
+
+async function loadProfile() {
+
+    try {
+
+        const data =
+            await api("/api/auth/me");
+
+
+        const user =
+            data.user || getStoredUser();
+
+
+        if (!user) {
+
+            return;
+
+        }
+
+
+        localStorage.setItem(
+            USER_KEY,
+            JSON.stringify(user)
+        );
+
+
+        const name =
+            user.name ||
+            user.fullName ||
+            "User";
+
+        const email =
+            user.email ||
+            "";
+
+        const phone =
+    user.phone ||
+    user.phoneNumber ||
+    user.mobile ||
+    "";
+
+
+        document.getElementById(
+            "profileName"
+        ).textContent = name;
+
+
+        document.getElementById(
+            "profileEmail"
+        ).textContent = email;
+
+
+        document.getElementById(
+            "profilePhone"
+        ).textContent = phone || "Not provided";
+
+
+        const avatar =
+            document.getElementById(
+                "profileAvatar"
+            );
+
+
+        avatar.textContent =
+            name.charAt(0).toUpperCase();
+
+
+        document.getElementById(
+            "dashboardUserName"
+        ).textContent = name;
+
+
+    } catch (error) {
+
+        console.error(
+            "Profile error:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ADD CONTACT
+========================================================= */
+
+async function addContact() {
+
+    const name =
+        document.getElementById(
+            "contactName"
+        ).value.trim();
+
+    const phone =
+        document.getElementById(
+            "contactPhone"
+        ).value.trim();
+
+    const relationship =
+        document.getElementById(
+            "relationship"
+        ).value.trim();
+
+    const priority =
+        Number(
+            document.getElementById(
+                "priority"
+            ).value
+        );
+
+
+    const status =
+        document.getElementById(
+            "contactStatus"
+        );
+
+
+    if (!name || !phone) {
+
+        status.textContent =
+            "Contact name and phone number are required.";
+
+        status.style.color =
+            "#ff4444";
+
+        return;
+
+    }
+
+
+    status.textContent =
+        "Adding contact...";
+
+    status.style.color =
+        "#ff1493";
+
+
+    try {
+
+        await api(
+            "/api/contacts",
+            {
+                method: "POST",
+
+                body: {
+                    name: name,
+                    phone: phone,
+                    relationship:
+                        relationship ||
+                        "Emergency Contact",
+                    priority: priority
+                }
+            }
+        );
+
+
+        status.textContent =
+            "Emergency contact added successfully.";
+
+        status.style.color =
+            "#00ff88";
+
+
+        document.getElementById(
+            "contactName"
+        ).value = "";
+
+        document.getElementById(
+            "contactPhone"
+        ).value = "";
+
+        document.getElementById(
+            "relationship"
+        ).value = "";
+
+
+        await loadContacts();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            error.message ||
+            "Unable to add contact.";
+
+        status.style.color =
+            "#ff4444";
+
+    }
+
+}
+
+
+/* =========================================================
+   LOAD CONTACTS
+========================================================= */
+
+async function loadContacts() {
+
+    const list =
+        document.getElementById(
+            "contactsList"
+        );
+
+
+    if (!list) {
+        return;
+    }
+
+
+    list.innerHTML =
+        '<div class="empty-state">Loading contacts...</div>';
+
+
+    try {
+
+        const data =
+            await api("/api/contacts");
+
+
+        const contacts =
+            Array.isArray(data.contacts)
+                ? data.contacts
+                : [];
+
+
+        if (!contacts.length) {
+
+            list.innerHTML =
+                '<div class="empty-state">' +
+                'No emergency contacts added yet.' +
+                '</div>';
+
+            return;
+
+        }
+
+
+        list.innerHTML =
+            contacts.map(function(contact) {
+
+                return `
+                    <div class="list-item">
+
+                        <div class="list-item-header">
+
+                            <div class="list-item-title">
+                                ${escapeHTML(contact.name)}
+                            </div>
+
+                            <button
+                                class="delete-button"
+                                onclick="deleteContact('${escapeHTML(contact._id)}')"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+
+                        <p>
+                            📞 ${escapeHTML(contact.phone)}
+                        </p>
+
+                        <p>
+                            👤 ${escapeHTML(
+                                contact.relationship ||
+                                "Emergency Contact"
+                            )}
+                        </p>
+
+                        <p>
+                            ⭐ Priority:
+                            ${escapeHTML(
+                                contact.priority ||
+                                1
+                            )}
+                        </p>
+
+                    </div>
+                `;
+
+            }).join("");
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        list.innerHTML =
+            `<div class="empty-state red">
+                ${escapeHTML(
+                    error.message ||
+                    "Unable to load contacts."
+                )}
+            </div>`;
+
+    }
+
+}
+
+
+/* =========================================================
+   DELETE CONTACT
+========================================================= */
+
+async function deleteContact(id) {
+
+    if (!confirm(
+        "Are you sure you want to delete this contact?"
+    )) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await api(
+            "/api/contacts/" +
+            encodeURIComponent(id),
+            {
+                method: "DELETE"
+            }
+        );
+
+
+        showToast(
+            "Emergency contact deleted."
+        );
+
+
+        await loadContacts();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        showToast(
+            error.message ||
+            "Unable to delete contact."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   GET LOCATION
+========================================================= */
+
+function getLocation() {
+
+    const statusElements = [
+        document.getElementById(
+            "dashboardLocationStatus"
+        ),
+        document.getElementById(
+            "locationPageStatus"
+        )
+    ];
+
+
+    function setStatus(message, color) {
+
+        statusElements.forEach(function(element) {
+
+            if (element) {
+
+                element.textContent =
+                    message;
+
+                element.style.color =
+                    color;
+
+            }
+
+        });
+
+    }
+
+
+    if (!navigator.geolocation) {
+
+        setStatus(
+            "Geolocation is not supported by this browser.",
+            "#ff4444"
+        );
+
+        return;
+
+    }
+
+
+    setStatus(
+        "Getting your location...",
+        "#ff1493"
+    );
+
+
+    navigator.geolocation.getCurrentPosition(
+
+        async function(position) {
+
+            const latitude =
+                position.coords.latitude;
+
+            const longitude =
+                position.coords.longitude;
+
+            const accuracy =
+                position.coords.accuracy;
+
+
+            try {
+
+                await api(
+                    "/api/location",
+                    {
+                        method: "POST",
+
+                        body: {
+                            latitude:
+                                latitude,
+
+                            longitude:
+                                longitude,
+
+                            accuracy:
+                                accuracy
+                        }
+                    }
+                );
+
+
+                const mapsUrl =
+                    "https://www.google.com/maps?q=" +
+                    encodeURIComponent(
+                        latitude +
+                        "," +
+                        longitude
+                    );
+
+
+                setStatus(
+                    "",
+                    "#00ff88"
+                );
+
+
+                statusElements.forEach(function(element) {
+
+                    if (element) {
+
+                        element.innerHTML =
+                            "Location saved successfully. " +
+                            `<a
+                                href="${mapsUrl}"
+                                target="_blank"
+                                rel="noopener"
+                                style="color:#ff1493;"
+                            >
+                                Open in Google Maps
+                            </a>`;
+
+                    }
+
+                });
+
+
+                showToast(
+                    "Your location was saved."
+                );
+
+
+                await loadLocations();
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                setStatus(
+                    error.message ||
+                    "Unable to save location.",
+                    "#ff4444"
+                );
+
+            }
+
+        },
+
+
+        function(error) {
+
+            let message =
+                "Unable to get your location.";
+
+            if (error.code === 1) {
+
+                message =
+                    "Location permission was denied.";
+
+            } else if (error.code === 2) {
+
+                message =
+                    "Your location is unavailable.";
+
+            } else if (error.code === 3) {
+
+                message =
+                    "Location request timed out.";
+
+            }
+
+
+            setStatus(
+                message,
+                "#ff4444"
+            );
+
+        },
+
+
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+        }
+
+    );
+
+}
+
+
+/* =========================================================
+   LOAD LOCATION HISTORY
+========================================================= */
+
+async function loadLocations() {
+
+    const list =
+        document.getElementById(
+            "locationsList"
+        );
+
+
+    if (!list) {
+        return;
+    }
+
+
+    list.innerHTML =
+        '<div class="empty-state">Loading locations...</div>';
+
+
+    try {
+
+        const data =
+            await api(
+                "/api/location/history"
+            );
+
+
+        const locations =
+            Array.isArray(data.locations)
+                ? data.locations
+                : [];
+
+
+        if (!locations.length) {
+
+            list.innerHTML =
+                '<div class="empty-state">' +
+                'No location history available yet.' +
+                '</div>';
+
+            return;
+
+        }
+
+
+        list.innerHTML =
+            locations
+                .slice(0, 10)
+                .map(function(location) {
+
+                    const latitude =
+                        Number(
+                            location.latitude
+                        );
+
+                    const longitude =
+                        Number(
+                            location.longitude
+                        );
+
+
+                    const mapsUrl =
+                        "https://www.google.com/maps?q=" +
+                        encodeURIComponent(
+                            latitude +
+                            "," +
+                            longitude
+                        );
+
+
+                    const date =
+                        location.createdAt ||
+                        location.timestamp;
+
+
+                    return `
+                        <div class="list-item">
+
+                            <div class="list-item-title">
+                                📍 Saved Location
+                            </div>
+
+                            <p>
+                                Latitude:
+                                ${escapeHTML(latitude)}
+                            </p>
+
+                            <p>
+                                Longitude:
+                                ${escapeHTML(longitude)}
+                            </p>
+
+                            <p>
+                                Time:
+                                ${date
+                                    ? escapeHTML(
+                                        new Date(date)
+                                            .toLocaleString()
+                                    )
+                                    : "Unknown"}
+                            </p>
+
+                            <br>
+
+                            <a
+                                href="${mapsUrl}"
+                                target="_blank"
+                                rel="noopener"
+                                class="small-button"
+                            >
+                                Open Google Maps
+                            </a>
+
+                        </div>
+                    `;
+
+                })
+                .join("");
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        list.innerHTML =
+            `<div class="empty-state red">
+                ${escapeHTML(
+                    error.message ||
+                    "Unable to load location history."
+                )}
+            </div>`;
+
+    }
+
+}
+
+
+/* =========================================================
+   SOS MODAL
+========================================================= */
+
+function activateSOS() {
+
+    document
+        .getElementById("sosModal")
+        .classList.add("active");
+
+}
+
+
+function closeSOSModal() {
+
+    document
+        .getElementById("sosModal")
+        .classList.remove("active");
+
+}
+
+
+/* =========================================================
+   CONFIRM SOS
+========================================================= */
+
+function confirmSOS() {
+
+    closeSOSModal();
+
+
+    const statusElements = [
+        document.getElementById(
+            "dashboardSosStatus"
+        ),
+        document.getElementById(
+            "sosPageStatus"
+        )
+    ];
+
+
+    function setStatus(message, color) {
+
+        statusElements.forEach(function(element) {
+
+            if (element) {
+
+                element.textContent =
+                    message;
+
+                element.style.color =
+                    color;
+
+            }
+
+        });
+
+    }
+
+
+    setStatus(
+        "Activating SOS...",
+        "#ff1493"
+    );
+
+
+    if (!navigator.geolocation) {
+
+        sendSOS(
+            null,
+            null,
+            null
+        );
+
+        return;
+
+    }
+
+
+    navigator.geolocation.getCurrentPosition(
+
+        function(position) {
+
+            sendSOS(
+                position.coords.latitude,
+                position.coords.longitude,
+                position.coords.accuracy
+            );
+
+        },
+
+        function() {
+
+            /*
+             * If GPS fails, the SOS request is still
+             * sent without coordinates.
+             */
+
+            sendSOS(
+                null,
+                null,
+                null
+            );
+
+        },
+
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+
+    );
+
+}
+
+
+/* =========================================================
+   SEND SOS
+========================================================= */
+
+async function sendSOS(
+    latitude = null,
+    longitude = null,
+    accuracy = null
+) {
+
+    const statusElements = [
+        document.getElementById(
+            "dashboardSosStatus"
+        ),
+        document.getElementById(
+            "sosPageStatus"
+        )
+    ];
+
+
+    function setStatus(message, color) {
+
+        statusElements.forEach(function(element) {
+
+            if (element) {
+
+                element.innerHTML =
+                    message;
+
+                element.style.color =
+                    color;
+
+            }
+
+        });
+
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/api/sos",
+                {
+                    method: "POST",
+
+                    body: {
+
+                        latitude:
+                            latitude,
+
+                        longitude:
+                            longitude,
+
+                        accuracy:
+                            accuracy,
+
+                        message:
+                            "Emergency assistance requested through Guardian SOS."
+
+                    }
+                }
+            );
+
+
+        let emergencyId =
+            "";
+
+
+        if (
+            data &&
+            data.emergency &&
+            data.emergency.id
+        ) {
+
+            emergencyId =
+                data.emergency.id;
+
+        }
+
+
+        setStatus(
+
+            "🚨 SOS REQUEST RECORDED" +
+
+            (
+                emergencyId
+                    ? "<br>Emergency ID: " +
+                      escapeHTML(emergencyId)
+                    : ""
+            ),
+
+            "#00ff88"
+
+        );
+
+
+        showToast(
+            "SOS request recorded successfully."
+        );
+
+
+        await loadHistory();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        setStatus(
+            error.message ||
+            "Unable to activate SOS.",
+            "#ff4444"
+        );
+
+
+        showToast(
+            error.message ||
+            "Unable to activate SOS."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   LOAD SOS HISTORY
+========================================================= */
+
+async function loadHistory() {
+
+    const list =
+        document.getElementById(
+            "historyList"
+        );
+
+
+    if (!list) {
+        return;
+    }
+
+
+    list.innerHTML =
+        '<div class="empty-state">Loading SOS history...</div>';
+
+
+    try {
+
+        const data =
+            await api("/api/sos");
+
+
+        const events =
+            Array.isArray(data.events)
+                ? data.events
+                : [];
+
+
+        if (!events.length) {
+
+            list.innerHTML =
+                '<div class="empty-state">' +
+                'No SOS history available yet.' +
+                '</div>';
+
+            return;
+
+        }
+
+
+        list.innerHTML =
+            events
+                .map(function(event) {
+
+                    const status =
+                        event.status ||
+                        "UNKNOWN";
+
+
+                    const statusColor =
+                        status === "ACTIVE"
+                            ? "#ff4444"
+                            : "#00ff88";
+
+
+                    const date =
+                        event.createdAt ||
+                        event.timestamp;
+
+
+                    let locationText =
+                        "Location not available";
+
+
+                    if (
+                        event.latitude !== null &&
+                        event.latitude !== undefined &&
+                        event.longitude !== null &&
+                        event.longitude !== undefined
+                    ) {
+
+                        locationText =
+                            `${escapeHTML(
+                                event.latitude
+                            )}, ${escapeHTML(
+                                event.longitude
+                            )}`;
+
+                    }
+
+
+                    let buttons = "";
+
+
+                    if (status === "ACTIVE") {
+
+                        buttons = `
+
+                            <div
+                                style="
+                                    display:flex;
+                                    gap:8px;
+                                    flex-wrap:wrap;
+                                    margin-top:15px;
+                                "
+                            >
+
+                                <button
+                                    class="small-button"
+                                    onclick="cancelSOS('${escapeHTML(event._id)}')"
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    class="small-button"
+                                    onclick="resolveSOS('${escapeHTML(event._id)}')"
+                                >
+                                    Resolve
+                                </button>
+
+                            </div>
+
+                        `;
+
+                    }
+
+
+                    return `
+
+                        <div class="list-item">
+
+                            <div class="list-item-header">
+
+                                <div class="list-item-title">
+                                    🚨 Emergency Request
+                                </div>
+
+                                <strong
+                                    style="color:${statusColor};"
+                                >
+                                    ${escapeHTML(status)}
+                                </strong>
+
+                            </div>
+
+                            <p>
+                                📅
+                                ${date
+                                    ? escapeHTML(
+                                        new Date(date)
+                                            .toLocaleString()
+                                    )
+                                    : "Unknown"}
+                            </p>
+
+                            <p>
+                                📍
+                                ${locationText}
+                            </p>
+
+                            ${
+                                event.message
+                                    ? `
+                                        <p>
+                                            💬
+                                            ${escapeHTML(
+                                                event.message
+                                            )}
+                                        </p>
+                                      `
+                                    : ""
+                            }
+
+                            ${buttons}
+
+                        </div>
+
+                    `;
+
+                })
+                .join("");
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        list.innerHTML =
+            `<div class="empty-state red">
+                ${escapeHTML(
+                    error.message ||
+                    "Unable to load SOS history."
+                )}
+            </div>`;
+
+    }
+
+}
+
+
+/* =========================================================
+   CANCEL SOS
+========================================================= */
+
+async function cancelSOS(id) {
+
+    if (!confirm(
+        "Cancel this SOS request?"
+    )) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await api(
+            "/api/sos/" +
+            encodeURIComponent(id) +
+            "/cancel",
+            {
+                method: "PATCH"
+            }
+        );
+
+
+        showToast(
+            "SOS request cancelled."
+        );
+
+
+        await loadHistory();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        showToast(
+            error.message ||
+            "Unable to cancel SOS."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   RESOLVE SOS
+========================================================= */
+
+async function resolveSOS(id) {
+
+    if (!confirm(
+        "Mark this SOS request as resolved?"
+    )) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await api(
+            "/api/sos/" +
+            encodeURIComponent(id) +
+            "/resolve",
+            {
+                method: "PATCH"
+            }
+        );
+
+
+        showToast(
+            "SOS request resolved."
+        );
+
+
+        await loadHistory();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        showToast(
+            error.message ||
+            "Unable to resolve SOS."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+function logout() {
+
+    localStorage.removeItem(
+        TOKEN_KEY
+    );
+
+    localStorage.removeItem(
+        USER_KEY
+    );
+
+
+    window.location.hash =
+        "login";
+
+
+    showToast(
+        "You have been logged out."
+    );
+
+}
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        /*
+         * If a user is already logged in and opens
+         * the website without a hash, HOME opens first.
+         */
+
+        handleRoute();
+
+    }
+);
+
+</script>
+
+</body>
+</html>
