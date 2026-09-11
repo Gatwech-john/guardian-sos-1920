@@ -2143,35 +2143,40 @@ app.use(
    START SERVER
 ============================================================ */
 
-app.listen(
-    PORT,
-    "0.0.0.0",
-    () => {
+if (process.env.VERCEL !== "1") {
 
-        console.log(
-            "========================================"
-        );
+    app.listen(
+        PORT,
+        "0.0.0.0",
+        () => {
 
-        console.log(
-            "GUARDIAN SOS SERVER"
-        );
+            console.log(
+                "========================================"
+            );
 
-        console.log(
-            "========================================"
-        );
+            console.log(
+                "GUARDIAN SOS SERVER"
+            );
 
-        console.log(
-            `Server running on port ${PORT}`
-        );
+            console.log(
+                "========================================"
+            );
 
-        console.log(
-            `http://localhost:${PORT}`
-        );
+            console.log(
+                `Server running on port ${PORT}`
+            );
 
-        console.log(
-            "========================================"
-        );
+            console.log(
+                `http://localhost:${PORT}`
+            );
 
-    }
-);
+            console.log(
+                "========================================"
+            );
 
+        }
+    );
+
+}
+
+module.exports = app;
