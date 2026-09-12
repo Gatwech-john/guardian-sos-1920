@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Guardian SOS | Emergency Assistance</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
     * {
@@ -15,7 +16,7 @@
     html, body {
         width: 100%;
         height: 100%;
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: 'Poppins', sans-serif;
         background: #080808;
         color: #ffffff;
         overflow: hidden;
@@ -320,11 +321,11 @@
     }
 
     .mobile-nav-icon {
-        display: block;
-        font-size: 20px;
-        margin-bottom: 2px;
-        font-family: Arial, Helvetica, sans-serif;
-    }
+    font-size: 28px;
+    color: #ff1493;
+    display: block;
+}
+    
 
     /* =========================
        GENERAL
@@ -1064,7 +1065,7 @@
 
         <div class="auth-box">
 
-            <div class="auth-logo">SOS GUARDIAN</div>
+            
 
             <div class="auth-subtitle">
                 Emergency Assistance & Personal Safety
@@ -1279,7 +1280,7 @@
     <nav id="mobileNavigation" class="mobile-nav" style="display:none;">
 
         <button data-page="home">
-            <span class="mobile-nav-icon">🏠</span>
+            <i class="bi bi-house-fill mobile-nav-icon"></i>
             Home
         </button>
 
@@ -1289,17 +1290,17 @@
         </button>
 
         <button data-page="sos">
-            <span class="mobile-nav-icon">🚨</span>
+            <i class="bi bi-exclamation-triangle-fill mobile-nav-icon"></i>
             SOS
         </button>
 
         <button data-page="contacts">
-            <span class="mobile-nav-icon">👥</span>
+            <i class="bi bi-person-fill mobile-nav-icon"></i>
             Contacts
         </button>
 
         <button data-page="profile">
-            <span class="mobile-nav-icon">👤</span>
+           <i class="bi bi-info-circle-fill mobile-nav-icon"></i>
             Profile
         </button>
 
