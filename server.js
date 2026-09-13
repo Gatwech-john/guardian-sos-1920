@@ -650,8 +650,73 @@ async function sendSOSAlerts(
 
     const phoneNumbers =
     contacts
-        .map(contact => String(contact.phone).trim())
+        .map(contact => {
+
+            let phone =
+                String(contact.phone).trim();
+
+            if (
+                phone.startsWith("07") &&
+                phone.length === 10
+            ) {
+                phone =
+                    "+254" +
+                    phone.substring(1);
+            }
+
+            if (
+                phone.startsWith("254") &&
+                !phone.startsWith("+254")
+            ) {
+                phone =
+                    "+" +
+                    phone;
+            }
+
+            return phone;
+
+        })
         .filter(phone => phone.length > 0);
+
+
+console.log(
+    "========================================"
+);
+
+console.log(
+    "GUARDIAN SOS SMS"
+);
+
+console.log(
+    "AT USERNAME:",
+    process.env.AT_USERNAME
+        ? "CONFIGURED"
+        : "MISSING"
+);
+
+console.log(
+    "AT API KEY:",
+    process.env.AT_API_KEY
+        ? "CONFIGURED"
+        : "MISSING"
+);
+
+console.log(
+    "CONTACTS:",
+    contacts.map(contact => ({
+        name: contact.name,
+        phone: contact.phone
+    }))
+);
+
+console.log(
+    "SMS RECIPIENTS:",
+    phoneNumbers
+);
+
+console.log(
+    "========================================"
+);
 
 
     if (phoneNumbers.length === 0) {
@@ -1676,40 +1741,47 @@ app.post(
 
             res.status(201).json({
 
-                success: true,
+    success: true,
 
-                message:
-                    "Emergency SOS activated.",
+    message:
+        "Emergency SOS activated.",
 
-                alertSent:
-                    alertResult.success,
+    alertSent:
+        alertResult.success,
 
-                alertMessage:
-                    alertResult.message,
+    alertMessage:
+        alertResult.message,
 
-                recipients:
-                    alertResult.recipients || [],
+    smsStatus:
+        alertResult.success
+            ? "SMS SENT"
+            : "SMS NOT SENT",
 
-                emergency: {
+    recipients:
+        alertResult.recipients || [],
 
-                    id:
-                        emergency._id,
+    emergency: {
 
-                    status:
-                        emergency.status,
+        id:
+            emergency._id,
 
-                    latitude:
-                        emergency.latitude,
+        status:
+            emergency.status,
 
-                    longitude:
-                        emergency.longitude,
+        latitude:
+            emergency.latitude,
 
-                    createdAt:
-                        emergency.createdAt
+        longitude:
+            emergency.longitude,
 
-                }
+        createdAt:
+            emergency.createdAt
 
-            });
+    }
+
+});
+
+               
 
 
         } catch (error) {
@@ -2166,9 +2238,7 @@ if (process.env.VERCEL !== "1") {
                 `Server running on port ${PORT}`
             );
 
-            console.log(
-                `http://localhost:${PORT}`
-            );
+            console.log( `https://guardian-sos-1920.vercel.app`);
 
             console.log(
                 "========================================"
