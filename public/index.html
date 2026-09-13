@@ -6,6 +6,97 @@
 <title>Guardian SOS | Emergency Assistance</title>
 
 <style>
+/* =========================================================
+   GUARDIAN SOS - MOBILE FONT FIX
+   FORCE THE SAME FONT ON PHONE AND COMPUTER
+========================================================= */
+
+html,
+body,
+body *,
+#app,
+#app *,
+.page,
+.page *,
+button,
+input,
+select,
+textarea,
+option,
+a,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+div,
+label {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-style: normal !important;
+}
+
+/* Keep headings bold */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.home-title,
+.stat-number,
+.sos-main-button {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-style: normal !important;
+    font-weight: 900 !important;
+}
+
+/* Mobile specifically */
+@media screen and (max-width: 760px) {
+
+    html,
+    body {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    body,
+    body * {
+        font-family: Arial, Helvetica, sans-serif !important;
+        font-style: normal !important;
+    }
+
+    .home-title,
+    .home-title span {
+        font-family: Arial, Helvetica, sans-serif !important;
+        font-style: normal !important;
+        font-weight: 900 !important;
+    }
+
+    .home-description,
+    .home-badge,
+    .home-actions,
+    .primary-button,
+    .secondary-button,
+    .home-stats,
+    .stat,
+    .stat-number,
+    .stat-label,
+    .dashboard-card,
+    .dashboard-card p,
+    .nav-link,
+    .logout-button,
+    .mobile-nav,
+    .mobile-nav button,
+    .sos-main-button {
+        font-family: Arial, Helvetica, sans-serif !important;
+        font-style: normal !important;
+    }
+}
+
+
+
     * {
         box-sizing: border-box;
         margin: 0;
@@ -1051,150 +1142,7 @@ body {
     text-align: center;
 }
 
-/* =========================================================
-   GUARDIAN SOS - FORCE CLEAN FONT ON ALL DEVICES
-========================================================= */
 
-html,
-body,
-#app,
-#app *,
-.page,
-.page-content,
-.container,
-.home-hero,
-.home-inner,
-.home-badge,
-.home-title,
-.home-title span,
-.home-description,
-.home-actions,
-.home-stats,
-.stat,
-.stat-number,
-.stat-label,
-.top-nav,
-.nav-links,
-.nav-link,
-.logout-button,
-.mobile-nav,
-.mobile-nav button,
-.section-title,
-.section-subtitle,
-.card,
-.card h3,
-.dashboard-card,
-.dashboard-card p,
-.card-button,
-.sos-main-button,
-.status-box,
-.form-group,
-.form-group label,
-.form-group input,
-.form-group select,
-.form-group textarea,
-.list,
-.list-item,
-.list-item-title,
-.list-item p,
-.profile-card,
-.profile-row,
-.profile-label,
-.about-card,
-.modal,
-.modal-box,
-.modal-box h2,
-.modal-box p,
-.modal-actions,
-#toast {
-    font-family: Arial, Helvetica, sans-serif !important;
-    font-style: normal !important;
-    font-weight: inherit;
-    letter-spacing: normal;
-}
-
-/* Headings */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    font-family: Arial, Helvetica, sans-serif !important;
-    font-style: normal !important;
-}
-
-/* Buttons */
-button {
-    font-family: Arial, Helvetica, sans-serif !important;
-    font-style: normal !important;
-}
-
-/* Forms */
-input,
-select,
-textarea,
-option {
-    font-family: Arial, Helvetica, sans-serif !important;
-    font-style: normal !important;
-}
-
-/* Links */
-a {
-    font-family: Arial, Helvetica, sans-serif !important;
-    font-style: normal !important;
-}
-
-/* Mobile */
-@media (max-width: 760px) {
-
-    html,
-    body {
-        font-family: Arial, Helvetica, sans-serif !important;
-    }
-
-    body * {
-        font-family: Arial, Helvetica, sans-serif !important;
-    }
-
-    .home-title {
-        font-family: Arial, Helvetica, sans-serif !important;
-        font-weight: 900 !important;
-    }
-
-    .home-description {
-        font-family: Arial, Helvetica, sans-serif !important;
-    }
-
-    .home-badge {
-        font-family: Arial, Helvetica, sans-serif !important;
-    }
-
-    .nav-link {
-        font-family: Arial, Helvetica, sans-serif !important;
-    }
-
-    .logout-button {
-        font-family: Arial, Helvetica, sans-serif !important;
-    }
-
-    .mobile-nav button {
-        font-family: Arial, Helvetica, sans-serif !important;
-    }
-
-    .mobile-nav-icon {
-        font-family: Arial, Helvetica, sans-serif !important;
-    }
-
-    .stat-number,
-    .stat-label {
-        font-family: Arial, Helvetica, sans-serif !important;
-    }
-
-    .sos-main-button {
-        font-family: Arial, Helvetica, sans-serif !important;
-    }
-}
 </style>
 </head>
 
@@ -1468,8 +1416,8 @@ a {
                     </div>
 
                     <h1 class="home-title">
-                        𝗛𝗘𝗟𝗣 𝗪𝗛𝗘𝗡<br>
-                        <span>𝗬𝗢𝗨 𝗡𝗘𝗘𝗗 𝗜𝗧.</span>
+                        HELP WHEN<br>
+                        <span>YOU NEED IT.</span>
                     </h1>
 
                     <p class="home-description">
