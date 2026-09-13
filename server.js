@@ -55,8 +55,7 @@ const AfricasTalking = require("africastalking");
 
 const admin = require("firebase-admin");
 const { cert } = require("firebase-admin/app");
-console.log(admin);
-const fs = require("fs");
+
 
 
 /* ============================================================
@@ -89,24 +88,36 @@ const sms =
     africasTalking.SMS;
 
 
-    /* ============================================================
+  /* ============================================================
    FIREBASE CLOUD MESSAGING
 ============================================================ */
 
-const firebaseServiceAccountPath = path.join(
-    __dirname,
-    "firebase",
-    "serviceAccountKey.json"
-);
-
-if (fs.existsSync(firebaseServiceAccountPath)) {
-
-    const serviceAccount = require(firebaseServiceAccountPath);
+if (
+    process.env.FIREBASE_PROJECT_ID &&
+    process.env.FIREBASE_CLIENT_EMAIL &&
+    process.env.FIREBASE_PRIVATE_KEY
+) {
 
     if (admin.getApps().length === 0) {
+
         admin.initializeApp({
-            credential: cert(serviceAccount)
+
+            credential: cert({
+
+                projectId:
+                    process.env.FIREBASE_PROJECT_ID,
+
+                clientEmail:
+                    process.env.FIREBASE_CLIENT_EMAIL,
+
+                privateKey:
+                    process.env.FIREBASE_PRIVATE_KEY
+                        .replace(/\\n/g, "\n")
+
+            })
+
         });
+
     }
 
     console.log(
@@ -116,7 +127,7 @@ if (fs.existsSync(firebaseServiceAccountPath)) {
 } else {
 
     console.error(
-        "Firebase serviceAccountKey.json is missing."
+        "Firebase environment variables are missing."
     );
 
 }
@@ -162,6 +173,22 @@ app.use(
     })
 );
 
+
+/* ============================================================
+   API REQUEST DEBUG
+============================================================ */
+
+app.use("/api", (req, res, next) => {
+
+    console.log(
+        "API REQUEST:",
+        req.method,
+        req.originalUrl
+    );
+
+    next();
+
+});
 
 /* ============================================================
    SERVE FRONTEND
@@ -390,27 +417,25 @@ const LocationSchema = new mongoose.Schema(
 ============================================================ */
 
 const User =
-    mongoose.model(
-        "User",
-        UserSchema
-    );
-
+    mongoose.models.User ||
+    mongoose.model("User", UserSchema);
 
 const EmergencyContact =
+    mongoose.models.EmergencyContact ||
     mongoose.model(
         "EmergencyContact",
         EmergencyContactSchema
     );
 
-
 const SOSEvent =
+    mongoose.models.SOSEvent ||
     mongoose.model(
         "SOSEvent",
         SOSEventSchema
     );
 
-
 const Location =
+    mongoose.models.Location ||
     mongoose.model(
         "Location",
         LocationSchema
@@ -1877,8 +1902,9 @@ POST /api/sos
 app.post(
     "/api/sos",
     authenticateToken,
-    console.log("🔥 SOS ROUTE WAS CALLED"),
     async (req, res) => {
+
+        console.log("🔥 SOS ROUTE WAS CALLED");
 
         try {
 
@@ -2417,21 +2443,7 @@ app.get(
     }
 );
 
-/* ============================================================
-   DEBUG API REQUESTS
-============================================================ */
 
-app.use("/api", (req, res, next) => {
-
-    console.log(
-        "API REQUEST:",
-        req.method,
-        req.originalUrl
-    );
-
-    next();
-
-});
 /* ============================================================
    UNKNOWN API ROUTE
 ============================================================ */
