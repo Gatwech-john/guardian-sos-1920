@@ -12,14 +12,17 @@
         padding: 0;
     }
 
-    html, body {
-        width: 100%;
-        height: 100%;
-        font-family: Arial, Helvetica, sans-serif;
-        background: #080808;
-        color: #ffffff;
-        overflow: hidden;
-    }
+    html,
+body {
+    width: 100%;
+    height: 100%;
+    font-family: "Arial", "Helvetica Neue", sans-serif !important;
+    background: #080808;
+    color: #ffffff;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
 
     body {
         min-height: 100vh;
@@ -576,7 +579,6 @@
         line-height: 1.5;
         font-size: 14px;
         font-weight: bolder;
-        font-family: 'Times New Roman';
         font-family: Arial, Helvetica, sans-serif;
     }
 
@@ -1050,43 +1052,148 @@
 }
 
 /* =========================================================
-   FORCE SAME FONT ON DESKTOP AND MOBILE
+   GUARDIAN SOS - FORCE CLEAN FONT ON ALL DEVICES
 ========================================================= */
 
 html,
 body,
-body * {
+#app,
+#app *,
+.page,
+.page-content,
+.container,
+.home-hero,
+.home-inner,
+.home-badge,
+.home-title,
+.home-title span,
+.home-description,
+.home-actions,
+.home-stats,
+.stat,
+.stat-number,
+.stat-label,
+.top-nav,
+.nav-links,
+.nav-link,
+.logout-button,
+.mobile-nav,
+.mobile-nav button,
+.section-title,
+.section-subtitle,
+.card,
+.card h3,
+.dashboard-card,
+.dashboard-card p,
+.card-button,
+.sos-main-button,
+.status-box,
+.form-group,
+.form-group label,
+.form-group input,
+.form-group select,
+.form-group textarea,
+.list,
+.list-item,
+.list-item-title,
+.list-item p,
+.profile-card,
+.profile-row,
+.profile-label,
+.about-card,
+.modal,
+.modal-box,
+.modal-box h2,
+.modal-box p,
+.modal-actions,
+#toast {
     font-family: Arial, Helvetica, sans-serif !important;
     font-style: normal !important;
-    font-variant: normal !important;
+    font-weight: inherit;
+    letter-spacing: normal;
 }
 
-/* Keep emoji/icons looking like normal phone emojis */
-.mobile-nav-icon,
-button,
-span {
-    font-family: Arial, Helvetica, sans-serif !important;
-}
-
-/* Main headings */
+/* Headings */
 h1,
 h2,
 h3,
 h4,
 h5,
-h6,
-p,
-div,
-span,
-button,
-a,
-label,
+h6 {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-style: normal !important;
+}
+
+/* Buttons */
+button {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-style: normal !important;
+}
+
+/* Forms */
 input,
 select,
 textarea,
-option,
-strong {
+option {
     font-family: Arial, Helvetica, sans-serif !important;
+    font-style: normal !important;
+}
+
+/* Links */
+a {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-style: normal !important;
+}
+
+/* Mobile */
+@media (max-width: 760px) {
+
+    html,
+    body {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    body * {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    .home-title {
+        font-family: Arial, Helvetica, sans-serif !important;
+        font-weight: 900 !important;
+    }
+
+    .home-description {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    .home-badge {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    .nav-link {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    .logout-button {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    .mobile-nav button {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    .mobile-nav-icon {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    .stat-number,
+    .stat-label {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    .sos-main-button {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
 }
 </style>
 </head>
