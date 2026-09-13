@@ -53,6 +53,12 @@ const path = require("path");
 const AfricasTalking = require("africastalking");
 
 
+const admin = require("firebase-admin");
+const { cert } = require("firebase-admin/app");
+console.log(admin);
+const fs = require("fs");
+
+
 /* ============================================================
    CREATE EXPRESS APP
 ============================================================ */
@@ -81,6 +87,39 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 const sms =
     africasTalking.SMS;
+
+
+    /* ============================================================
+   FIREBASE CLOUD MESSAGING
+============================================================ */
+
+const firebaseServiceAccountPath = path.join(
+    __dirname,
+    "firebase",
+    "serviceAccountKey.json"
+);
+
+if (fs.existsSync(firebaseServiceAccountPath)) {
+
+    const serviceAccount = require(firebaseServiceAccountPath);
+
+    if (admin.getApps().length === 0) {
+        admin.initializeApp({
+            credential: cert(serviceAccount)
+        });
+    }
+
+    console.log(
+        "Firebase Admin initialized successfully."
+    );
+
+} else {
+
+    console.error(
+        "Firebase serviceAccountKey.json is missing."
+    );
+
+}
 
 
 /* ============================================================
@@ -171,6 +210,10 @@ const UserSchema = new mongoose.Schema(
             trim: true,
             maxlength: 30
         },
+        fcmTokens: {
+    type: [String],
+    default: []
+},
 
         password: {
             type: String,
@@ -788,7 +831,164 @@ console.log(
 
 }
 
+/* ============================================================
+   SEND FCM PUSH NOTIFICATIONS
+============================================================ */
 
+async function sendFCMAlerts(
+    user,
+    emergency
+) {
+
+    try {
+
+        if (!admin.apps.length) {
+
+            return {
+
+                success: false,
+
+                message:
+                    "Firebase Admin is not initialized."
+
+            };
+
+        }
+
+        const tokens =
+            user.fcmTokens || [];
+
+        if (tokens.length === 0) {
+
+            return {
+
+                success: false,
+
+                message:
+                    "No registered FCM devices found."
+
+            };
+
+        }
+
+        let locationText =
+            "Location unavailable.";
+
+        if (
+            emergency.latitude !== null &&
+            emergency.longitude !== null
+        ) {
+
+            locationText =
+                `https://www.google.com/maps?q=${emergency.latitude},${emergency.longitude}`;
+
+        }
+
+        const response =
+            await admin.messaging().sendEachForMulticast({
+
+                tokens: tokens,
+
+                notification: {
+
+                    title:
+                        "🚨 GUARDIAN SOS ALERT",
+
+                    body:
+                        `${user.name} has activated an emergency SOS.`
+
+                },
+
+                data: {
+
+                    type:
+                        "SOS",
+
+                    emergencyId:
+                        emergency._id.toString(),
+
+                    latitude:
+                        emergency.latitude !== null
+                            ? String(emergency.latitude)
+                            : "",
+
+                    longitude:
+                        emergency.longitude !== null
+                            ? String(emergency.longitude)
+                            : "",
+
+                    location:
+                        locationText
+
+                },
+
+                webpush: {
+
+                    notification: {
+
+                        title:
+                            "🚨 GUARDIAN SOS ALERT",
+
+                        body:
+                            `${user.name} has activated an emergency SOS.`,
+
+                        requireInteraction:
+                            true
+
+                    },
+
+                    fcmOptions: {
+
+                        link:
+                            "https://guardian-sos-1920.vercel.app"
+
+                    }
+
+                }
+
+            });
+
+        console.log(
+            "FCM notification result:",
+            response
+        );
+
+        return {
+
+            success:
+                response.successCount > 0,
+
+            message:
+                `${response.successCount} notification(s) sent.`,
+
+            successCount:
+                response.successCount,
+
+            failureCount:
+                response.failureCount
+
+        };
+
+    } catch (error) {
+
+        console.error(
+            "FCM notification error:",
+            error
+        );
+
+        return {
+
+            success: false,
+
+            message:
+                error.message ||
+                "Unable to send FCM notification."
+
+        };
+
+    }
+
+}
 
 /* ============================================================
    BASIC ROUTES
@@ -1216,7 +1416,81 @@ app.get(
 
     }
 );
+/* ============================================================
+   FIREBASE DEVICE TOKEN
+============================================================ */
 
+/*
+------------------------------------------------------------
+SAVE FCM DEVICE TOKEN
+------------------------------------------------------------
+POST /api/fcm-token
+------------------------------------------------------------
+*/
+
+app.post(
+    "/api/fcm-token",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const { token } = req.body;
+
+            if (!token) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "FCM token is required."
+
+                });
+
+            }
+
+            await User.findByIdAndUpdate(
+
+                req.user.userId,
+
+                {
+                    $addToSet: {
+                        fcmTokens: token
+                    }
+                }
+
+            );
+
+            res.json({
+
+                success: true,
+
+                message:
+                    "FCM device token saved."
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "FCM token error:",
+                error
+            );
+
+            res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to save FCM token."
+
+            });
+
+        }
+
+    }
+);
 
 /* ============================================================
    EMERGENCY CONTACTS
@@ -1603,6 +1877,7 @@ POST /api/sos
 app.post(
     "/api/sos",
     authenticateToken,
+    console.log("🔥 SOS ROUTE WAS CALLED"),
     async (req, res) => {
 
         try {
@@ -1731,6 +2006,11 @@ app.post(
                     contacts,
                     emergency
                 );
+                const fcmResult =
+    await sendFCMAlerts(
+        user,
+        emergency
+    );
 
 
             /*
@@ -1756,6 +2036,14 @@ app.post(
         alertResult.success
             ? "SMS SENT"
             : "SMS NOT SENT",
+
+            fcmStatus:
+    fcmResult.success
+        ? "PUSH SENT"
+        : "PUSH NOT SENT",
+
+fcmMessage:
+    fcmResult.message,
 
     recipients:
         alertResult.recipients || [],
@@ -2250,3 +2538,7 @@ if (process.env.VERCEL !== "1") {
 }
 
 module.exports = app;
+
+
+
+

@@ -4159,6 +4159,141 @@ document.addEventListener(
 );
 
 </script>
+<script type="module">
 
+    import {
+        initializeApp
+    } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+
+    import {
+        getMessaging,
+        getToken,
+        onMessage
+    } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging.js";
+
+
+    const firebaseConfig = {
+
+        apiKey:
+            "AIzaSyDUxrcXtxriczzUYOjAs4MQgXlouT70fjo",
+
+        authDomain:
+            "guardian-sos-1920.firebaseapp.com",
+
+        projectId:
+            "guardian-sos-1920",
+
+        storageBucket:
+            "guardian-sos-1920.firebasestorage.app",
+
+        messagingSenderId:
+            "1040542060054",
+
+        appId:
+            "1:1040542060054:web:9e165d3d91b3e271c26f37",
+
+    };
+
+
+    const firebaseApp =
+        initializeApp(
+            firebaseConfig
+        );
+
+
+    const messaging =
+        getMessaging(
+            firebaseApp
+        );
+
+
+    window.guardianMessaging =
+        messaging;
+
+
+    window.getGuardianFCMToken =
+        async function () {
+
+            try {
+
+                const permission =
+                    await Notification.requestPermission();
+
+
+                if (
+                    permission !== "granted"
+                ) {
+
+                    console.log(
+                        "Notification permission was not granted."
+                    );
+
+                    return null;
+
+                }
+
+
+                const token =
+                    await getToken(
+
+                        messaging,
+
+                        {
+
+                            vapidKey:
+                                "BLq8pOvtQQc0yJnW6QPzgOd45ov-ZXQIw84DX_HtN1kF9f_rrNJ0kode5y1OGz4qn16tatOEghJwl7oETXDPSc4"
+
+                        }
+
+                    );
+
+
+                if (!token) {
+
+                    console.log(
+                        "No FCM token received."
+                    );
+
+                    return null;
+
+                }
+
+
+                console.log(
+                    "Guardian SOS FCM token:",
+                    token
+                );
+
+
+                return token;
+
+
+            } catch (error) {
+
+                console.error(
+                    "FCM token error:",
+                    error
+                );
+
+                return null;
+
+            }
+
+        };
+
+
+    onMessage(
+        messaging,
+        (payload) => {
+
+            console.log(
+                "Guardian SOS notification:",
+                payload
+            );
+
+        }
+    );
+
+</script>
 </body>
 </html>
