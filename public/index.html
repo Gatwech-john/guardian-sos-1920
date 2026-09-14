@@ -109,7 +109,7 @@ body {
     height: 100%;
     font-family: "Arial", "Helvetica Neue", sans-serif !important;
     background: #080808;
-    color: #ffffff;
+    color: #ff1493;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -203,7 +203,7 @@ body {
 
     .auth-subtitle {
         text-align: center;
-        color: #aaa;
+        color: #ff1493;
         font-family: Arial, Helvetica, sans-serif;
         margin-bottom: 30px;
     }
@@ -221,7 +221,7 @@ body {
     .form-group label {
         display: block;
         margin-bottom: 7px;
-        color: #ddd;
+        color: #ff1493;
         font-size: 14px;
         font-family: Arial, Helvetica, sans-serif;
     }
@@ -231,11 +231,11 @@ body {
     .form-group textarea {
         width: 100%;
         padding: 13px 14px;
-        border: 1px solid #333;
+        border: 1px solid #ff1493;
         border-radius: 10px;
         background: #111;
         font-family: Arial, Helvetica, sans-serif;
-        color: white;
+        color: #ff1493;
         outline: none;
     }
 
@@ -281,7 +281,7 @@ body {
     .auth-links {
         text-align: center;
         margin-top: 20px;
-        color: #aaa;
+        color: #ff1493;
         font-family: Arial, Helvetica, sans-serif;
         line-height: 2;
     }
@@ -307,7 +307,7 @@ body {
         align-items: center;
         justify-content: space-between;
         padding: 0 25px;
-        background: rgba(8, 8, 8, .96);
+        background: rgba(250, 5, 111, 0.96);
         border-bottom: 1px solid #292929;
         backdrop-filter: blur(12px);
         font-weight: bolder; 
@@ -335,7 +335,7 @@ body {
     .nav-link {
         border: none;
         background: transparent;
-        color: white;
+        color: #ff1493;
         padding: 10px 12px;
         border-radius: 8px;
         transition: .2s;
@@ -393,7 +393,7 @@ body {
         right: 0;
         height: 68px;
         background: rgba(8, 8, 8, .98);
-        border-top: 1px solid #292929;
+        border-top: 1px solid #ff1493;
         z-index: 1000;
         justify-content: space-around;
         align-items: center;
@@ -431,7 +431,7 @@ body {
     }
 
     .section-subtitle {
-        color: #999;
+        color: #ff1493;
         margin-bottom: 25px;
     }
 
@@ -443,7 +443,7 @@ body {
 
     .card {
         background: #111;
-        border: 1px solid #292929;
+        border: 1px solid #ff1493;
         border-radius: 16px;
         padding: 22px;
     }
@@ -529,7 +529,7 @@ body {
     .home-description {
         max-width: 700px;
         margin: auto;
-        color: #aaa;
+        color: #ff1493;
         font-size: 18px;
         line-height: 1.7;
         font-family: Arial, Helvetica, sans-serif;
@@ -593,11 +593,12 @@ body {
     .primary-button {
         background: #ff1493;
         color: white;
+        border:1px solid #fbf6f9
     }
 
     .secondary-button {
         background: #171717;
-        border: 1px solid #333;
+        border: 1px solid #ff1493;
         color: white;
     }
 
@@ -621,7 +622,7 @@ body {
     .stat {
         padding: 20px;
         background: rgba(17, 17, 17, .8);
-        border: 1px solid #252525;
+        border: 1px solid #ff1493;
         border-radius: 14px;
     }
 
@@ -634,7 +635,7 @@ body {
     }
 
     .stat-label {
-        color: #faf6f6;
+        color: #ff1493;
         margin-top: 5px;
         font-size: 13px;
         font-family: Arial, Helvetica, sans-serif;
@@ -676,7 +677,7 @@ body {
     .card-button {
         margin-top: 15px;
         width: 100%;
-        border: 1px solid #333;
+        border: 1px solid #ff1493;
         background: deeppink;
         color: white;
         border-radius: 9px;
@@ -783,7 +784,7 @@ body {
 
     .list-item {
         background: #111;
-        border: 1px solid #292929;
+        border: 1px solid #ff1493;
         border-radius: 13px;
         padding: 17px;
     }
@@ -802,7 +803,7 @@ body {
     }
 
     .list-item p {
-        color: #999;
+        color: #ff1493;
         font-size: 14px;
         font-family: Arial, Helvetica, sans-serif;
         margin: 5px 0;
@@ -3936,6 +3937,14 @@ async function loadHistory() {
                                     Resolve
                                 </button>
 
+
+                                <button
+                                     class="small-button"
+                                    onclick="deleteSOS('${escapeHTML(event._id)}')"
+                                >
+                                    Delete
+                                </button>
+
                             </div>
 
                         `;
@@ -4112,6 +4121,48 @@ async function resolveSOS(id) {
     }
 
 }
+
+async function deleteSOS(id) {
+
+    if (!confirm(
+        "Delete this SOS request?"
+    )) {
+
+        return;
+
+    }
+
+    try {
+
+        await api(
+            "/api/sos/" +
+            encodeURIComponent(id),
+            {
+                method: "DELETE"
+            }
+        );
+
+        showToast(
+            "SOS request deleted."
+        );
+
+        await loadHistory();
+
+    } catch (error) {
+
+        console.error(error);
+
+        showToast(
+            error.message ||
+            "Unable to delete SOS."
+        );
+
+    }
+
+}
+
+
+
 
 
 /* =========================================================

@@ -2353,6 +2353,70 @@ app.patch(
 );
 
 
+
+
+/*
+------------------------------------------------------------
+DELETE SOS
+------------------------------------------------------------
+DELETE /api/sos/:id
+------------------------------------------------------------
+*/
+
+app.delete(
+    "/api/sos/:id",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const emergency =
+                await SOSEvent.findOneAndDelete({
+
+                    _id: req.params.id,
+
+                    userId: req.user.userId
+
+                });
+
+            if (!emergency) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        "SOS event not found."
+
+                });
+
+            }
+
+            res.json({
+
+                success: true,
+
+                message:
+                    "SOS deleted successfully."
+
+            });
+
+        } catch (error) {
+
+            res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to delete SOS."
+
+            });
+
+        }
+
+    }
+);
+
 /* ============================================================
    USER LOCATION HISTORY
 ============================================================ */
