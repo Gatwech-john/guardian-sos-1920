@@ -428,7 +428,40 @@ const LocationSchema = new mongoose.Schema(
 
 
 
+function getPhoneVariants(phone) {
+    const raw = String(phone || "")
+        .trim()
+        .replace(/[^\d+]/g, "");
 
+    if (!raw) return [];
+
+    const variants = new Set([raw]);
+
+    // +254712345678
+    if (raw.startsWith("+254") && raw.length === 13) {
+        variants.add(raw.substring(1));          // 254712345678
+        variants.add("0" + raw.substring(4));    // 0712345678
+    }
+
+    // 254712345678
+    else if (raw.startsWith("254") && raw.length === 12) {
+        variants.add("+" + raw);                 // +254712345678
+        variants.add("0" + raw.substring(3));    // 0712345678
+    }
+
+    // 0712345678 / 0112345678
+    else if (
+        (raw.startsWith("07") || raw.startsWith("01")) &&
+        raw.length === 10
+    ) {
+        const normalized = "+254" + raw.substring(1);
+
+        variants.add(normalized);                // +254712345678
+        variants.add(normalized.substring(1));   // 254712345678
+    }
+
+    return [...variants];
+}
 
 /* ============================================================
    CHAT SCHEMAS
@@ -2270,6 +2303,140 @@ app.delete(
     }
 );
 
+
+/* ============================================================
+   PHONE NUMBER VARIANTS FOR GUARDIAN SOS CHAT
+============================================================ */
+
+function getPhoneVariants(phone) {
+
+    const raw =
+        String(phone || "")
+            .trim()
+            .replace(/[^\d+]/g, "");
+
+    if (!raw) {
+        return [];
+    }
+
+    const variants = new Set();
+
+    variants.add(raw);
+
+    /*
+     * Kenya:
+     * 0712345678
+     * 254712345678
+     * +254712345678
+     */
+
+    if (
+        raw.startsWith("+254") &&
+        raw.length === 13
+    ) {
+
+        variants.add(
+            raw.substring(1)
+        );
+
+        variants.add(
+            "0" + raw.substring(4)
+        );
+
+    }
+
+    else if (
+        raw.startsWith("254") &&
+        raw.length === 12
+    ) {
+
+        variants.add(
+            "+" + raw
+        );
+
+        variants.add(
+            "0" + raw.substring(3)
+        );
+
+    }
+
+    else if (
+        (
+            raw.startsWith("07") ||
+            raw.startsWith("01")
+        ) &&
+        raw.length === 10
+    ) {
+
+        const international =
+            "+254" + raw.substring(1);
+
+        variants.add(
+            international
+        );
+
+        variants.add(
+            international.substring(1)
+        );
+
+    }
+
+    return [...variants];
+
+}
+
+
+
+app.get(
+    "/api/chat/find-user-by-phone",
+    authenticateToken,
+    async (req, res) => {
+        try {
+            const phone = String(req.query.phone || "").trim();
+
+            const variants = getPhoneVariants(phone);
+
+            if (!variants.length) {
+                return res.json({
+                    success: true,
+                    found: false,
+                    user: null
+                });
+            }
+
+            const user = await User.findOne({
+                _id: { $ne: req.user.userId },
+                phone: { $in: variants }
+            }).select("_id name email phone");
+
+            if (!user) {
+                return res.json({
+                    success: true,
+                    found: false,
+                    user: null
+                });
+            }
+
+            return res.json({
+                success: true,
+                found: true,
+                user: user
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Find chat user by phone error:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable to find Guardian SOS user."
+            });
+        }
+    }
+);
 /* ============================================================
    CHAT USER SEARCH
 ============================================================ */
@@ -2344,7 +2511,104 @@ app.get(
 
     }
 );
+/* ============================================================
+   FIND GUARDIAN SOS USER BY PHONE NUMBER
+============================================================ */
 
+app.get(
+    "/api/chat/find-user-by-phone",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const phone =
+                String(req.query.phone || "")
+                    .trim();
+
+            const variants =
+                getPhoneVariants(phone);
+
+
+            if (!variants.length) {
+
+                return res.json({
+
+                    success: true,
+
+                    found: false,
+
+                    user: null
+
+                });
+
+            }
+
+
+            const user =
+                await User.findOne({
+
+                    _id: {
+                        $ne: req.user.userId
+                    },
+
+                    phone: {
+                        $in: variants
+                    }
+
+                })
+                .select(
+                    "_id name email phone"
+                );
+
+
+            if (!user) {
+
+                return res.json({
+
+                    success: true,
+
+                    found: false,
+
+                    user: null
+
+                });
+
+            }
+
+
+            return res.json({
+
+                success: true,
+
+                found: true,
+
+                user
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Find chat user by phone error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to find Guardian SOS user."
+
+            });
+
+        }
+
+    }
+);
 /* ============================================================
    CREATE CHAT
 ============================================================ */
