@@ -2172,14 +2172,7 @@ body {
 
 
         <!-- PLUS BUTTON -->
-        <button
-            id="chatPlusButton"
-            class="chat-plus-button"
-            onclick="openNewChat()"
-            title="New chat"
-        >
-            +
-        </button>
+        <button id="chatPlusButton" class="chat-plus-button" onclick="pickPhoneContacts()" title="Add contacts">+</button>
 
     </div>
 
@@ -2897,6 +2890,246 @@ function appendChatMessage(message) {
 
     messagesList.scrollTop =
         messagesList.scrollHeight;
+
+}
+
+
+/* =========================================================
+   PHONE CONTACT PICKER
+========================================================= */
+
+async function pickPhoneContacts() {
+
+    /*
+     * Check whether this browser supports
+     * the Contact Picker API.
+     */
+
+    if (!("contacts" in navigator)) {
+
+        showToast(
+            "Phone contact selection is not supported by this browser."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        /*
+         * Open the phone contact picker.
+         */
+
+        const contacts =
+            await navigator.contacts.select(
+                ["name", "tel", "email"],
+                {
+                    multiple: true
+                }
+            );
+
+
+        if (
+            !contacts ||
+            contacts.length === 0
+        ) {
+
+            return;
+
+        }
+
+
+        showToast(
+            "Checking selected contacts..."
+        );
+
+
+        let foundCount = 0;
+
+
+        /*
+         * Check every selected phone contact
+         * against Guardian SOS registered users.
+         */
+
+        for (
+            const contact of contacts
+        ) {
+
+            const name =
+                contact.name &&
+                contact.name.length
+                    ? contact.name[0]
+                    : "Unknown contact";
+
+
+            const phone =
+                contact.tel &&
+                contact.tel.length
+                    ? contact.tel[0]
+                    : "";
+
+
+            const email =
+                contact.email &&
+                contact.email.length
+                    ? contact.email[0]
+                    : "";
+
+
+            let searchValue =
+                phone || email || name;
+
+
+            if (!searchValue) {
+                continue;
+            }
+
+
+            try {
+
+                const data =
+                    await api(
+                        "/api/chat/users?q=" +
+                        encodeURIComponent(
+                            searchValue
+                        )
+                    );
+
+
+                const users =
+                    Array.isArray(data.users)
+                        ? data.users
+                        : [];
+
+
+                /*
+                 * Remove the currently logged-in
+                 * user from possible results.
+                 */
+
+                const currentUser =
+                    getStoredUser();
+
+
+                const currentUserId =
+                    currentUser &&
+                    (
+                        currentUser._id ||
+                        currentUser.id
+                    );
+
+
+                const matchedUser =
+                    users.find(function(user) {
+
+                        return String(
+                            user._id ||
+                            user.id
+                        ) !== String(
+                            currentUserId
+                        );
+
+                    });
+
+
+                if (!matchedUser) {
+
+                    console.log(
+                        "Not registered:",
+                        name,
+                        phone
+                    );
+
+                    continue;
+
+                }
+
+
+                foundCount++;
+
+
+                /*
+                 * Create/open the chat conversation.
+                 */
+
+                if (
+                    typeof openChatWithUser ===
+                    "function"
+                ) {
+
+                    await openChatWithUser(
+                        matchedUser
+                    );
+
+                } else {
+
+                    console.log(
+                        "Guardian SOS user found:",
+                        matchedUser
+                    );
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "Unable to find contact:",
+                    name,
+                    error
+                );
+
+            }
+
+        }
+
+
+        /*
+         * Refresh the chat list after importing
+         * the selected contacts.
+         */
+
+        if (
+            typeof loadChats ===
+            "function"
+        ) {
+
+            await loadChats();
+
+        }
+
+
+        if (foundCount > 0) {
+
+            showToast(
+                foundCount +
+                " Guardian SOS contact(s) found."
+            );
+
+        } else {
+
+            showToast(
+                "None of the selected contacts are registered on Guardian SOS."
+            );
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Contact picker error:",
+            error
+        );
+
+
+        showToast(
+            "Contact selection was cancelled or unavailable."
+        );
+
+    }
 
 }
 /* =========================================================

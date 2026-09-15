@@ -3302,42 +3302,7 @@ chatSOSRecipients:
 
 
 
-async function pickPhoneContacts() {
 
-    if (!("contacts" in navigator)) {
-
-        showToast(
-            "Phone contact selection is not supported on this browser. Search by name or phone number instead."
-        );
-
-        return;
-
-    }
-
-    try {
-
-        const contacts =
-            await navigator.contacts.select(
-                ["name", "tel"],
-                {
-                    multiple: true
-                }
-            );
-
-        console.log(
-            "Selected contacts:",
-            contacts
-        );
-
-    } catch (error) {
-
-        console.log(
-            "Contact selection cancelled."
-        );
-
-    }
-
-}
 
 
 /*
