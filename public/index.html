@@ -2677,86 +2677,84 @@ function connectChatSocket() {
     const token = getToken();
 
     if (!token) {
+        console.error("Chat: No authentication token.");
+        return;
+    }
+
+    if (typeof io !== "function") {
+        console.error("Chat: Socket.IO client is not loaded.");
+        showToast("Chat service is unavailable.");
         return;
     }
 
     if (chatSocket) {
+
+        if (chatSocket.connected) {
+            console.log("Guardian SOS chat is already connected.");
+            return;
+        }
+
+        chatSocket.connect();
         return;
     }
 
+    console.log("Connecting Guardian SOS real-time chat...");
+
     chatSocket = io({
+        transports: ["websocket", "polling"],
         auth: {
             token: token
         }
     });
 
+    chatSocket.on("connect", function() {
 
-    chatSocket.on(
-        "connect",
-        function() {
+        console.log(
+            "Guardian SOS real-time chat connected:",
+            chatSocket.id
+        );
 
-            console.log(
-                "Guardian SOS real-time chat connected."
-            );
+    });
 
+    chatSocket.on("connect_error", function(error) {
+
+        console.error(
+            "Guardian SOS chat connection error:",
+            error.message
+        );
+
+        chatSocket = null;
+
+    });
+
+    chatSocket.on("disconnect", function(reason) {
+
+        console.log(
+            "Guardian SOS chat disconnected:",
+            reason
+        );
+
+    });
+
+    chatSocket.on("new_message", function(message) {
+
+        console.log("NEW MESSAGE:", message);
+
+        if (typeof handleIncomingChatMessage === "function") {
+            handleIncomingChatMessage(message);
         }
-    );
 
+    });
 
-    chatSocket.on(
-        "connect_error",
-        function(error) {
+    chatSocket.on("chat_error", function(data) {
 
-            console.error(
-                "Chat connection error:",
-                error.message
-            );
+        console.error("Chat error:", data);
 
-        }
-    );
+        showToast(
+            data.message || "Chat error."
+        );
 
-
-    chatSocket.on(
-        "new_message",
-        function(message) {
-
-            console.log(
-                "NEW MESSAGE:",
-                message
-            );
-
-            /*
-             * Add the message to the currently
-             * open conversation.
-             */
-
-            if (
-                typeof handleIncomingChatMessage ===
-                "function"
-            ) {
-
-                handleIncomingChatMessage(
-                    message
-                );
-
-            }
-
-        }
-    );
-
-
-    chatSocket.on(
-        "chat_error",
-        function(data) {
-
-            showToast(
-                data.message ||
-                "Chat error."
-            );
-
-        }
-    );
-
+    });
 }
 
 
@@ -2777,16 +2775,25 @@ function sendChatMessage() {
     }
 
 
-    if (!chatSocket) {
+    if (!chatSocket || !chatSocket.connected) {
 
-        showToast(
-            "Chat is not connected."
-        );
+    showToast("Connecting to chat...");
 
-        connectChatSocket();
+    connectChatSocket();
 
-        return;
-    }
+    setTimeout(function() {
+
+        if (!chatSocket || !chatSocket.connected) {
+            showToast("Chat is still not connected.");
+            return;
+        }
+
+        sendChatMessage();
+
+    }, 1000);
+
+    return;
+}
 
 
     if (!currentChatUserId) {
