@@ -2895,32 +2895,68 @@ function appendChatMessage(message) {
 
 
 /* =========================================================
-   PHONE CONTACT PICKER
+   ANDROID PHONE CONTACT PICKER
 ========================================================= */
 
-async function pickPhoneContacts() {
+function pickPhoneContacts() {
 
     /*
-     * Check whether this browser supports
-     * the Contact Picker API.
+     * Guardian SOS is running inside the Android APK.
+     * Ask the native Android application to open
+     * the phone's Contacts application.
      */
 
-    if (!("contacts" in navigator)) {
+    if (
+        window.AndroidContacts &&
+        typeof window.AndroidContacts.openContacts === "function"
+    ) {
 
-        showToast(
-            "Phone contact selection is not supported by this browser."
+        console.log(
+            "Opening Android phone contacts..."
         );
 
-        return;
+        showToast(
+            "Opening your phone contacts..."
+        );
 
+        window.AndroidContacts.openContacts();
+
+        return;
     }
 
 
-    try {
+    /*
+     * Fallback for normal supported browsers.
+     */
 
-        /*
-         * Open the phone contact picker.
-         */
+    if (
+        navigator.contacts &&
+        typeof navigator.contacts.select === "function"
+    ) {
+
+        openBrowserContacts();
+
+        return;
+    }
+
+
+    /*
+     * Contact picker is not available.
+     */
+
+    showToast(
+        "Phone contacts are not available on this device."
+    );
+}
+
+
+/* =========================================================
+   BROWSER CONTACT PICKER FALLBACK
+========================================================= */
+
+async function openBrowserContacts() {
+
+    try {
 
         const contacts =
             await navigator.contacts.select(
@@ -2937,22 +2973,8 @@ async function pickPhoneContacts() {
         ) {
 
             return;
-
         }
 
-
-        showToast(
-            "Checking selected contacts..."
-        );
-
-
-        let foundCount = 0;
-
-
-        /*
-         * Check every selected phone contact
-         * against Guardian SOS registered users.
-         */
 
         for (
             const contact of contacts
@@ -2979,158 +3001,247 @@ async function pickPhoneContacts() {
                     : "";
 
 
-            let searchValue =
-                phone || email || name;
-
-
-            if (!searchValue) {
-                continue;
-            }
-
-
-            try {
-
-                const data =
-                    await api(
-                        "/api/chat/users?q=" +
-                        encodeURIComponent(
-                            searchValue
-                        )
-                    );
-
-
-                const users =
-                    Array.isArray(data.users)
-                        ? data.users
-                        : [];
-
-
-                /*
-                 * Remove the currently logged-in
-                 * user from possible results.
-                 */
-
-                const currentUser =
-                    getStoredUser();
-
-
-                const currentUserId =
-                    currentUser &&
-                    (
-                        currentUser._id ||
-                        currentUser.id
-                    );
-
-
-                const matchedUser =
-                    users.find(function(user) {
-
-                        return String(
-                            user._id ||
-                            user.id
-                        ) !== String(
-                            currentUserId
-                        );
-
-                    });
-
-
-                if (!matchedUser) {
-
-                    console.log(
-                        "Not registered:",
-                        name,
-                        phone
-                    );
-
-                    continue;
-
-                }
-
-
-                foundCount++;
-
-
-                /*
-                 * Create/open the chat conversation.
-                 */
-
-                if (
-                    typeof openChatWithUser ===
-                    "function"
-                ) {
-
-                    await openChatWithUser(
-                        matchedUser
-                    );
-
-                } else {
-
-                    console.log(
-                        "Guardian SOS user found:",
-                        matchedUser
-                    );
-
-                }
-
-            } catch (error) {
-
-                console.error(
-                    "Unable to find contact:",
-                    name,
-                    error
-                );
-
-            }
-
+            await processSelectedPhoneContact(
+                name,
+                phone,
+                email
+            );
         }
 
 
-        /*
-         * Refresh the chat list after importing
-         * the selected contacts.
-         */
-
         if (
-            typeof loadChats ===
-            "function"
+            typeof loadChats === "function"
         ) {
 
             await loadChats();
-
-        }
-
-
-        if (foundCount > 0) {
-
-            showToast(
-                foundCount +
-                " Guardian SOS contact(s) found."
-            );
-
-        } else {
-
-            showToast(
-                "None of the selected contacts are registered on Guardian SOS."
-            );
-
         }
 
 
     } catch (error) {
 
         console.error(
-            "Contact picker error:",
+            "Browser contact picker error:",
+            error
+        );
+
+        showToast(
+            "Contact selection was cancelled."
+        );
+    }
+}
+
+
+/* =========================================================
+   ANDROID CONTACT RETURN CALLBACK
+   Android calls this function after the user selects
+   a contact from the phone.
+========================================================= */
+
+window.androidContactSelected =
+    async function(
+        name,
+        phone
+    ) {
+
+        console.log(
+            "Android contact selected:",
+            name,
+            phone
+        );
+
+
+        if (
+            !phone
+        ) {
+
+            showToast(
+                "The selected contact has no phone number."
+            );
+
+            return;
+        }
+
+
+        showToast(
+            "Checking " + name + "..."
+        );
+
+
+        await processSelectedPhoneContact(
+            name,
+            phone,
+            ""
+        );
+    };
+
+
+/* =========================================================
+   PROCESS SELECTED CONTACT
+========================================================= */
+
+async function processSelectedPhoneContact(
+    name,
+    phone,
+    email
+) {
+
+    try {
+
+        /*
+         * Search Guardian SOS users using the
+         * selected phone number first.
+         */
+
+        let searchValue =
+            phone ||
+            email ||
+            name;
+
+
+        if (
+            !searchValue
+        ) {
+
+            showToast(
+                "No contact information found."
+            );
+
+            return;
+        }
+
+
+        const data =
+            await api(
+                "/api/chat/users?q=" +
+                encodeURIComponent(
+                    searchValue
+                )
+            );
+
+
+        const users =
+            Array.isArray(data.users)
+                ? data.users
+                : [];
+
+
+        /*
+         * Get current logged-in user.
+         */
+
+        const currentUser =
+            getStoredUser();
+
+
+        const currentUserId =
+            currentUser &&
+            (
+                currentUser._id ||
+                currentUser.id
+            );
+
+
+        /*
+         * Find another Guardian SOS user.
+         */
+
+        const matchedUser =
+            users.find(
+                function(user) {
+
+                    return String(
+                        user._id ||
+                        user.id
+                    ) !== String(
+                        currentUserId
+                    );
+                }
+            );
+
+
+        /*
+         * Contact is not registered.
+         */
+
+        if (
+            !matchedUser
+        ) {
+
+            console.log(
+                "Contact is not registered:",
+                name,
+                phone
+            );
+
+
+            showToast(
+                name +
+                " is not registered on Guardian SOS."
+            );
+
+
+            return;
+        }
+
+
+        /*
+         * Guardian SOS user found.
+         */
+
+        console.log(
+            "Guardian SOS user found:",
+            matchedUser
+        );
+
+
+        if (
+            typeof openChatWithUser ===
+            "function"
+        ) {
+
+            await openChatWithUser(
+                matchedUser
+            );
+
+
+            if (
+                typeof loadChats ===
+                "function"
+            ) {
+
+                await loadChats();
+            }
+
+
+            showToast(
+                name +
+                " added to conversations."
+            );
+
+        } else {
+
+            console.error(
+                "openChatWithUser() was not found."
+            );
+
+            showToast(
+                "Unable to open conversation."
+            );
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Unable to process phone contact:",
             error
         );
 
 
         showToast(
-            "Contact selection was cancelled or unavailable."
+            "Unable to find this contact on Guardian SOS."
         );
-
     }
-
 }
 /* =========================================================
    USER
