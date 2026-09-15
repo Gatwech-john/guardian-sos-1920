@@ -2511,106 +2511,9 @@ app.get(
 
     }
 );
+
 /* ============================================================
-   FIND GUARDIAN SOS USER BY PHONE NUMBER
-============================================================ */
-
-app.get(
-    "/api/chat/find-user-by-phone",
-    authenticateToken,
-    async (req, res) => {
-
-        try {
-
-            const phone =
-                String(req.query.phone || "")
-                    .trim();
-
-            const variants =
-                getPhoneVariants(phone);
-
-
-            if (!variants.length) {
-
-                return res.json({
-
-                    success: true,
-
-                    found: false,
-
-                    user: null
-
-                });
-
-            }
-
-
-            const user =
-                await User.findOne({
-
-                    _id: {
-                        $ne: req.user.userId
-                    },
-
-                    phone: {
-                        $in: variants
-                    }
-
-                })
-                .select(
-                    "_id name email phone"
-                );
-
-
-            if (!user) {
-
-                return res.json({
-
-                    success: true,
-
-                    found: false,
-
-                    user: null
-
-                });
-
-            }
-
-
-            return res.json({
-
-                success: true,
-
-                found: true,
-
-                user
-
-            });
-
-
-        } catch (error) {
-
-            console.error(
-                "Find chat user by phone error:",
-                error
-            );
-
-
-            return res.status(500).json({
-
-                success: false,
-
-                message:
-                    "Unable to find Guardian SOS user."
-
-            });
-
-        }
-
-    }
-);
-/* ============================================================
-   CREATE CHAT
+   CREATE / OPEN DIRECT CHAT
 ============================================================ */
 
 app.post(
@@ -2621,8 +2524,7 @@ app.post(
         try {
 
             const {
-                userId,
-                isEmergency
+                userId
             } = req.body;
 
             if (!userId) {
@@ -2646,95 +2548,106 @@ app.post(
 
             }
 
+            /*
+             * ONLY REGISTERED GUARDIAN SOS USERS
+             */
+
             const targetUser =
-                await User.findById(userId);
+                await User.findById(userId)
+                    .select("_id name email phone");
 
             if (!targetUser) {
 
                 return res.status(404).json({
                     success: false,
-                    message: "User not found."
+                    message:
+                        "This user is not registered on Guardian SOS."
                 });
 
             }
 
 
-            /* FIND EXISTING ONE-TO-ONE CHAT */
+            /*
+             * FIND EXISTING DIRECT CHAT
+             */
 
             let conversation =
-                await Conversation.findOne({
-                    isGroup: false,
+                await ChatConversation.findOne({
+
                     participants: {
                         $all: [
                             req.user.userId,
                             userId
                         ],
+
                         $size: 2
                     }
+
                 });
 
 
-            /* CREATE IF IT DOES NOT EXIST */
+            /*
+             * CREATE CHAT IF IT DOES NOT EXIST
+             */
 
             if (!conversation) {
 
                 conversation =
-                    await Conversation.create({
+                    await ChatConversation.create({
 
                         participants: [
                             req.user.userId,
                             userId
                         ],
 
-                        emergencyParticipants:
-                            isEmergency
-                                ? [userId]
-                                : [],
+                        lastMessage: "",
 
-                        isGroup: false
+                        lastMessageAt:
+                            new Date()
 
                     });
-
-            } else if (isEmergency) {
-
-                await Conversation.updateOne(
-                    {
-                        _id: conversation._id
-                    },
-                    {
-                        $addToSet: {
-                            emergencyParticipants:
-                                userId
-                        }
-                    }
-                );
 
             }
 
 
+            /*
+             * LOAD PARTICIPANTS
+             */
+
             conversation =
-                await Conversation
-                    .findById(conversation._id)
+                await ChatConversation
+                    .findById(
+                        conversation._id
+                    )
                     .populate(
                         "participants",
-                        "name email phone"
+                        "_id name email phone"
                     );
 
-            res.status(201).json({
+
+            return res.status(200).json({
+
                 success: true,
+
                 conversation
+
             });
+
 
         } catch (error) {
 
             console.error(
-                "Create chat error:",
+                "Open direct chat error:",
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
+
                 success: false,
-                message: "Unable to create chat."
+
+                message:
+                    "Unable to open conversation."
+
             });
 
         }
@@ -2743,7 +2656,7 @@ app.post(
 );
 
 /* ============================================================
-   GET CHATS
+   GET CHAT CONVERSATIONS
 ============================================================ */
 
 app.get(
@@ -2754,23 +2667,28 @@ app.get(
         try {
 
             const conversations =
-                await Conversation
+                await ChatConversation
                     .find({
                         participants:
                             req.user.userId
                     })
                     .populate(
                         "participants",
-                        "name email phone"
+                        "_id name email phone"
                     )
                     .sort({
                         lastMessageAt: -1
                     });
 
-            res.json({
+
+            return res.json({
+
                 success: true,
+
                 conversations
+
             });
+
 
         } catch (error) {
 
@@ -2779,9 +2697,13 @@ app.get(
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
+
                 success: false,
-                message: "Unable to load chats."
+
+                message:
+                    "Unable to load chats."
+
             });
 
         }
@@ -2791,7 +2713,7 @@ app.get(
 
 
 /* ============================================================
-   SEND MESSAGE
+   SEND CHAT MESSAGE
 ============================================================ */
 
 app.post(
@@ -2806,70 +2728,154 @@ app.post(
                 text
             } = req.body;
 
-            if (!conversationId || !text) {
+
+            const messageText =
+                String(text || "").trim();
+
+
+            if (!conversationId || !messageText) {
 
                 return res.status(400).json({
+
                     success: false,
-                    message: "Conversation and message are required."
+
+                    message:
+                        "Conversation and message are required."
+
                 });
 
             }
 
+
+            if (messageText.length > 5000) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Message is too long."
+
+                });
+
+            }
+
+
+            /*
+             * MAKE SURE CURRENT USER
+             * BELONGS TO CHAT
+             */
+
             const conversation =
-                await Conversation.findOne({
-                    _id: conversationId,
+                await ChatConversation.findOne({
+
+                    _id:
+                        conversationId,
+
                     participants:
                         req.user.userId
+
                 });
+
 
             if (!conversation) {
 
                 return res.status(403).json({
+
                     success: false,
-                    message: "You are not a member of this chat."
+
+                    message:
+                        "You are not a member of this chat."
+
                 });
 
             }
 
-            const message =
-                await Message.create({
 
-                    conversationId,
+            /*
+             * FIND OTHER PARTICIPANT
+             */
+
+            const recipientId =
+                conversation.participants.find(
+                    participant =>
+                        String(participant) !==
+                        String(req.user.userId)
+                );
+
+
+            if (!recipientId) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Chat recipient not found."
+
+                });
+
+            }
+
+
+            /*
+             * SAVE MESSAGE
+             */
+
+            const message =
+                await ChatMessage.create({
+
+                    conversationId:
+                        conversation._id,
 
                     senderId:
                         req.user.userId,
 
+                    recipientId:
+                        recipientId,
+
                     text:
-                        String(text).trim()
+                        messageText,
+
+                    read:
+                        false
 
                 });
 
 
-            await Conversation.updateOne(
-                {
-                    _id: conversationId
-                },
-                {
-                    $set: {
-                        lastMessage:
-                            String(text).trim(),
-                        lastMessageAt:
-                            new Date()
-                    }
-                }
-            );
+            /*
+             * UPDATE CONVERSATION
+             */
 
+            conversation.lastMessage =
+                messageText;
+
+            conversation.lastMessageAt =
+                new Date();
+
+            await conversation.save();
+
+
+            /*
+             * RETURN MESSAGE
+             */
 
             const populatedMessage =
-                await Message
-                    .findById(message._id)
+                await ChatMessage
+                    .findById(
+                        message._id
+                    )
                     .populate(
                         "senderId",
-                        "name email"
+                        "_id name email phone"
+                    )
+                    .populate(
+                        "recipientId",
+                        "_id name email phone"
                     );
 
 
-            res.status(201).json({
+            return res.status(201).json({
 
                 success: true,
 
@@ -2878,16 +2884,21 @@ app.post(
 
             });
 
+
         } catch (error) {
 
             console.error(
-                "Send message error:",
+                "Send chat message error:",
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
+
                 success: false,
-                message: "Unable to send message."
+
+                message:
+                    "Unable to send message."
+
             });
 
         }
@@ -2896,7 +2907,7 @@ app.post(
 );
 
 /* ============================================================
-   GET MESSAGES
+   GET CHAT MESSAGES
 ============================================================ */
 
 app.get(
@@ -2906,8 +2917,13 @@ app.get(
 
         try {
 
+            /*
+             * MAKE SURE USER BELONGS
+             * TO THIS CHAT
+             */
+
             const conversation =
-                await Conversation.findOne({
+                await ChatConversation.findOne({
 
                     _id:
                         req.params.conversationId,
@@ -2917,25 +2933,40 @@ app.get(
 
                 });
 
+
             if (!conversation) {
 
                 return res.status(403).json({
+
                     success: false,
-                    message: "You are not a member of this chat."
+
+                    message:
+                        "You are not a member of this chat."
+
                 });
 
             }
 
 
+            /*
+             * LOAD CHAT MESSAGES
+             */
+
             const messages =
-                await Message
+                await ChatMessage
                     .find({
+
                         conversationId:
                             conversation._id
+
                     })
                     .populate(
                         "senderId",
-                        "name email"
+                        "_id name email phone"
+                    )
+                    .populate(
+                        "recipientId",
+                        "_id name email phone"
                     )
                     .sort({
                         createdAt: 1
@@ -2943,7 +2974,7 @@ app.get(
                     .limit(500);
 
 
-            res.json({
+            return res.json({
 
                 success: true,
 
@@ -2951,23 +2982,27 @@ app.get(
 
             });
 
+
         } catch (error) {
 
             console.error(
-                "Get messages error:",
+                "Get chat messages error:",
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
+
                 success: false,
-                message: "Unable to load messages."
+
+                message:
+                    "Unable to load messages."
+
             });
 
         }
 
     }
 );
-
 /* ============================================================
    SEND SOS TO EMERGENCY CHAT MEMBERS
 ============================================================ */
