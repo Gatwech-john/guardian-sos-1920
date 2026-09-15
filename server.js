@@ -44,12 +44,17 @@ const dns = require("dns");
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const express = require("express");
+
+
+
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const helmet = require("helmet");
 const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
 const AfricasTalking = require("africastalking");
 
 
@@ -63,6 +68,16 @@ const { cert } = require("firebase-admin/app");
 ============================================================ */
 
 const app = express();
+const httpServer = http.createServer(app);
+
+const io = new Server(httpServer, {
+    cors: {
+        origin: true,
+        credentials: true
+    }
+});
+
+
 
 
 /* ============================================================
@@ -412,6 +427,86 @@ const LocationSchema = new mongoose.Schema(
 );
 
 
+
+
+
+/* ============================================================
+   CHAT SCHEMAS
+============================================================ */
+
+const ConversationSchema = new mongoose.Schema({
+
+    participants: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    }],
+
+    emergencyParticipants: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }],
+
+    isGroup: {
+        type: Boolean,
+        default: false
+    },
+
+    groupName: {
+        type: String,
+        default: ""
+    },
+
+    lastMessage: {
+        type: String,
+        default: ""
+    },
+
+    lastMessageAt: {
+        type: Date,
+        default: Date.now
+    },
+
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+
+});
+
+
+const MessageSchema = new mongoose.Schema({
+
+    conversationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Conversation",
+        required: true
+    },
+
+    senderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+
+    text: {
+        type: String,
+        required: true,
+        maxlength: 5000
+    },
+
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+
+    readBy: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }]
+
+});
+
 /* ============================================================
    CREATE MODELS
 ============================================================ */
@@ -440,6 +535,116 @@ const Location =
         "Location",
         LocationSchema
     );
+
+    const Conversation =
+    mongoose.models.Conversation ||
+    mongoose.model(
+        "Conversation",
+        ConversationSchema
+    );
+
+const Message =
+    mongoose.models.Message ||
+    mongoose.model(
+        "Message",
+        MessageSchema
+    );
+
+
+/* ============================================================
+   CHAT CONVERSATION SCHEMA
+============================================================ */
+
+const ChatConversationSchema = new mongoose.Schema(
+    {
+        participants: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+                required: true
+            }
+        ],
+
+        lastMessage: {
+            type: String,
+            default: ""
+        },
+
+        lastMessageAt: {
+            type: Date,
+            default: Date.now
+        },
+
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }
+);
+
+
+/* ============================================================
+   CHAT MESSAGE SCHEMA
+============================================================ */
+
+const ChatMessageSchema = new mongoose.Schema(
+    {
+        conversationId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "ChatConversation",
+            required: true
+        },
+
+        senderId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
+
+        recipientId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
+
+        text: {
+            type: String,
+            required: true,
+            trim: true,
+            maxlength: 5000
+        },
+
+        read: {
+            type: Boolean,
+            default: false
+        },
+
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }
+);
+
+
+/* ============================================================
+   CHAT MODELS
+============================================================ */
+
+const ChatConversation =
+    mongoose.models.ChatConversation ||
+    mongoose.model(
+        "ChatConversation",
+        ChatConversationSchema
+    );
+
+const ChatMessage =
+    mongoose.models.ChatMessage ||
+    mongoose.model(
+        "ChatMessage",
+        ChatMessageSchema
+    );
+
 
 
 /* ============================================================
@@ -590,6 +795,331 @@ function authenticateToken(req, res, next) {
 
 }
 
+
+/* ============================================================
+   SOCKET.IO AUTHENTICATION
+============================================================ */
+
+io.use((socket, next) => {
+
+    try {
+
+        const token =
+            socket.handshake.auth &&
+            socket.handshake.auth.token;
+
+        if (!token) {
+            return next(
+                new Error("Authentication required.")
+            );
+        }
+
+        const decoded =
+            jwt.verify(
+                token,
+                JWT_SECRET
+            );
+
+        socket.userId =
+            decoded.userId;
+
+        socket.userEmail =
+            decoded.email;
+
+        next();
+
+    } catch (error) {
+
+        console.error(
+            "Socket authentication error:",
+            error.message
+        );
+
+        next(
+            new Error("Invalid or expired token.")
+        );
+
+    }
+
+});
+
+
+/* ============================================================
+   REAL-TIME CHAT
+============================================================ */
+
+io.on("connection", (socket) => {
+
+    console.log(
+        "Chat connected:",
+        socket.userId
+    );
+
+
+    /*
+     * USER JOINS THEIR PRIVATE ROOM
+     */
+
+    const userRoom =
+        "user:" + socket.userId;
+
+    socket.join(userRoom);
+
+
+    /*
+     * SEND MESSAGE
+     */
+
+    socket.on(
+        "send_message",
+        async (data) => {
+
+            try {
+
+                const recipientId =
+                    String(data.recipientId || "").trim();
+
+                const text =
+                    String(data.text || "").trim();
+
+
+                if (!recipientId) {
+                    return;
+                }
+
+                if (!text) {
+                    return;
+                }
+
+
+                if (text.length > 5000) {
+
+                    socket.emit(
+                        "chat_error",
+                        {
+                            message:
+                                "Message is too long."
+                        }
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * MAKE SURE RECIPIENT EXISTS
+                 */
+
+                const recipient =
+                    await User.findById(
+                        recipientId
+                    );
+
+                if (!recipient) {
+
+                    socket.emit(
+                        "chat_error",
+                        {
+                            message:
+                                "User not found."
+                        }
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * FIND EXISTING CONVERSATION
+                 */
+
+                let conversation =
+                    await ChatConversation.findOne(
+                        {
+                            participants: {
+                                $all: [
+                                    socket.userId,
+                                    recipientId
+                                ]
+                            }
+                        }
+                    );
+
+
+                /*
+                 * CREATE CONVERSATION
+                 * IF IT DOES NOT EXIST
+                 */
+
+                if (!conversation) {
+
+                    conversation =
+                        await ChatConversation.create(
+                            {
+                                participants: [
+                                    socket.userId,
+                                    recipientId
+                                ],
+
+                                lastMessage:
+                                    text,
+
+                                lastMessageAt:
+                                    new Date()
+                            }
+                        );
+
+                } else {
+
+                    conversation.lastMessage =
+                        text;
+
+                    conversation.lastMessageAt =
+                        new Date();
+
+                    await conversation.save();
+
+                }
+
+
+                /*
+                 * SAVE MESSAGE
+                 */
+
+                const message =
+                    await ChatMessage.create(
+                        {
+                            conversationId:
+                                conversation._id,
+
+                            senderId:
+                                socket.userId,
+
+                            recipientId:
+                                recipientId,
+
+                            text:
+                                text,
+
+                            read:
+                                false
+                        }
+                    );
+
+
+                /*
+                 * GET SENDER
+                 */
+
+                const sender =
+                    await User.findById(
+                        socket.userId
+                    ).select(
+                        "name email phone"
+                    );
+
+
+                const messageData = {
+
+                    _id:
+                        message._id,
+
+                    conversationId:
+                        conversation._id,
+
+                    senderId:
+                        socket.userId,
+
+                    recipientId:
+                        recipientId,
+
+                    text:
+                        message.text,
+
+                    read:
+                        message.read,
+
+                    createdAt:
+                        message.createdAt,
+
+                    senderName:
+                        sender
+                            ? sender.name
+                            : "User"
+
+                };
+
+
+                /*
+                 * SEND TO SENDER
+                 */
+
+                io.to(
+                    "user:" + socket.userId
+                ).emit(
+                    "new_message",
+                    messageData
+                );
+
+
+                /*
+                 * SEND IMMEDIATELY TO RECIPIENT
+                 */
+
+                io.to(
+                    "user:" + recipientId
+                ).emit(
+                    "new_message",
+                    messageData
+                );
+
+
+                console.log(
+                    "Chat message delivered:",
+                    socket.userId,
+                    "→",
+                    recipientId
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Chat message error:",
+                    error
+                );
+
+                socket.emit(
+                    "chat_error",
+                    {
+                        message:
+                            "Unable to send message."
+                    }
+                );
+
+            }
+
+        }
+    );
+
+
+    /*
+     * DISCONNECT
+     */
+
+    socket.on(
+        "disconnect",
+        () => {
+
+            console.log(
+                "Chat disconnected:",
+                socket.userId
+            );
+
+        }
+    );
+
+});
 
 /*
 ------------------------------------------------------------
@@ -1740,6 +2270,632 @@ app.delete(
     }
 );
 
+/* ============================================================
+   CHAT USER SEARCH
+============================================================ */
+
+app.get(
+    "/api/chat/users",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const q =
+                String(req.query.q || "")
+                    .trim();
+
+            if (q.length < 2) {
+
+                return res.json({
+                    success: true,
+                    users: []
+                });
+
+            }
+
+            const users =
+                await User.find({
+                    _id: {
+                        $ne: req.user.userId
+                    },
+                    $or: [
+                        {
+                            name: {
+                                $regex: q,
+                                $options: "i"
+                            }
+                        },
+                        {
+                            email: {
+                                $regex: q,
+                                $options: "i"
+                            }
+                        },
+                        {
+                            phone: {
+                                $regex: q,
+                                $options: "i"
+                            }
+                        }
+                    ]
+                })
+                .select("_id name email phone")
+                .limit(20);
+
+            res.json({
+                success: true,
+                users
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Chat user search error:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message: "Unable to search users."
+            });
+
+        }
+
+    }
+);
+
+/* ============================================================
+   CREATE CHAT
+============================================================ */
+
+app.post(
+    "/api/chat/conversations",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const {
+                userId,
+                isEmergency
+            } = req.body;
+
+            if (!userId) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "User ID is required."
+                });
+
+            }
+
+            if (
+                String(userId) ===
+                String(req.user.userId)
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "You cannot chat with yourself."
+                });
+
+            }
+
+            const targetUser =
+                await User.findById(userId);
+
+            if (!targetUser) {
+
+                return res.status(404).json({
+                    success: false,
+                    message: "User not found."
+                });
+
+            }
+
+
+            /* FIND EXISTING ONE-TO-ONE CHAT */
+
+            let conversation =
+                await Conversation.findOne({
+                    isGroup: false,
+                    participants: {
+                        $all: [
+                            req.user.userId,
+                            userId
+                        ],
+                        $size: 2
+                    }
+                });
+
+
+            /* CREATE IF IT DOES NOT EXIST */
+
+            if (!conversation) {
+
+                conversation =
+                    await Conversation.create({
+
+                        participants: [
+                            req.user.userId,
+                            userId
+                        ],
+
+                        emergencyParticipants:
+                            isEmergency
+                                ? [userId]
+                                : [],
+
+                        isGroup: false
+
+                    });
+
+            } else if (isEmergency) {
+
+                await Conversation.updateOne(
+                    {
+                        _id: conversation._id
+                    },
+                    {
+                        $addToSet: {
+                            emergencyParticipants:
+                                userId
+                        }
+                    }
+                );
+
+            }
+
+
+            conversation =
+                await Conversation
+                    .findById(conversation._id)
+                    .populate(
+                        "participants",
+                        "name email phone"
+                    );
+
+            res.status(201).json({
+                success: true,
+                conversation
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Create chat error:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message: "Unable to create chat."
+            });
+
+        }
+
+    }
+);
+
+/* ============================================================
+   GET CHATS
+============================================================ */
+
+app.get(
+    "/api/chat/conversations",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const conversations =
+                await Conversation
+                    .find({
+                        participants:
+                            req.user.userId
+                    })
+                    .populate(
+                        "participants",
+                        "name email phone"
+                    )
+                    .sort({
+                        lastMessageAt: -1
+                    });
+
+            res.json({
+                success: true,
+                conversations
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Load chats error:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message: "Unable to load chats."
+            });
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   SEND MESSAGE
+============================================================ */
+
+app.post(
+    "/api/chat/messages",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const {
+                conversationId,
+                text
+            } = req.body;
+
+            if (!conversationId || !text) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Conversation and message are required."
+                });
+
+            }
+
+            const conversation =
+                await Conversation.findOne({
+                    _id: conversationId,
+                    participants:
+                        req.user.userId
+                });
+
+            if (!conversation) {
+
+                return res.status(403).json({
+                    success: false,
+                    message: "You are not a member of this chat."
+                });
+
+            }
+
+            const message =
+                await Message.create({
+
+                    conversationId,
+
+                    senderId:
+                        req.user.userId,
+
+                    text:
+                        String(text).trim()
+
+                });
+
+
+            await Conversation.updateOne(
+                {
+                    _id: conversationId
+                },
+                {
+                    $set: {
+                        lastMessage:
+                            String(text).trim(),
+                        lastMessageAt:
+                            new Date()
+                    }
+                }
+            );
+
+
+            const populatedMessage =
+                await Message
+                    .findById(message._id)
+                    .populate(
+                        "senderId",
+                        "name email"
+                    );
+
+
+            res.status(201).json({
+
+                success: true,
+
+                message:
+                    populatedMessage
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Send message error:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message: "Unable to send message."
+            });
+
+        }
+
+    }
+);
+
+/* ============================================================
+   GET MESSAGES
+============================================================ */
+
+app.get(
+    "/api/chat/messages/:conversationId",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const conversation =
+                await Conversation.findOne({
+
+                    _id:
+                        req.params.conversationId,
+
+                    participants:
+                        req.user.userId
+
+                });
+
+            if (!conversation) {
+
+                return res.status(403).json({
+                    success: false,
+                    message: "You are not a member of this chat."
+                });
+
+            }
+
+
+            const messages =
+                await Message
+                    .find({
+                        conversationId:
+                            conversation._id
+                    })
+                    .populate(
+                        "senderId",
+                        "name email"
+                    )
+                    .sort({
+                        createdAt: 1
+                    })
+                    .limit(500);
+
+
+            res.json({
+
+                success: true,
+
+                messages
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Get messages error:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message: "Unable to load messages."
+            });
+
+        }
+
+    }
+);
+
+/* ============================================================
+   SEND SOS TO EMERGENCY CHAT MEMBERS
+============================================================ */
+
+async function sendChatSOSAlert(
+    user,
+    emergency
+) {
+
+    try {
+
+        const conversations =
+            await Conversation.find({
+
+                participants:
+                    user._id,
+
+                emergencyParticipants:
+                    user._id
+
+            });
+
+
+        const recipientIds = [];
+
+
+        for (
+            const conversation
+            of conversations
+        ) {
+
+            for (
+                const participantId
+                of conversation.emergencyParticipants
+            ) {
+
+                if (
+                    String(participantId) !==
+                    String(user._id)
+                ) {
+
+                    recipientIds.push(
+                        String(participantId)
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        const uniqueIds =
+            [...new Set(recipientIds)];
+
+
+        if (!uniqueIds.length) {
+
+            return {
+                success: true,
+                count: 0,
+                message:
+                    "No emergency chat members selected."
+            };
+
+        }
+
+
+        const recipients =
+            await User.find({
+                _id: {
+                    $in: uniqueIds
+                }
+            });
+
+
+        const locationText =
+            emergency.latitude !== null &&
+            emergency.longitude !== null
+
+                ? `https://www.google.com/maps?q=${emergency.latitude},${emergency.longitude}`
+
+                : "Location unavailable.";
+
+
+        const notificationTitle =
+            "🚨 GUARDIAN SOS ALERT";
+
+
+        const notificationBody =
+            `${user.name} has activated an emergency SOS.`;
+
+
+        /*
+         * Send Firebase push notifications only
+         * to selected emergency chat users.
+         */
+
+        const tokens = recipients
+            .flatMap(
+                recipient =>
+                    recipient.fcmTokens || []
+            );
+
+
+        if (
+            tokens.length &&
+            admin.apps.length
+        ) {
+
+            await admin
+                .messaging()
+                .sendEachForMulticast({
+
+                    tokens,
+
+                    notification: {
+
+                        title:
+                            notificationTitle,
+
+                        body:
+                            notificationBody
+
+                    },
+
+                    data: {
+
+                        type: "CHAT_SOS",
+
+                        emergencyId:
+                            emergency._id.toString(),
+
+                        userId:
+                            user._id.toString(),
+
+                        latitude:
+                            emergency.latitude !== null
+                                ? String(emergency.latitude)
+                                : "",
+
+                        longitude:
+                            emergency.longitude !== null
+                                ? String(emergency.longitude)
+                                : "",
+
+                        location:
+                            locationText
+
+                    }
+
+                });
+
+        }
+
+
+        return {
+
+            success: true,
+
+            count:
+                recipients.length,
+
+            message:
+                `${recipients.length} emergency chat member(s) alerted.`
+
+        };
+
+
+    } catch (error) {
+
+        console.error(
+            "Chat SOS error:",
+            error
+        );
+
+        return {
+
+            success: false,
+
+            count: 0,
+
+            message:
+                "Unable to alert emergency chat members."
+
+        };
+
+    }
+
+}
+
+
 
 /* ============================================================
    LOCATION
@@ -2027,16 +3183,28 @@ app.post(
             */
 
             const alertResult =
-                await sendSOSAlerts(
-                    user,
-                    contacts,
-                    emergency
-                );
-                const fcmResult =
+    await sendSOSAlerts(
+        user,
+        contacts,
+        emergency
+    );
+
+
+const fcmResult =
     await sendFCMAlerts(
         user,
         emergency
     );
+
+
+const chatSOSResult =
+    await sendChatSOSAlert(
+        user,
+        emergency
+    );
+
+
+    
 
 
             /*
@@ -2074,6 +3242,17 @@ fcmMessage:
     recipients:
         alertResult.recipients || [],
 
+chatSOSStatus:
+    chatSOSResult.success
+        ? "CHAT SOS SENT"
+        : "CHAT SOS NOT SENT",
+
+chatSOSMessage:
+    chatSOSResult.message,
+
+chatSOSRecipients:
+    chatSOSResult.count,
+        
     emergency: {
 
         id:
@@ -2092,6 +3271,7 @@ fcmMessage:
             emergency.createdAt
 
     }
+    
 
 });
 
@@ -2119,6 +3299,45 @@ fcmMessage:
 
     }
 );
+
+
+
+async function pickPhoneContacts() {
+
+    if (!("contacts" in navigator)) {
+
+        showToast(
+            "Phone contact selection is not supported on this browser. Search by name or phone number instead."
+        );
+
+        return;
+
+    }
+
+    try {
+
+        const contacts =
+            await navigator.contacts.select(
+                ["name", "tel"],
+                {
+                    multiple: true
+                }
+            );
+
+        console.log(
+            "Selected contacts:",
+            contacts
+        );
+
+    } catch (error) {
+
+        console.log(
+            "Contact selection cancelled."
+        );
+
+    }
+
+}
 
 
 /*
@@ -2579,9 +3798,16 @@ app.use(
    START SERVER
 ============================================================ */
 
+
+
+
+/* ============================================================
+   START GUARDIAN SOS SERVER
+============================================================ */
+
 if (process.env.VERCEL !== "1") {
 
-    app.listen(
+    httpServer.listen(
         PORT,
         "0.0.0.0",
         () => {
@@ -2602,7 +3828,13 @@ if (process.env.VERCEL !== "1") {
                 `Server running on port ${PORT}`
             );
 
-            console.log( `https://guardian-sos-1920.vercel.app`);
+            console.log(
+                `https://guardian-sos-1920.vercel.app`
+            );
+
+            console.log(
+                "Real-time chat server is ready."
+            );
 
             console.log(
                 "========================================"
@@ -2612,7 +3844,6 @@ if (process.env.VERCEL !== "1") {
     );
 
 }
-
 module.exports = app;
 
 

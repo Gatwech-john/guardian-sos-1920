@@ -970,6 +970,408 @@ body {
         display: block;
     }
 
+
+
+    /* =========================================================
+   GUARDIAN SOS CHAT
+========================================================= */
+
+.chat-page {
+    position: relative;
+    height: calc(100vh - 70px);
+    background: #080808;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chat-header {
+    height: 72px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    background: #111;
+    border-bottom: 1px solid #ff1493;
+}
+
+.chat-header h2 {
+    color: white;
+    font-size: 22px;
+    margin: 0;
+}
+
+.chat-header span {
+    color: #999;
+    font-size: 12px;
+}
+
+.chat-new-button {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid #ff1493;
+    background: #171717;
+    color: white;
+    font-size: 18px;
+}
+
+.chat-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 100px;
+}
+
+.chat-empty {
+    text-align: center;
+    padding: 80px 25px;
+    color: #999;
+}
+
+.chat-empty-icon {
+    font-size: 65px;
+    margin-bottom: 20px;
+}
+
+.chat-empty h3 {
+    color: white;
+    margin-bottom: 10px;
+}
+
+.chat-empty p {
+    color: #888;
+    line-height: 1.6;
+}
+
+.chat-plus-button {
+    position: absolute;
+    right: 22px;
+    bottom: 22px;
+
+    width: 62px;
+    height: 62px;
+
+    border-radius: 50%;
+    border: 2px solid white;
+
+    background: #ff1493;
+    color: white;
+
+    font-size: 36px;
+    font-weight: bold;
+
+    box-shadow:
+        0 5px 20px rgba(255, 20, 147, .45);
+
+    z-index: 20;
+}
+
+.chat-plus-button:hover {
+    transform: scale(1.08);
+    background: #ff3ba5;
+}
+
+
+/* CHAT LIST ITEM */
+
+.chat-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 14px 18px;
+
+    border-bottom: 1px solid #202020;
+
+    cursor: pointer;
+}
+
+.chat-item:hover {
+    background: #121212;
+}
+
+.chat-avatar {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 50%;
+
+    background: #ff1493;
+
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 20px;
+    font-weight: bold;
+
+    flex-shrink: 0;
+}
+
+.chat-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-name {
+    color: white;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.chat-last-message {
+    color: #888;
+    font-size: 13px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-time {
+    color: #777;
+    font-size: 11px;
+}
+
+
+/* CHAT WINDOW */
+
+.chat-window {
+    position: fixed;
+    inset: 0;
+
+    z-index: 2500;
+
+    background: #080808;
+
+    display: none;
+    flex-direction: column;
+}
+
+.chat-window.active {
+    display: flex;
+}
+
+.chat-window-header {
+    height: 68px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 0 15px;
+
+    background: #111;
+
+    border-bottom: 1px solid #ff1493;
+}
+
+.chat-back-button {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 25px;
+}
+
+.chat-window-title {
+    color: white;
+    font-weight: bold;
+}
+
+.chat-window-status {
+    color: #00ff88;
+    font-size: 11px;
+}
+
+.chat-messages {
+    flex: 1;
+
+    overflow-y: auto;
+
+    padding: 20px 15px 90px;
+}
+
+.chat-message {
+    max-width: 78%;
+    margin-bottom: 10px;
+    padding: 10px 13px;
+
+    border-radius: 14px;
+
+    line-height: 1.4;
+
+    word-wrap: break-word;
+}
+
+.chat-message.sent {
+    margin-left: auto;
+    background: #ff1493;
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.chat-message.received {
+    margin-right: auto;
+    background: #202020;
+    color: white;
+    border-bottom-left-radius: 4px;
+}
+
+.chat-message-time {
+    display: block;
+    margin-top: 4px;
+    font-size: 9px;
+    opacity: .65;
+}
+
+
+/* MESSAGE INPUT */
+
+.chat-input-area {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    min-height: 65px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 9px 12px;
+
+    background: #111;
+
+    border-top: 1px solid #222;
+}
+
+.chat-attach-button {
+    width: 42px;
+    height: 42px;
+
+    border: none;
+    background: transparent;
+
+    color: white;
+
+    font-size: 23px;
+}
+
+.chat-message-input {
+    flex: 1;
+
+    border: 1px solid #333;
+
+    border-radius: 22px;
+
+    padding: 11px 15px;
+
+    background: #1a1a1a;
+
+    color: white;
+
+    outline: none;
+}
+
+.chat-message-input:focus {
+    border-color: #ff1493;
+}
+
+.chat-send-button {
+    width: 43px;
+    height: 43px;
+
+    border-radius: 50%;
+
+    border: none;
+
+    background: #ff1493;
+
+    color: white;
+
+    font-size: 18px;
+}
+
+
+/* NEW CHAT MODAL */
+
+.new-chat-box {
+    max-width: 460px;
+}
+
+.chat-user-search {
+    width: 100%;
+
+    padding: 13px;
+
+    border-radius: 10px;
+
+    border: 1px solid #ff1493;
+
+    background: #111;
+
+    color: white;
+
+    margin-bottom: 15px;
+}
+
+.chat-user-result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 12px;
+
+    border-bottom: 1px solid #292929;
+}
+
+.chat-user-result button {
+    margin-left: auto;
+
+    border: 1px solid #ff1493;
+
+    background: #ff1493;
+
+    color: white;
+
+    border-radius: 8px;
+
+    padding: 8px 12px;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 760px) {
+
+    .chat-page {
+        height: calc(100vh - 62px - 68px);
+    }
+
+    .chat-plus-button {
+        bottom: 15px;
+        right: 15px;
+        width: 58px;
+        height: 58px;
+    }
+
+}
+
+
+
+
+
+
+
+
+
     /* =========================
        RESPONSIVE
     ========================== */
@@ -1386,6 +1788,11 @@ body {
             SOS
         </button>
 
+        <button data-page="chat" class="chat-nav-button">
+            <span class="mobile-nav-icon messenger-icon">💬</span>
+            Chat
+        </button>
+
         <button data-page="contacts">
             <span class="mobile-nav-icon">👥</span>
             Contacts
@@ -1712,6 +2119,73 @@ body {
         </div>
 
     </section>
+
+
+    <!-- =====================================================
+     CHAT PAGE
+====================================================== -->
+
+<section id="chatPage" class="page protected-page">
+
+    <div class="chat-page">
+
+        <!-- CHAT HEADER -->
+        <div class="chat-header">
+
+            <div>
+                <h2>💬 Chats</h2>
+                <span id="chatOnlineStatus">
+                    Guardian SOS Chat
+                </span>
+            </div>
+
+            <button
+                class="chat-new-button"
+                onclick="openNewChat()"
+            >
+                ✏️
+            </button>
+
+        </div>
+
+
+        <!-- CHAT LIST -->
+        <div
+            id="chatList"
+            class="chat-list"
+        >
+
+            <div class="chat-empty">
+                <div class="chat-empty-icon">
+                    💬
+                </div>
+
+                <h3>No conversations yet</h3>
+
+                <p>
+                    Start a secure conversation with another
+                    Guardian SOS user.
+                </p>
+            </div>
+
+        </div>
+
+
+        <!-- PLUS BUTTON -->
+        <button
+            id="chatPlusButton"
+            class="chat-plus-button"
+            onclick="openNewChat()"
+            title="New chat"
+        >
+            +
+        </button>
+
+    </div>
+
+</section>
+
+
 
 
     <!-- =====================================================
@@ -2149,7 +2623,7 @@ body {
 
 </div>
 
-
+<script src="/socket.io/socket.io.js"></script>
 <script>
 
 /* =========================================================
@@ -2168,6 +2642,7 @@ const protectedPages = [
     "home",
     "dashboard",
     "sos",
+     "chat",
     "contacts",
     "location",
     "history",
@@ -2180,6 +2655,7 @@ const allPages = [
     "home",
     "dashboard",
     "sos",
+    "chat",
     "contacts",
     "location",
     "history",
@@ -2196,7 +2672,233 @@ function getToken() {
     return localStorage.getItem(TOKEN_KEY);
 }
 
+/* =========================================================
+   REAL-TIME CHAT CONNECTION
+========================================================= */
 
+let chatSocket = null;
+
+function connectChatSocket() {
+
+    const token = getToken();
+
+    if (!token) {
+        return;
+    }
+
+    if (chatSocket) {
+        return;
+    }
+
+    chatSocket = io({
+        auth: {
+            token: token
+        }
+    });
+
+
+    chatSocket.on(
+        "connect",
+        function() {
+
+            console.log(
+                "Guardian SOS real-time chat connected."
+            );
+
+        }
+    );
+
+
+    chatSocket.on(
+        "connect_error",
+        function(error) {
+
+            console.error(
+                "Chat connection error:",
+                error.message
+            );
+
+        }
+    );
+
+
+    chatSocket.on(
+        "new_message",
+        function(message) {
+
+            console.log(
+                "NEW MESSAGE:",
+                message
+            );
+
+            /*
+             * Add the message to the currently
+             * open conversation.
+             */
+
+            if (
+                typeof handleIncomingChatMessage ===
+                "function"
+            ) {
+
+                handleIncomingChatMessage(
+                    message
+                );
+
+            }
+
+        }
+    );
+
+
+    chatSocket.on(
+        "chat_error",
+        function(data) {
+
+            showToast(
+                data.message ||
+                "Chat error."
+            );
+
+        }
+    );
+
+}
+
+
+
+function sendChatMessage() {
+
+    const input =
+        document.getElementById(
+            "chatMessageInput"
+        );
+
+    const text =
+        input.value.trim();
+
+
+    if (!text) {
+        return;
+    }
+
+
+    if (!chatSocket) {
+
+        showToast(
+            "Chat is not connected."
+        );
+
+        connectChatSocket();
+
+        return;
+    }
+
+
+    if (!currentChatUserId) {
+
+        showToast(
+            "Please select a contact first."
+        );
+
+        return;
+    }
+
+
+    chatSocket.emit(
+        "send_message",
+        {
+            recipientId:
+                currentChatUserId,
+
+            text:
+                text
+        }
+    );
+
+
+    input.value = "";
+
+}
+
+
+function handleIncomingChatMessage(message) {
+
+    /*
+     * If this conversation is currently open,
+     * display the message immediately.
+     */
+
+    if (
+        typeof currentChatUserId !==
+        "undefined" &&
+        String(message.senderId) ===
+        String(currentChatUserId)
+    ) {
+
+        appendChatMessage(
+            message
+        );
+
+        return;
+    }
+
+
+    /*
+     * Otherwise show an unread notification.
+     */
+
+    showToast(
+        "💬 New message from " +
+        (message.senderName || "User")
+    );
+
+}
+
+
+function appendChatMessage(message) {
+
+    const messagesList =
+        document.getElementById(
+            "messagesList"
+        );
+
+    if (!messagesList) {
+        return;
+    }
+
+
+    const isMine =
+        String(message.senderId) ===
+        String(
+            getStoredUser()?._id ||
+            getStoredUser()?.id
+        );
+
+
+    const messageElement =
+        document.createElement("div");
+
+
+    messageElement.className =
+        isMine
+            ? "message-bubble sent"
+            : "message-bubble received";
+
+
+    messageElement.textContent =
+        message.text;
+
+
+    messagesList.appendChild(
+        messageElement
+    );
+
+
+    messagesList.scrollTop =
+        messagesList.scrollHeight;
+
+}
 /* =========================================================
    USER
 ========================================================= */
@@ -2465,6 +3167,9 @@ function showPage(page) {
         loadContacts();
 
     }
+    if (page === "chat") {
+    loadChats();
+}
 
     if (page === "location") {
 
