@@ -3221,6 +3221,729 @@ async function processSelectedPhoneContact(name, phone, email) {
     }
 
 }
+
+
+/* =========================================================
+   GUARDIAN SOS CHAT
+   REGISTERED USERS ONLY
+========================================================= */
+
+let currentChatUserId = null;
+let currentConversationId = null;
+
+
+/* =========================================================
+   LOAD CONVERSATIONS
+========================================================= */
+
+async function loadChats() {
+
+    const chatList =
+        document.getElementById("chatList");
+
+    if (!chatList) {
+        return;
+    }
+
+    try {
+
+        const data =
+            await api("/api/chat/conversations");
+
+        const conversations =
+            Array.isArray(data.conversations)
+                ? data.conversations
+                : [];
+
+
+        if (!conversations.length) {
+
+            chatList.innerHTML = `
+                <div class="chat-empty">
+
+                    <div class="chat-empty-icon">
+                        💬
+                    </div>
+
+                    <h3>No conversations yet</h3>
+
+                    <p>
+                        Start a secure conversation
+                        with another Guardian SOS user.
+                    </p>
+
+                </div>
+            `;
+
+            return;
+        }
+
+
+        const currentUser =
+            getStoredUser();
+
+        const currentUserId =
+            currentUser &&
+            (
+                currentUser._id ||
+                currentUser.id
+            );
+
+
+        chatList.innerHTML =
+            conversations.map(function(conversation) {
+
+                const participants =
+                    Array.isArray(
+                        conversation.participants
+                    )
+                        ? conversation.participants
+                        : [];
+
+
+                const otherUser =
+                    participants.find(function(user) {
+
+                        return String(
+                            user._id ||
+                            user.id
+                        ) !==
+                        String(currentUserId);
+
+                    });
+
+
+                if (!otherUser) {
+                    return "";
+                }
+
+
+                const userName =
+                    otherUser.name ||
+                    "Guardian SOS User";
+
+
+                const lastMessage =
+                    conversation.lastMessage ||
+                    "Start a conversation";
+
+
+                const lastTime =
+                    conversation.lastMessageAt
+                        ? new Date(
+                            conversation.lastMessageAt
+                          ).toLocaleTimeString(
+                            [],
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit"
+                            }
+                          )
+                        : "";
+
+
+                const avatar =
+                    userName
+                        .charAt(0)
+                        .toUpperCase();
+
+
+                return `
+                    <div
+                        class="chat-item"
+                        onclick="openExistingChat(
+                            '${escapeHTML(conversation._id)}',
+                            '${escapeHTML(otherUser._id)}',
+                            '${escapeHTML(userName)}'
+                        )"
+                    >
+
+                        <div class="chat-avatar">
+                            ${escapeHTML(avatar)}
+                        </div>
+
+                        <div class="chat-info">
+
+                            <div class="chat-name">
+                                ${escapeHTML(userName)}
+                            </div>
+
+                            <div class="chat-last-message">
+                                ${escapeHTML(lastMessage)}
+                            </div>
+
+                        </div>
+
+                        <div class="chat-time">
+                            ${escapeHTML(lastTime)}
+                        </div>
+
+                    </div>
+                `;
+
+            }).join("");
+
+
+    } catch (error) {
+
+        console.error(
+            "Load conversations error:",
+            error
+        );
+
+
+        chatList.innerHTML = `
+            <div class="chat-empty">
+
+                <div class="chat-empty-icon">
+                    ⚠️
+                </div>
+
+                <h3>Unable to load conversations</h3>
+
+                <p>
+                    ${escapeHTML(
+                        error.message ||
+                        "Please try again."
+                    )}
+                </p>
+
+            </div>
+        `;
+
+    }
+
+}
+
+
+/* =========================================================
+   OPEN CHAT WITH REGISTERED USER
+========================================================= */
+
+async function openChatWithUser(user) {
+
+    try {
+
+        if (!user) {
+
+            throw new Error(
+                "Guardian SOS user was not found."
+            );
+
+        }
+
+
+        const userId =
+            user._id ||
+            user.id;
+
+
+        if (!userId) {
+
+            throw new Error(
+                "The registered user has no valid ID."
+            );
+
+        }
+
+
+        const currentUser =
+            getStoredUser();
+
+
+        const currentUserId =
+            currentUser &&
+            (
+                currentUser._id ||
+                currentUser.id
+            );
+
+
+        if (
+            String(userId) ===
+            String(currentUserId)
+        ) {
+
+            throw new Error(
+                "You cannot chat with yourself."
+            );
+
+        }
+
+
+        /*
+         * Create or retrieve the conversation
+         * on the server.
+         */
+
+        const data =
+            await api(
+                "/api/chat/conversations",
+                {
+                    method: "POST",
+
+                    body: {
+                        userId: userId
+                    }
+                }
+            );
+
+
+        if (
+            !data ||
+            !data.success ||
+            !data.conversation
+        ) {
+
+            throw new Error(
+                data &&
+                data.message
+                    ? data.message
+                    : "Unable to open conversation."
+            );
+
+        }
+
+
+        const conversation =
+            data.conversation;
+
+
+        currentConversationId =
+            conversation._id;
+
+
+        currentChatUserId =
+            userId;
+
+
+        /*
+         * Open the chat window.
+         */
+
+        showChatWindow(
+            user,
+            conversation._id
+        );
+
+
+        /*
+         * Load previous messages.
+         */
+
+        await loadChatMessages(
+            conversation._id
+        );
+
+
+        /*
+         * Make sure real-time chat is connected.
+         */
+
+        connectChatSocket();
+
+
+    } catch (error) {
+
+        console.error(
+            "Open chat error:",
+            error
+        );
+
+
+        showToast(
+            error.message ||
+            "Unable to open conversation."
+        );
+
+
+        throw error;
+
+    }
+
+}
+
+
+/* =========================================================
+   OPEN EXISTING CONVERSATION
+========================================================= */
+
+async function openExistingChat(
+    conversationId,
+    userId,
+    userName
+) {
+
+    try {
+
+        currentConversationId =
+            conversationId;
+
+        currentChatUserId =
+            userId;
+
+
+        showChatWindow(
+            {
+                _id: userId,
+                name: userName
+            },
+            conversationId
+        );
+
+
+        await loadChatMessages(
+            conversationId
+        );
+
+
+        connectChatSocket();
+
+
+    } catch (error) {
+
+        console.error(
+            "Open existing chat error:",
+            error
+        );
+
+
+        showToast(
+            error.message ||
+            "Unable to open conversation."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   SHOW CHAT WINDOW
+========================================================= */
+
+function showChatWindow(user, conversationId) {
+
+    const chatList =
+        document.getElementById("chatList");
+
+
+    if (chatList) {
+
+        chatList.style.display =
+            "none";
+
+    }
+
+
+    let chatWindow =
+        document.getElementById(
+            "chatWindow"
+        );
+
+
+    /*
+     * Create the chat window if it does
+     * not already exist.
+     */
+
+    if (!chatWindow) {
+
+        chatWindow =
+            document.createElement("div");
+
+        chatWindow.id =
+            "chatWindow";
+
+        chatWindow.className =
+            "chat-window";
+
+
+        chatWindow.innerHTML = `
+
+            <div class="chat-window-header">
+
+                <button
+                    class="chat-back-button"
+                    onclick="closeChatWindow()"
+                >
+                    ←
+                </button>
+
+                <div>
+
+                    <div
+                        class="chat-window-title"
+                        id="chatWindowTitle"
+                    >
+                        Guardian SOS User
+                    </div>
+
+                    <div
+                        class="chat-window-status"
+                        id="chatWindowStatus"
+                    >
+                        Guardian SOS
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="chat-messages"
+                id="messagesList"
+            ></div>
+
+
+            <div class="chat-input-area">
+
+                <button
+                    class="chat-attach-button"
+                    type="button"
+                >
+                    +
+                </button>
+
+                <input
+                    type="text"
+                    id="chatMessageInput"
+                    class="chat-message-input"
+                    placeholder="Type a message..."
+                    maxlength="5000"
+                    autocomplete="off"
+                >
+
+                <button
+                    class="chat-send-button"
+                    type="button"
+                    onclick="sendChatMessage()"
+                >
+                    ➤
+                </button>
+
+            </div>
+
+        `;
+
+
+        const chatPage =
+            document.querySelector(
+                "#chatPage .chat-page"
+            );
+
+
+        if (chatPage) {
+
+            chatPage.appendChild(
+                chatWindow
+            );
+
+        }
+
+    }
+
+
+    const title =
+        document.getElementById(
+            "chatWindowTitle"
+        );
+
+
+    if (title) {
+
+        title.textContent =
+            user.name ||
+            "Guardian SOS User";
+
+    }
+
+
+    const status =
+        document.getElementById(
+            "chatWindowStatus"
+        );
+
+
+    if (status) {
+
+        status.textContent =
+            "Guardian SOS User";
+
+    }
+
+
+    chatWindow.style.display =
+        "flex";
+
+}
+
+
+/* =========================================================
+   CLOSE CHAT WINDOW
+========================================================= */
+
+function closeChatWindow() {
+
+    const chatWindow =
+        document.getElementById(
+            "chatWindow"
+        );
+
+
+    if (chatWindow) {
+
+        chatWindow.style.display =
+            "none";
+
+    }
+
+
+    const chatList =
+        document.getElementById(
+            "chatList"
+        );
+
+
+    if (chatList) {
+
+        chatList.style.display =
+            "block";
+
+    }
+
+
+    currentChatUserId =
+        null;
+
+    currentConversationId =
+        null;
+
+
+    loadChats();
+
+}
+
+
+/* =========================================================
+   LOAD CHAT MESSAGES
+========================================================= */
+
+async function loadChatMessages(
+    conversationId
+) {
+
+    const messagesList =
+        document.getElementById(
+            "messagesList"
+        );
+
+
+    if (!messagesList) {
+
+        return;
+
+    }
+
+
+    messagesList.innerHTML =
+        `
+            <div
+                style="
+                    text-align:center;
+                    padding:20px;
+                    opacity:.7;
+                "
+            >
+                Loading messages...
+            </div>
+        `;
+
+
+    try {
+
+        const data =
+            await api(
+                "/api/chat/messages/" +
+                encodeURIComponent(
+                    conversationId
+                )
+            );
+
+
+        const messages =
+            Array.isArray(data.messages)
+                ? data.messages
+                : [];
+
+
+        messagesList.innerHTML =
+            "";
+
+
+        if (!messages.length) {
+
+            messagesList.innerHTML = `
+                <div
+                    style="
+                        text-align:center;
+                        padding:30px 15px;
+                        opacity:.6;
+                    "
+                >
+                    No messages yet.<br>
+                    Send a message to start the conversation.
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        messages.forEach(function(message) {
+
+            appendChatMessage(
+                message
+            );
+
+        });
+
+
+        messagesList.scrollTop =
+            messagesList.scrollHeight;
+
+
+    } catch (error) {
+
+        console.error(
+            "Load messages error:",
+            error
+        );
+
+
+        messagesList.innerHTML = `
+            <div
+                style="
+                    text-align:center;
+                    padding:20px;
+                    color:#ff4444;
+                "
+            >
+                ${escapeHTML(
+                    error.message ||
+                    "Unable to load messages."
+                )}
+            </div>
+        `;
+
+    }
+
+}
+
+
+
 /* =========================================================
    USER
 ========================================================= */
@@ -3682,6 +4405,7 @@ loginForm.addEventListener(
                 USER_KEY,
                 JSON.stringify(data.user)
             );
+            connectChatSocket();
 
 
             message.textContent =
@@ -3857,6 +4581,8 @@ registerForm.addEventListener(
                 USER_KEY,
                 JSON.stringify(data.user)
             );
+
+            connectChatSocket();
 
 
             message.textContent =
