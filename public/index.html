@@ -1545,7 +1545,211 @@ body {
     text-align: center;
 }
 
+/* =========================================================
+   ADD CHAT CONTACT MODAL
+========================================================= */
 
+.chat-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.85);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+
+.chat-modal.active {
+    display: flex;
+}
+
+
+.chat-modal-content {
+    width: 100%;
+    max-width: 520px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: #111;
+    border: 2px solid #ff1493;
+    border-radius: 18px;
+    box-shadow: 0 0 30px rgba(255, 20, 147, 0.35);
+    padding: 20px;
+}
+
+
+.chat-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+
+.chat-modal-header h2 {
+    margin: 0 0 5px;
+    color: #ff1493;
+}
+
+
+.chat-modal-header p {
+    margin: 0;
+    color: #aaa;
+}
+
+
+.chat-modal-close {
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 32px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+
+.chat-search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 12px;
+    padding: 12px 15px;
+    margin-bottom: 18px;
+}
+
+
+.chat-search-box span {
+    font-size: 20px;
+}
+
+
+.chat-search-box input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: white;
+    font-size: 16px;
+}
+
+
+.chat-search-box input::placeholder {
+    color: #888;
+}
+
+
+.chat-contact-results {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+.chat-search-empty {
+    text-align: center;
+    color: #aaa;
+    padding: 30px 10px;
+}
+
+
+.chat-search-empty.red {
+    color: #ff4444;
+}
+
+
+.chat-contact-result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px;
+    background: #1b1b1b;
+    border: 1px solid #333;
+    border-radius: 12px;
+}
+
+
+.chat-contact-avatar {
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    border-radius: 50%;
+    background: #ff1493;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+
+.chat-contact-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+
+.chat-contact-info strong {
+    color: white;
+    font-size: 16px;
+}
+
+
+.chat-contact-info span {
+    color: #aaa;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+
+.chat-add-user-button {
+    border: none;
+    background: #ff1493;
+    color: white;
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+
+.chat-add-user-button:hover {
+    opacity: 0.85;
+}
+
+
+@media (max-width: 600px) {
+
+    .chat-modal {
+        padding: 10px;
+    }
+
+
+    .chat-modal-content {
+        max-height: 90vh;
+        padding: 15px;
+    }
+
+
+    .chat-contact-result {
+        align-items: flex-start;
+    }
+
+
+    .chat-add-user-button {
+        font-size: 12px;
+        padding: 8px;
+    }
+
+}
 </style>
 </head>
 
@@ -2172,13 +2376,63 @@ body {
 
 
         <!-- PLUS BUTTON -->
-        <button id="chatPlusButton" class="chat-plus-button" onclick="pickPhoneContacts()" title="Add contacts">+</button>
+        <button id="chatPlusButton" class="chat-plus-button" onclick="openAddChatContact()" title="Add Chat Contact">+</button>
 
     </div>
 
 </section>
 
+<!-- =========================================================
+     ADD CHAT CONTACT MODAL
+========================================================= -->
 
+<div id="addChatContactModal" class="chat-modal">
+
+    <div class="chat-modal-content">
+
+        <div class="chat-modal-header">
+
+            <div>
+                <h2>👥 Add Chat Contact</h2>
+                <p>Search registered Guardian SOS users.</p>
+            </div>
+
+            <button
+                class="chat-modal-close"
+                onclick="closeAddChatContact()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="chat-search-box">
+
+            <span>🔍</span>
+
+            <input
+                type="text"
+                id="chatContactSearch"
+                placeholder="Search name/phone..."
+                autocomplete="off"
+                oninput="searchChatContacts()"
+            >
+
+        </div>
+
+
+        <div id="chatContactResults" class="chat-contact-results">
+
+            <div class="chat-search-empty">
+                🔎 Search for a Guardian SOS user.
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 
     <!-- =====================================================
@@ -3807,7 +4061,385 @@ registerForm.addEventListener(
     }
 );
 
+/* =========================================================
+   ADD CHAT CONTACT
+========================================================= */
 
+function openAddChatContact() {
+
+    const modal =
+        document.getElementById(
+            "addChatContactModal"
+        );
+
+    const input =
+        document.getElementById(
+            "chatContactSearch"
+        );
+
+    const results =
+        document.getElementById(
+            "chatContactResults"
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add("active");
+
+
+    if (input) {
+
+        input.value = "";
+
+        setTimeout(function() {
+
+            input.focus();
+
+        }, 100);
+
+    }
+
+
+    if (results) {
+
+        results.innerHTML =
+            '<div class="chat-search-empty">' +
+            '🔎 Search for a Guardian SOS user.' +
+            '</div>';
+
+    }
+
+}
+
+
+function closeAddChatContact() {
+
+    const modal =
+        document.getElementById(
+            "addChatContactModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove("active");
+
+    }
+
+}
+
+
+let chatSearchTimer = null;
+
+
+async function searchChatContacts() {
+
+    const input =
+        document.getElementById(
+            "chatContactSearch"
+        );
+
+    const results =
+        document.getElementById(
+            "chatContactResults"
+        );
+
+
+    if (!input || !results) {
+        return;
+    }
+
+
+    const query =
+        input.value.trim();
+
+
+    if (query.length < 2) {
+
+        results.innerHTML =
+            '<div class="chat-search-empty">' +
+            '🔎 Type at least 2 characters.' +
+            '</div>';
+
+        return;
+
+    }
+
+
+    clearTimeout(chatSearchTimer);
+
+
+    chatSearchTimer =
+        setTimeout(
+            async function() {
+
+                results.innerHTML =
+                    '<div class="chat-search-empty">' +
+                    'Searching...' +
+                    '</div>';
+
+
+                try {
+
+                    const data =
+                        await api(
+                            "/api/chat/users?q=" +
+                            encodeURIComponent(query)
+                        );
+
+
+                    const users =
+                        Array.isArray(data.users)
+                            ? data.users
+                            : [];
+
+
+                    const currentUser =
+                        getStoredUser();
+
+
+                    const currentUserId =
+                        currentUser &&
+                        (
+                            currentUser._id ||
+                            currentUser.id
+                        );
+
+
+                    const filteredUsers =
+                        users.filter(
+                            function(user) {
+
+                                return String(
+                                    user._id ||
+                                    user.id
+                                ) !== String(
+                                    currentUserId
+                                );
+
+                            }
+                        );
+
+
+                    if (
+                        !filteredUsers.length
+                    ) {
+
+                        results.innerHTML =
+                            '<div class="chat-search-empty">' +
+                            'No Guardian SOS user found.' +
+                            '</div>';
+
+                        return;
+
+                    }
+
+
+                    results.innerHTML =
+                        filteredUsers
+                            .map(
+                                function(user) {
+
+                                    const userId =
+                                        user._id ||
+                                        user.id;
+
+
+                                    const name =
+                                        user.name ||
+                                        user.fullName ||
+                                        "Guardian SOS User";
+
+
+                                    const phone =
+                                        user.phone ||
+                                        user.phoneNumber ||
+                                        user.mobile ||
+                                        "";
+
+
+                                    const email =
+                                        user.email ||
+                                        "";
+
+
+                                    return `
+
+                                        <div class="chat-contact-result">
+
+                                            <div class="chat-contact-avatar">
+                                                ${escapeHTML(
+                                                    name
+                                                        .charAt(0)
+                                                        .toUpperCase()
+                                                )}
+                                            </div>
+
+
+                                            <div class="chat-contact-info">
+
+                                                <strong>
+                                                    ${escapeHTML(name)}
+                                                </strong>
+
+                                                ${
+                                                    phone
+                                                        ? `
+                                                            <span>
+                                                                📞
+                                                                ${escapeHTML(phone)}
+                                                            </span>
+                                                          `
+                                                        : ""
+                                                }
+
+                                                ${
+                                                    email
+                                                        ? `
+                                                            <span>
+                                                                📧
+                                                                ${escapeHTML(email)}
+                                                            </span>
+                                                          `
+                                                        : ""
+                                                }
+
+                                            </div>
+
+
+                                            <button
+                                                class="chat-add-user-button"
+                                                onclick='addChatContact(${JSON.stringify(user)})'
+                                            >
+                                                Add to Chat
+                                            </button>
+
+                                        </div>
+
+                                    `;
+
+                                }
+                            )
+                            .join("");
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Chat contact search error:",
+                        error
+                    );
+
+
+                    results.innerHTML =
+                        '<div class="chat-search-empty red">' +
+                        escapeHTML(
+                            error.message ||
+                            "Unable to search contacts."
+                        ) +
+                        '</div>';
+
+                }
+
+            },
+            350
+        );
+
+}
+
+
+async function addChatContact(user) {
+
+    if (!user) {
+        return;
+    }
+
+
+    const userId =
+        user._id ||
+        user.id;
+
+
+    if (!userId) {
+
+        showToast(
+            "Invalid chat contact."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        /*
+         * Create the conversation.
+         */
+
+        await api(
+            "/api/chat/conversations",
+            {
+                method: "POST",
+
+                body: {
+                    participantId:
+                        userId
+                }
+            }
+        );
+
+
+        showToast(
+            "Chat contact added."
+        );
+
+
+        closeAddChatContact();
+
+
+        /*
+         * Refresh conversations.
+         */
+
+        await loadChats();
+
+
+        /*
+         * Open the chat immediately.
+         */
+
+        if (
+            typeof openChatWithUser ===
+            "function"
+        ) {
+
+            await openChatWithUser(
+                user
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Unable to add chat contact:",
+            error
+        );
+
+
+        showToast(
+            error.message ||
+            "Unable to add chat contact."
+        );
+
+    }
+
+}
 /* =========================================================
    LOAD DASHBOARD
 ========================================================= */
