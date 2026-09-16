@@ -1757,6 +1757,39 @@ body {
 }
 
 
+
+
+.message-delete-menu {
+    background: #111;
+    border: 1px solid #ff1493;
+    border-radius: 12px;
+    padding: 6px;
+    min-width: 190px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+    z-index: 99999;
+}
+
+.message-delete-menu button {
+    display: block;
+    width: 100%;
+    padding: 12px 14px;
+    border: none;
+    background: transparent;
+    color: white;
+    text-align: left;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.message-delete-menu button:hover {
+    background: #ff1493;
+}
+
+.deleted-message {
+    opacity: 0.65;
+    font-style: italic;
+}
 </style>
 </head>
 
@@ -3173,39 +3206,65 @@ function appendChatMessage(message) {
         return;
     }
 
-
     const currentUser =
-    getStoredUser();
+        getStoredUser();
 
-const currentUserId =
-    currentUser &&
-    (
-        currentUser._id ||
-        currentUser.id
-    );
+    const currentUserId =
+        currentUser &&
+        (
+            currentUser._id ||
+            currentUser.id
+        );
 
-const senderId =
-    message.senderId &&
-    typeof message.senderId === "object"
-        ? (
-            message.senderId._id ||
-            message.senderId.id
+    const senderId =
+        message.senderId &&
+        typeof message.senderId === "object"
+            ? (
+                message.senderId._id ||
+                message.senderId.id
+            )
+            : message.senderId;
+
+    const isMine =
+        String(senderId) ===
+        String(currentUserId);
+
+
+    /*
+     * Do not display the message if
+     * this user has deleted it for themselves.
+     */
+
+    if (
+        Array.isArray(message.deletedFor) &&
+        message.deletedFor.some(
+            id =>
+                String(id) ===
+                String(currentUserId)
         )
-        : message.senderId;
-
-const isMine =
-    String(senderId) ===
-    String(currentUserId);
+    ) {
+        return;
+    }
 
 
     const messageElement =
         document.createElement("div");
 
-
     messageElement.className =
         isMine
             ? "chat-message sent"
             : "chat-message received";
+
+
+    /*
+     * Store the message ID on the
+     * message element.
+     */
+
+    messageElement.dataset.messageId =
+        message._id ||
+        message.id ||
+        "";
 
 
     const messageText =
@@ -3214,8 +3273,27 @@ const isMine =
     messageText.className =
         "chat-message-text";
 
-    messageText.textContent =
-        message.text || "";
+
+    /*
+     * If deleted for everyone,
+     * show the deleted-message text.
+     */
+
+    if (message.deletedForEveryone) {
+
+        messageText.textContent =
+            "This message was deleted";
+
+        messageElement.classList.add(
+            "deleted-message"
+        );
+
+    } else {
+
+        messageText.textContent =
+            message.text || "";
+
+    }
 
 
     const messageTime =
@@ -3260,6 +3338,73 @@ const isMine =
     );
 
 
+    /*
+     * Add WhatsApp-style message menu.
+     */
+
+    messageElement.addEventListener(
+        "contextmenu",
+        function(event) {
+
+            event.preventDefault();
+
+            showMessageDeleteMenu(
+                message,
+                isMine,
+                messageElement
+            );
+
+        }
+    );
+
+
+    /*
+     * Mobile long press.
+     */
+
+    let pressTimer;
+
+    messageElement.addEventListener(
+        "touchstart",
+        function() {
+
+            pressTimer =
+                setTimeout(() => {
+
+                    showMessageDeleteMenu(
+                        message,
+                        isMine,
+                        messageElement
+                    );
+
+                }, 600);
+
+        }
+    );
+
+    messageElement.addEventListener(
+        "touchend",
+        function() {
+
+            clearTimeout(
+                pressTimer
+            );
+
+        }
+    );
+
+    messageElement.addEventListener(
+        "touchmove",
+        function() {
+
+            clearTimeout(
+                pressTimer
+            );
+
+        }
+    );
+
+
     messagesList.appendChild(
         messageElement
     );
@@ -3267,6 +3412,298 @@ const isMine =
 
     messagesList.scrollTop =
         messagesList.scrollHeight;
+}
+
+
+
+
+
+
+
+
+function showMessageDeleteMenu(
+    message,
+    isMine,
+    messageElement
+) {
+
+    /*
+     * Remove an existing menu first.
+     */
+
+    const oldMenu =
+        document.getElementById(
+            "messageDeleteMenu"
+        );
+
+    if (oldMenu) {
+        oldMenu.remove();
+    }
+
+
+    const menu =
+        document.createElement("div");
+
+    menu.id =
+        "messageDeleteMenu";
+
+    menu.className =
+        "message-delete-menu";
+
+
+    /*
+     * Delete for me
+     */
+
+    const deleteForMe =
+        document.createElement("button");
+
+    deleteForMe.type =
+        "button";
+
+    deleteForMe.textContent =
+        "Delete for me";
+
+    deleteForMe.onclick =
+        function() {
+
+            deleteMessageForMe(
+                message,
+                messageElement
+            );
+
+            menu.remove();
+
+        };
+
+
+    menu.appendChild(
+        deleteForMe
+    );
+
+
+    /*
+     * Delete for everyone is only
+     * available for messages sent
+     * by the current user.
+     */
+
+    if (isMine) {
+
+        const deleteForEveryone =
+            document.createElement("button");
+
+        deleteForEveryone.type =
+            "button";
+
+        deleteForEveryone.textContent =
+            "Delete for everyone";
+
+        deleteForEveryone.onclick =
+            function() {
+
+                deleteMessageForEveryone(
+                    message,
+                    messageElement
+                );
+
+                menu.remove();
+
+            };
+
+
+        menu.appendChild(
+            deleteForEveryone
+        );
+    }
+
+
+    document.body.appendChild(
+        menu
+    );
+
+
+    /*
+     * Position the menu near
+     * the selected message.
+     */
+
+    const rect =
+        messageElement.getBoundingClientRect();
+
+    menu.style.position =
+        "fixed";
+
+    menu.style.left =
+        Math.min(
+            rect.left,
+            window.innerWidth - 210
+        ) + "px";
+
+    menu.style.top =
+        Math.min(
+            rect.bottom + 5,
+            window.innerHeight - 120
+        ) + "px";
+
+
+    /*
+     * Close menu when clicking elsewhere.
+     */
+
+    setTimeout(() => {
+
+        document.addEventListener(
+            "click",
+            function closeMenu(event) {
+
+                if (
+                    !menu.contains(event.target)
+                ) {
+
+                    menu.remove();
+
+                    document.removeEventListener(
+                        "click",
+                        closeMenu
+                    );
+
+                }
+
+            }
+        );
+
+    }, 0);
+}
+
+
+
+
+
+async function deleteMessageForMe(
+    message,
+    messageElement
+) {
+
+    const messageId =
+        message._id ||
+        message.id;
+
+    if (!messageId) {
+
+        console.error(
+            "Message ID is missing"
+        );
+
+        return;
+    }
+
+
+    try {
+
+        await api(
+            `/api/chat/messages/${messageId}/delete-for-me`,
+            {
+                method: "DELETE"
+            }
+        );
+
+
+        /*
+         * Remove immediately from
+         * this user's screen.
+         */
+
+        messageElement.remove();
+
+
+    } catch (error) {
+
+        console.error(
+            "Delete for me failed:",
+            error
+        );
+
+        showToast(
+            "Unable to delete message"
+        );
+
+    }
+}
+
+async function deleteMessageForEveryone(
+    message,
+    messageElement
+) {
+
+    const messageId =
+        message._id ||
+        message.id;
+
+    if (!messageId) {
+
+        console.error(
+            "Message ID is missing"
+        );
+
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            "Delete this message for everyone?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            `/api/chat/messages/${messageId}/delete-for-everyone`,
+            {
+                method: "DELETE"
+            }
+        );
+
+
+        /*
+         * Change the message locally.
+         */
+
+        const text =
+            messageElement.querySelector(
+                ".chat-message-text"
+            );
+
+        if (text) {
+
+            text.textContent =
+                "This message was deleted";
+
+        }
+
+
+        messageElement.classList.add(
+            "deleted-message"
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Delete for everyone failed:",
+            error
+        );
+
+        showToast(
+            "Unable to delete message"
+        );
+
+    }
 }
 
 
@@ -4166,15 +4603,11 @@ if (avatar) {
         );
 
 
-    if (status) {
+   if (status) {
+    status.textContent = "Offline";
 
-    status.textContent =
-        "Checking...";
-
-    status.classList.remove(
-        "online",
-        "offline"
-    );
+    status.classList.remove("online");
+    status.classList.add("offline");
 }
 
 
