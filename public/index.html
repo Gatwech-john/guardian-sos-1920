@@ -3145,36 +3145,23 @@ if (
 
 function handleIncomingChatMessage(message) {
 
-    /*
-     * If this conversation is currently open,
-     * display the message immediately.
-     */
-
     if (
-        typeof currentChatUserId !==
-        "undefined" &&
-        String(message.senderId) ===
-        String(currentChatUserId)
+        currentConversationId &&
+        String(message.conversationId) ===
+        String(currentConversationId)
     ) {
-
-        appendChatMessage(
-            message
-        );
-
+        appendChatMessage(message);
         return;
     }
-
-
-    /*
-     * Otherwise show an unread notification.
-     */
 
     showToast(
         "💬 New message from " +
         (message.senderName || "User")
     );
-
 }
+
+
+
 
 
 function appendChatMessage(message) {
@@ -3188,19 +3175,27 @@ function appendChatMessage(message) {
 
 
     const currentUser =
-        getStoredUser();
+    getStoredUser();
 
-    const currentUserId =
-        currentUser &&
-        (
-            currentUser._id ||
-            currentUser.id
-        );
+const currentUserId =
+    currentUser &&
+    (
+        currentUser._id ||
+        currentUser.id
+    );
 
+const senderId =
+    message.senderId &&
+    typeof message.senderId === "object"
+        ? (
+            message.senderId._id ||
+            message.senderId.id
+        )
+        : message.senderId;
 
-    const isMine =
-        String(message.senderId) ===
-        String(currentUserId);
+const isMine =
+    String(senderId) ===
+    String(currentUserId);
 
 
     const messageElement =
