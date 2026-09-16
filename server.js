@@ -4217,7 +4217,7 @@ if (process.env.VERCEL !== "1") {
     );
 
 }
-module.exports = httpServer;
+module.exports = app;
 
 
 
