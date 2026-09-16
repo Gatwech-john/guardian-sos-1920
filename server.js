@@ -1750,221 +1750,42 @@ POST /api/auth/register
 ------------------------------------------------------------
 */
 
-app.post(
-    "/api/auth/register",
-    async (req, res) => {
-
-        try {
-
-            const {
-                name,
-                email,
-                phone,
-                password
-            } = req.body;
-
-
-            if (
-                !name ||
-                !email ||
-                !password
-            ) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Name, email and password are required."
-
-                });
-
-            }
-
-
-            if (!isValidEmail(email)) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Please enter a valid email address."
-
-                });
-
-            }
-
-
-            if (password.length < 8) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Password must contain at least 8 characters."
-
-                });
-
-            }
-
-
-            const normalizedEmail =
-                email.toLowerCase().trim();
-
-
-            const existingUser =
-                await User.findOne({
-                    email: normalizedEmail
-                });
-
-
-            if (existingUser) {
-
-                return res.status(409).json({
-
-                    success: false,
-
-                    message:
-                        "An account with this email already exists."
-
-                });
-
-            }
-
-
-            const hashedPassword =
-                await bcrypt.hash(
-                    password,
-                    12
-                );
-
-
-            const user =
-                await User.create({
-
-                    name:
-                        name.trim(),
-
-                    email:
-                        normalizedEmail,
-
-                    phone:
-                        phone
-                            ? phone.trim()
-                            : "",
-
-                    password:
-                        hashedPassword
-
-                });
-
-
-            const token =
-                createToken(user);
-
-
-            res.status(201).json({
-
-                success: true,
-
-                message:
-                    "Account created successfully.",
-
-                token,
-
-                user: {
-
-                    id:
-                        user._id,
-
-                    name:
-                        user.name,
-
-                    email:
-                        user.email,
-
-                    phone:
-                        user.phone
-
-                }
-
-            });
-
-
-        } catch (error) {
-
-            console.error(
-                "Registration error:",
-                error
-            );
-
-
-            res.status(500).json({
-
-                success: false,
-
-                message:
-                    "Unable to create account."
-
-            });
-
-        }
-
-    }
-);
-
-
-/*
-------------------------------------------------------------
-LOGIN
-------------------------------------------------------------
-POST /api/auth/login
-------------------------------------------------------------
-*/
-
 app.post("/api/auth/login", async (req, res) => {
 
     try {
 
-        const { email, password } = req.body;
+        const email = String(req.body.email || "")
+            .trim()
+            .toLowerCase();
+
+        const password = String(req.body.password || "");
 
         if (!email || !password) {
-
             return res.status(400).json({
                 success: false,
                 message: "Email and password are required."
             });
-
         }
 
-        const user = await User.findOne({
-            email: email.trim().toLowerCase()
-        });
+        const user = await User.findOne({ email });
 
         if (!user) {
-
             return res.status(401).json({
                 success: false,
                 message: "Invalid email or password."
             });
-
         }
 
-        const passwordMatch =
-            await bcrypt.compare(
-                password,
-                user.password
-            );
+        const validPassword = await bcrypt.compare(
+            password,
+            user.password
+        );
 
-        if (!passwordMatch) {
-
+        if (!validPassword) {
             return res.status(401).json({
                 success: false,
                 message: "Invalid email or password."
             });
-
         }
 
         const token = jwt.sign(
@@ -1979,13 +1800,9 @@ app.post("/api/auth/login", async (req, res) => {
         );
 
         return res.status(200).json({
-
             success: true,
-
             message: "Login successful.",
-
             token: token,
-
             user: {
                 id: user._id,
                 name: user.name,
@@ -1993,29 +1810,20 @@ app.post("/api/auth/login", async (req, res) => {
                 phone: user.phone,
                 createdAt: user.createdAt
             }
-
         });
 
     } catch (error) {
 
-        console.error(
-            "LOGIN ERROR:",
-            error
-        );
+        console.error("LOGIN ERROR:", error);
 
         return res.status(500).json({
             success: false,
-            message: "Login server error.",
-            error:
-                process.env.NODE_ENV === "production"
-                    ? undefined
-                    : error.message
+            message: "Login server error: " + error.message
         });
 
     }
 
 });
-
 
 /*
 ------------------------------------------------------------
