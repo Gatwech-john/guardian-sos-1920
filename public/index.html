@@ -2670,6 +2670,7 @@ function getToken() {
    REAL-TIME CHAT CONNECTION
 ========================================================= */
 
+
 let chatSocket = null;
 
 function connectChatSocket() {
@@ -2677,26 +2678,38 @@ function connectChatSocket() {
     const token = getToken();
 
     if (!token) {
+        console.error(
+            "Chat cannot connect: guardianToken is missing."
+        );
         return;
     }
 
     if (chatSocket) {
+
+        if (chatSocket.connected) {
+            console.log(
+                "Guardian SOS real-time chat is already connected."
+            );
+            return;
+        }
+
+        console.log(
+            "Guardian SOS chat socket exists but is not connected. Reconnecting..."
+        );
+
+        chatSocket.connect();
         return;
     }
 
-   chatSocket = io(
-    window.location.origin,
-    {
+    console.log(
+        "Connecting Guardian SOS real-time chat..."
+    );
+
+    chatSocket = io({
         auth: {
             token: token
         }
-    }
-);
-console.log(
-    "Socket connecting to:",
-    window.location.origin
-);
-
+    });
 
     chatSocket.on(
         "connect",
@@ -2706,9 +2719,13 @@ console.log(
                 "Guardian SOS real-time chat connected."
             );
 
+            console.log(
+                "Socket ID:",
+                chatSocket.id
+            );
+
         }
     );
-
 
     chatSocket.on(
         "connect_error",
@@ -2722,6 +2739,17 @@ console.log(
         }
     );
 
+    chatSocket.on(
+        "disconnect",
+        function(reason) {
+
+            console.log(
+                "Guardian SOS chat disconnected:",
+                reason
+            );
+
+        }
+    );
 
     chatSocket.on(
         "new_message",
@@ -2731,11 +2759,6 @@ console.log(
                 "NEW MESSAGE:",
                 message
             );
-
-            /*
-             * Add the message to the currently
-             * open conversation.
-             */
 
             if (
                 typeof handleIncomingChatMessage ===
@@ -2751,7 +2774,6 @@ console.log(
         }
     );
 
-
     chatSocket.on(
         "chat_error",
         function(data) {
@@ -2763,8 +2785,9 @@ console.log(
 
         }
     );
-
 }
+
+
 
 
 
@@ -2784,16 +2807,22 @@ function sendChatMessage() {
     }
 
 
-    if (!chatSocket) {
+  
+if (
+    !chatSocket ||
+    !chatSocket.connected
+) {
 
-        showToast(
-            "Chat is not connected."
-        );
+    showToast(
+        "Chat is not connected."
+    );
 
-        connectChatSocket();
+    connectChatSocket();
 
-        return;
-    }
+    return;
+}
+
+
 
 
     if (!currentChatUserId) {
@@ -4220,9 +4249,15 @@ function showPage(page) {
         loadContacts();
 
     }
-    if (page === "chat") {
+   
+if (page === "chat") {
+
     loadChats();
+
+    connectChatSocket();
 }
+
+
 
     if (page === "location") {
 
