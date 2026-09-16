@@ -876,7 +876,11 @@ io.use((socket, next) => {
 
 });
 
+/* ============================================================
+   ONLINE USERS
+============================================================ */
 
+const onlineUsers = new Map();
 /* ============================================================
    REAL-TIME CHAT
 ============================================================ */
@@ -887,6 +891,38 @@ io.on("connection", (socket) => {
         "Chat connected:",
         socket.userId
     );
+
+    /* ============================================================
+   MARK USER ONLINE
+============================================================ */
+
+const connectedSockets =
+    onlineUsers.get(
+        String(socket.userId)
+    ) || new Set();
+
+connectedSockets.add(
+    socket.id
+);
+
+onlineUsers.set(
+    String(socket.userId),
+    connectedSockets
+);
+
+
+/*
+ * Tell all connected clients that
+ * this user is now online.
+ */
+
+io.emit(
+    "user_status",
+    {
+        userId: String(socket.userId),
+        online: true
+    }
+);
 
 
     /*
@@ -899,6 +935,34 @@ io.on("connection", (socket) => {
     socket.join(userRoom);
 
 
+
+    /* ============================================================
+   CHECK USER ONLINE STATUS
+============================================================ */
+
+socket.on(
+    "check_user_status",
+    (userId) => {
+
+        const userSockets =
+            onlineUsers.get(
+                String(userId)
+            );
+
+        socket.emit(
+            "user_status",
+            {
+                userId: String(userId),
+
+                online:
+                    !!(
+                        userSockets &&
+                        userSockets.size
+                    )
+            }
+        );
+    }
+);
     /*
      * SEND MESSAGE
      */
@@ -1140,19 +1204,64 @@ io.on("connection", (socket) => {
      * DISCONNECT
      */
 
-    socket.on(
-        "disconnect",
-        () => {
+   socket.on(
+    "disconnect",
+    () => {
 
-            console.log(
-                "Chat disconnected:",
-                socket.userId
+        console.log(
+            "Chat disconnected:",
+            socket.userId
+        );
+
+
+        const userId =
+            String(socket.userId);
+
+
+        const connectedSockets =
+            onlineUsers.get(
+                userId
             );
 
-        }
-    );
 
-});
+        if (connectedSockets) {
+
+            connectedSockets.delete(
+                socket.id
+            );
+
+
+            if (
+                connectedSockets.size === 0
+            ) {
+
+                onlineUsers.delete(
+                    userId
+                );
+
+
+                /*
+                 * User is now completely offline.
+                 */
+
+                io.emit(
+                    "user_status",
+                    {
+                        userId: userId,
+                        online: false
+                    }
+                );
+
+            } else {
+
+                onlineUsers.set(
+                    userId,
+                    connectedSockets
+                );
+            }
+        }
+    }
+);
 
 /*
 ------------------------------------------------------------
@@ -4113,3 +4222,4 @@ module.exports = httpServer;
 
 
 
+})

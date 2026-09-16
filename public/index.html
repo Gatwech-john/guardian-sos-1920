@@ -1137,11 +1137,19 @@ body {
 }
 
 
-/* CHAT WINDOW */
+/* =========================================================
+   WHATSAPP-STYLE CHAT WINDOW
+========================================================= */
 
 .chat-window {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 100vw;
+    height: 100dvh;
 
     z-index: 2500;
 
@@ -1149,85 +1157,337 @@ body {
 
     display: none;
     flex-direction: column;
+
+    overflow: hidden;
 }
 
 .chat-window.active {
     display: flex;
 }
 
+
+/* =========================================================
+   CHAT HEADER
+========================================================= */
+
 .chat-window-header {
     height: 68px;
+    min-height: 68px;
 
     display: flex;
     align-items: center;
 
     gap: 12px;
 
-    padding: 0 15px;
+    padding: 0 12px;
 
     background: #111;
 
-    border-bottom: 1px solid #ff1493;
+    border-bottom: 1px solid #252525;
+
+    flex-shrink: 0;
 }
 
 .chat-back-button {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
     background: transparent;
+
     border: none;
+
     color: white;
-    font-size: 25px;
+
+    font-size: 28px;
+
+    cursor: pointer;
+
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   CHAT AVATAR
+========================================================= */
+
+.chat-window-avatar {
+    width: 44px;
+    height: 44px;
+
+    border-radius: 50%;
+
+    background: #ff1493;
+
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   CHAT USER INFORMATION
+========================================================= */
+
+.chat-window-user {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
 }
 
 .chat-window-title {
     color: white;
-    font-weight: bold;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    line-height: 1.2;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
 }
 
 .chat-window-status {
-    color: #00ff88;
+    margin-top: 3px;
+
+    color: #999;
+
     font-size: 11px;
+
+    line-height: 1.2;
 }
+
+.chat-window-status.online {
+    color: #00ff88;
+}
+
+.chat-window-status.offline {
+    color: #999;
+}
+
+
+/* =========================================================
+   CHAT MESSAGES AREA
+========================================================= */
 
 .chat-messages {
     flex: 1;
 
-    overflow-y: auto;
+    min-height: 0;
 
-    padding: 20px 15px 90px;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding: 14px 12px 14px;
+
+    display: flex;
+    flex-direction: column;
+
+    scroll-behavior: smooth;
+
+    background: #080808;
 }
 
-.chat-message {
-    max-width: 78%;
-    margin-bottom: 10px;
-    padding: 10px 13px;
 
-    border-radius: 14px;
+/* =========================================================
+   MESSAGE ROW
+========================================================= */
+
+.chat-message {
+    max-width: min(78%, 520px);
+
+    margin-bottom: 7px;
+
+    padding: 8px 11px 6px;
+
+    border-radius: 12px;
 
     line-height: 1.4;
 
     word-wrap: break-word;
+    overflow-wrap: anywhere;
+
+    font-size: 14px;
+
+    position: relative;
 }
+
+
+/* =========================================================
+   SENT MESSAGE — RIGHT
+========================================================= */
 
 .chat-message.sent {
+    align-self: flex-end;
+
     margin-left: auto;
+    margin-right: 0;
+
     background: #ff1493;
+
     color: white;
-    border-bottom-right-radius: 4px;
+
+    border-bottom-right-radius: 3px;
 }
+
+
+/* =========================================================
+   RECEIVED MESSAGE — LEFT
+========================================================= */
 
 .chat-message.received {
+    align-self: flex-start;
+
+    margin-left: 0;
     margin-right: auto;
+
     background: #202020;
+
     color: white;
-    border-bottom-left-radius: 4px;
+
+    border-bottom-left-radius: 3px;
 }
+
+
+/* =========================================================
+   MESSAGE TEXT
+========================================================= */
+
+.chat-message-text {
+    display: inline;
+
+    white-space: pre-wrap;
+}
+
+
+/* =========================================================
+   MESSAGE TIME
+========================================================= */
 
 .chat-message-time {
-    display: block;
-    margin-top: 4px;
+    display: inline-block;
+
+    margin-left: 8px;
+
     font-size: 9px;
+
     opacity: .65;
+
+    white-space: nowrap;
+
+    vertical-align: bottom;
 }
 
+
+/* =========================================================
+   MESSAGE INPUT AREA
+========================================================= */
+
+.chat-input-area {
+    position: relative;
+
+    left: auto;
+    right: auto;
+    bottom: auto;
+
+    min-height: 65px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 9px 10px;
+
+    background: #111;
+
+    border-top: 1px solid #222;
+
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   ATTACH BUTTON
+========================================================= */
+
+.chat-attach-button {
+    width: 42px;
+    height: 42px;
+
+    border: none;
+
+    background: transparent;
+
+    color: white;
+
+    font-size: 23px;
+
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   MESSAGE INPUT
+========================================================= */
+
+.chat-message-input {
+    flex: 1;
+
+    min-width: 0;
+
+    border: 1px solid #333;
+
+    border-radius: 22px;
+
+    padding: 11px 15px;
+
+    background: #1a1a1a;
+
+    color: white;
+
+    outline: none;
+
+    font-size: 14px;
+}
+
+.chat-message-input:focus {
+    border-color: #ff1493;
+}
+
+
+/* =========================================================
+   SEND BUTTON
+========================================================= */
+
+.chat-send-button {
+    width: 43px;
+    height: 43px;
+    border-radius: 50%;
+    border: none;
+    background: #ff1493;
+    color: white;
+    font-size: 18px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
 
 /* MESSAGE INPUT */
 
@@ -1364,7 +1624,42 @@ body {
 
 }
 
+@media (max-width: 760px) {
 
+    .chat-window {
+        position: fixed;
+
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+
+        width: 100vw;
+        height: 100dvh;
+
+        z-index: 9999;
+    }
+
+    .chat-window-header {
+        height: 62px;
+        min-height: 62px;
+    }
+
+    .chat-messages {
+        padding: 12px 10px;
+    }
+
+    .chat-message {
+        max-width: 82%;
+        font-size: 14px;
+    }
+
+    .chat-input-area {
+        min-height: 62px;
+        padding: 8px;
+    }
+
+}
 
 
 
@@ -2711,21 +3006,34 @@ function connectChatSocket() {
         }
     });
 
-    chatSocket.on(
-        "connect",
-        function() {
+   chatSocket.on(
+    "connect",
+    function() {
 
-            console.log(
-                "Guardian SOS real-time chat connected."
+        console.log(
+            "Guardian SOS real-time chat connected."
+        );
+
+        console.log(
+            "Socket ID:",
+            chatSocket.id
+        );
+
+
+        /*
+         * Check the currently opened
+         * conversation user's status.
+         */
+
+        if (currentChatUserId) {
+
+            chatSocket.emit(
+                "check_user_status",
+                currentChatUserId
             );
-
-            console.log(
-                "Socket ID:",
-                chatSocket.id
-            );
-
         }
-    );
+    }
+);
 
     chatSocket.on(
         "connect_error",
@@ -2750,6 +3058,73 @@ function connectChatSocket() {
 
         }
     );
+
+/* =========================================================
+   ONLINE / OFFLINE STATUS
+========================================================= */
+
+chatSocket.on(
+    "user_status",
+    function(data) {
+
+        if (!data || !data.userId) {
+            return;
+        }
+
+
+        const status =
+            document.getElementById(
+                "chatWindowStatus"
+            );
+
+
+        if (
+            !status ||
+            !currentChatUserId
+        ) {
+            return;
+        }
+
+
+        if (
+            String(data.userId) !==
+            String(currentChatUserId)
+        ) {
+            return;
+        }
+
+
+        if (data.online) {
+
+            status.textContent =
+                "Online";
+
+            status.classList.remove(
+                "offline"
+            );
+
+            status.classList.add(
+                "online"
+            );
+
+        } else {
+
+            status.textContent =
+                "Offline";
+
+            status.classList.remove(
+                "online"
+            );
+
+            status.classList.add(
+                "offline"
+            );
+        }
+    }
+);
+
+
+
 
     chatSocket.on(
         "new_message",
@@ -2813,11 +3188,11 @@ if (
     !chatSocket.connected
 ) {
 
-    showToast(
-        "Chat is not connected."
-    );
-
     connectChatSocket();
+
+    showToast(
+        "Connecting to chat..."
+    );
 
     return;
 }
@@ -2889,21 +3264,27 @@ function handleIncomingChatMessage(message) {
 function appendChatMessage(message) {
 
     const messagesList =
-        document.getElementById(
-            "messagesList"
-        );
+        document.getElementById("messagesList");
 
     if (!messagesList) {
         return;
     }
 
 
+    const currentUser =
+        getStoredUser();
+
+    const currentUserId =
+        currentUser &&
+        (
+            currentUser._id ||
+            currentUser.id
+        );
+
+
     const isMine =
         String(message.senderId) ===
-        String(
-            getStoredUser()?._id ||
-            getStoredUser()?.id
-        );
+        String(currentUserId);
 
 
     const messageElement =
@@ -2912,12 +3293,60 @@ function appendChatMessage(message) {
 
     messageElement.className =
         isMine
-            ? "message-bubble sent"
-            : "message-bubble received";
+            ? "chat-message sent"
+            : "chat-message received";
 
 
-    messageElement.textContent =
-        message.text;
+    const messageText =
+        document.createElement("span");
+
+    messageText.className =
+        "chat-message-text";
+
+    messageText.textContent =
+        message.text || "";
+
+
+    const messageTime =
+        document.createElement("span");
+
+    messageTime.className =
+        "chat-message-time";
+
+
+    if (message.createdAt) {
+
+        messageTime.textContent =
+            new Date(
+                message.createdAt
+            ).toLocaleTimeString(
+                [],
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+
+    } else {
+
+        messageTime.textContent =
+            new Date().toLocaleTimeString(
+                [],
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+    }
+
+
+    messageElement.appendChild(
+        messageText
+    );
+
+    messageElement.appendChild(
+        messageTime
+    );
 
 
     messagesList.appendChild(
@@ -2927,7 +3356,6 @@ function appendChatMessage(message) {
 
     messagesList.scrollTop =
         messagesList.scrollHeight;
-
 }
 
 
@@ -3700,32 +4128,41 @@ function showChatWindow(user, conversationId) {
 
             <div class="chat-window-header">
 
-                <button
-                    class="chat-back-button"
-                    onclick="closeChatWindow()"
-                >
-                    ←
-                </button>
+    <button
+        class="chat-back-button"
+        onclick="closeChatWindow()"
+        type="button"
+        aria-label="Back"
+    >
+        ←
+    </button>
 
-                <div>
+    <div
+        class="chat-window-avatar"
+        id="chatWindowAvatar"
+    >
+        G
+    </div>
 
-                    <div
-                        class="chat-window-title"
-                        id="chatWindowTitle"
-                    >
-                        Guardian SOS User
-                    </div>
+    <div class="chat-window-user">
 
-                    <div
-                        class="chat-window-status"
-                        id="chatWindowStatus"
-                    >
-                        Guardian SOS
-                    </div>
+        <div
+            class="chat-window-title"
+            id="chatWindowTitle"
+        >
+            Guardian SOS User
+        </div>
 
-                </div>
+        <div
+            class="chat-window-status offline"
+            id="chatWindowStatus"
+        >
+            Offline
+        </div>
 
-            </div>
+    </div>
+
+</div>
 
 
             <div
@@ -3786,6 +4223,21 @@ function showChatWindow(user, conversationId) {
         document.getElementById(
             "chatWindowTitle"
         );
+        const avatar =
+    document.getElementById(
+        "chatWindowAvatar"
+    );
+
+if (avatar) {
+
+    avatar.textContent =
+        (
+            user.name ||
+            "G"
+        )
+        .charAt(0)
+        .toUpperCase();
+}
 
 
     if (title) {
@@ -3805,10 +4257,14 @@ function showChatWindow(user, conversationId) {
 
     if (status) {
 
-        status.textContent =
-            "Guardian SOS User";
+    status.textContent =
+        "Checking...";
 
-    }
+    status.classList.remove(
+        "online",
+        "offline"
+    );
+}
 
 
     chatWindow.style.display =
