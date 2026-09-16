@@ -876,11 +876,7 @@ io.use((socket, next) => {
 
 });
 
-/* ============================================================
-   ONLINE USERS
-============================================================ */
 
-const onlineUsers = new Map();
 /* ============================================================
    REAL-TIME CHAT
 ============================================================ */
@@ -891,38 +887,6 @@ io.on("connection", (socket) => {
         "Chat connected:",
         socket.userId
     );
-
-    /* ============================================================
-   MARK USER ONLINE
-============================================================ */
-
-const connectedSockets =
-    onlineUsers.get(
-        String(socket.userId)
-    ) || new Set();
-
-connectedSockets.add(
-    socket.id
-);
-
-onlineUsers.set(
-    String(socket.userId),
-    connectedSockets
-);
-
-
-/*
- * Tell all connected clients that
- * this user is now online.
- */
-
-io.emit(
-    "user_status",
-    {
-        userId: String(socket.userId),
-        online: true
-    }
-);
 
 
     /*
@@ -935,34 +899,6 @@ io.emit(
     socket.join(userRoom);
 
 
-
-    /* ============================================================
-   CHECK USER ONLINE STATUS
-============================================================ */
-
-socket.on(
-    "check_user_status",
-    (userId) => {
-
-        const userSockets =
-            onlineUsers.get(
-                String(userId)
-            );
-
-        socket.emit(
-            "user_status",
-            {
-                userId: String(userId),
-
-                online:
-                    !!(
-                        userSockets &&
-                        userSockets.size
-                    )
-            }
-        );
-    }
-);
     /*
      * SEND MESSAGE
      */
@@ -1204,64 +1140,19 @@ socket.on(
      * DISCONNECT
      */
 
-   socket.on(
-    "disconnect",
-    () => {
+    socket.on(
+        "disconnect",
+        () => {
 
-        console.log(
-            "Chat disconnected:",
-            socket.userId
-        );
-
-
-        const userId =
-            String(socket.userId);
-
-
-        const connectedSockets =
-            onlineUsers.get(
-                userId
+            console.log(
+                "Chat disconnected:",
+                socket.userId
             );
 
-
-        if (connectedSockets) {
-
-            connectedSockets.delete(
-                socket.id
-            );
-
-
-            if (
-                connectedSockets.size === 0
-            ) {
-
-                onlineUsers.delete(
-                    userId
-                );
-
-
-                /*
-                 * User is now completely offline.
-                 */
-
-                io.emit(
-                    "user_status",
-                    {
-                        userId: userId,
-                        online: false
-                    }
-                );
-
-            } else {
-
-                onlineUsers.set(
-                    userId,
-                    connectedSockets
-                );
-            }
         }
-    }
-);
+    );
+
+});
 
 /*
 ------------------------------------------------------------
@@ -1750,80 +1641,309 @@ POST /api/auth/register
 ------------------------------------------------------------
 */
 
-app.post("/api/auth/login", async (req, res) => {
+app.post(
+    "/api/auth/register",
+    async (req, res) => {
 
-    try {
+        try {
 
-        const email = String(req.body.email || "")
-            .trim()
-            .toLowerCase();
+            const {
+                name,
+                email,
+                phone,
+                password
+            } = req.body;
 
-        const password = String(req.body.password || "");
 
-        if (!email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "Email and password are required."
-            });
-        }
+            if (
+                !name ||
+                !email ||
+                !password
+            ) {
 
-        const user = await User.findOne({ email });
+                return res.status(400).json({
 
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid email or password."
-            });
-        }
+                    success: false,
 
-        const validPassword = await bcrypt.compare(
-            password,
-            user.password
-        );
+                    message:
+                        "Name, email and password are required."
 
-        if (!validPassword) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid email or password."
-            });
-        }
+                });
 
-        const token = jwt.sign(
-            {
-                userId: user._id.toString(),
-                email: user.email
-            },
-            JWT_SECRET,
-            {
-                expiresIn: "7d"
             }
-        );
 
-        return res.status(200).json({
-            success: true,
-            message: "Login successful.",
-            token: token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                phone: user.phone,
-                createdAt: user.createdAt
+
+            if (!isValidEmail(email)) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Please enter a valid email address."
+
+                });
+
             }
-        });
 
-    } catch (error) {
 
-        console.error("LOGIN ERROR:", error);
+            if (password.length < 8) {
 
-        return res.status(500).json({
-            success: false,
-            message: "Login server error: " + error.message
-        });
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Password must contain at least 8 characters."
+
+                });
+
+            }
+
+
+            const normalizedEmail =
+                email.toLowerCase().trim();
+
+
+            const existingUser =
+                await User.findOne({
+                    email: normalizedEmail
+                });
+
+
+            if (existingUser) {
+
+                return res.status(409).json({
+
+                    success: false,
+
+                    message:
+                        "An account with this email already exists."
+
+                });
+
+            }
+
+
+            const hashedPassword =
+                await bcrypt.hash(
+                    password,
+                    12
+                );
+
+
+            const user =
+                await User.create({
+
+                    name:
+                        name.trim(),
+
+                    email:
+                        normalizedEmail,
+
+                    phone:
+                        phone
+                            ? phone.trim()
+                            : "",
+
+                    password:
+                        hashedPassword
+
+                });
+
+
+            const token =
+                createToken(user);
+
+
+            res.status(201).json({
+
+                success: true,
+
+                message:
+                    "Account created successfully.",
+
+                token,
+
+                user: {
+
+                    id:
+                        user._id,
+
+                    name:
+                        user.name,
+
+                    email:
+                        user.email,
+
+                    phone:
+                        user.phone
+
+                }
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Registration error:",
+                error
+            );
+
+
+            res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to create account."
+
+            });
+
+        }
 
     }
+);
 
-});
+
+/*
+------------------------------------------------------------
+LOGIN
+------------------------------------------------------------
+POST /api/auth/login
+------------------------------------------------------------
+*/
+
+app.post(
+    "/api/auth/login",
+    async (req, res) => {
+
+        try {
+
+            const {
+                email,
+                password
+            } = req.body;
+
+
+            if (
+                !email ||
+                !password
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Email and password are required."
+
+                });
+
+            }
+
+
+            const user =
+                await User.findOne({
+
+                    email:
+                        email
+                            .toLowerCase()
+                            .trim()
+
+                });
+
+
+            if (!user) {
+
+                return res.status(401).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid email or password."
+
+                });
+
+            }
+
+
+            const passwordMatches =
+                await bcrypt.compare(
+                    password,
+                    user.password
+                );
+
+
+            if (!passwordMatches) {
+
+                return res.status(401).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid email or password."
+
+                });
+
+            }
+
+
+            const token =
+                createToken(user);
+
+
+            res.json({
+
+                success: true,
+
+                message:
+                    "Login successful.",
+
+                token,
+
+                user: {
+
+                    id:
+                        user._id,
+
+                    name:
+                        user.name,
+
+                    email:
+                        user.email,
+
+                    phone:
+                        user.phone
+
+                }
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Login error:",
+                error
+            );
+
+
+            res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to login."
+
+            });
+
+        }
+
+    }
+);
+
 
 /*
 ------------------------------------------------------------
@@ -3987,8 +4107,8 @@ if (process.env.VERCEL !== "1") {
         }
     );
 
-}})
-module.exports = app;
+}
+module.exports = httpServer;
 
 
 
