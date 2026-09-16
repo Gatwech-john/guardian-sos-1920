@@ -2684,11 +2684,18 @@ function connectChatSocket() {
         return;
     }
 
-    chatSocket = io({
+   chatSocket = io(
+    window.location.origin,
+    {
         auth: {
             token: token
         }
-    });
+    }
+);
+console.log(
+    "Socket connecting to:",
+    window.location.origin
+);
 
 
     chatSocket.on(
@@ -4401,6 +4408,7 @@ loginForm.addEventListener(
                 TOKEN_KEY,
                 data.token
             );
+            connectChatSocket();
 
             localStorage.setItem(
                 USER_KEY,
