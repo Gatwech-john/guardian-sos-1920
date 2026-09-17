@@ -280,13 +280,13 @@ const UserSchema = new mongoose.Schema(
    GUARDIAN SOS CHAT FILE STORAGE
 ============================================================ */
 
-const chatUploadDirectory =
-    path.join(__dirname, "public", "chat-uploads");
+const chatUploadDirectory = path.join(__dirname, "public", "chat-uploads");
 
-if (!fs.existsSync(chatUploadDirectory)) {
-    fs.mkdirSync(chatUploadDirectory, {
-        recursive: true
-    });
+// Create the upload folder only when the filesystem allows it.
+// Vercel's deployed filesystem is read-only, so do not create
+// directories there.
+if (!process.env.VERCEL && !fs.existsSync(chatUploadDirectory)) {
+    fs.mkdirSync(chatUploadDirectory, { recursive: true });
 }
 
 const chatStorage =
