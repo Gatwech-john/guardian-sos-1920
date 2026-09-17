@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Guardian SOS | Emergency Assistance</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <style>
 /* =========================================================
@@ -2257,6 +2258,68 @@ body {
     }
 
 }
+
+/* =====================================================
+   TOP NAV - BOOTSTRAP ICONS ONLY
+===================================================== */
+
+.icon-nav {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+
+    padding: 0 !important;
+    margin: 0 3px !important;
+
+    border-radius: 50% !important;
+
+    background: #ffffff !important;
+    color: #ff1493 !important;
+
+    border: 2px solid #ffffff !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    font-size: 20px !important;
+    line-height: 1 !important;
+
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.icon-nav i {
+    color: #ff1493 !important;
+}
+
+.icon-nav:hover {
+    background: #ff1493 !important;
+    transform: scale(1.08);
+}
+
+.icon-nav:hover i {
+    color: #ffffff !important;
+}
+
+
+/* =====================================================
+   BOTTOM NAV - BOOTSTRAP ICONS
+===================================================== */
+
+.mobile-nav-icon {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+
+    width: 30px;
+    height: 30px;
+}
+
+.mobile-nav-icon i {
+    font-size: 20px !important;
+    color: #ff1493 !important;
+}
 </style>
 </head>
 
@@ -2433,40 +2496,40 @@ body {
 
         <nav class="nav-links">
 
-            <!-- HOME IS FIRST -->
-            <button class="nav-link" data-page="home">
-                Home
-            </button>
+    <!-- HOME IS FIRST -->
+    <button class="nav-link icon-nav" data-page="home" title="Home">
+        <i class="bi bi-house-fill"></i>
+    </button>
 
-            <button class="nav-link" data-page="dashboard">
-                Dashboard
-            </button>
+    <button class="nav-link icon-nav" data-page="dashboard" title="Dashboard">
+        <i class="bi bi-speedometer2"></i>
+    </button>
 
-            <button class="nav-link" data-page="sos">
-                SOS
-            </button>
+    <button class="nav-link icon-nav" data-page="sos" title="SOS">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+    </button>
 
-            <button class="nav-link" data-page="contacts">
-                Contacts
-            </button>
+    <button class="nav-link icon-nav" data-page="contacts" title="Contacts">
+        <i class="bi bi-people-fill"></i>
+    </button>
 
-            <button class="nav-link" data-page="location">
-                Location
-            </button>
+    <button class="nav-link icon-nav" data-page="location" title="Location">
+        <i class="bi bi-geo-alt-fill"></i>
+    </button>
 
-            <button class="nav-link" data-page="history">
-                History
-            </button>
+    <button class="nav-link icon-nav" data-page="history" title="History">
+        <i class="bi bi-clock-history"></i>
+    </button>
 
-            <button class="nav-link" data-page="profile">
-                Profile
-            </button>
+    <button class="nav-link icon-nav" data-page="profile" title="Profile">
+        <i class="bi bi-person-fill"></i>
+    </button>
 
-            <button class="nav-link" data-page="about">
-                About
-            </button>
+    <button class="nav-link icon-nav" data-page="about" title="About">
+        <i class="bi bi-info-circle-fill"></i>
+    </button>
 
-        </nav>
+</nav>
 
        
 
@@ -2479,37 +2542,42 @@ body {
 
     <nav id="mobileNavigation" class="mobile-nav" style="display:none;">
 
-        <button data-page="home">
-            <span class="mobile-nav-icon">🏠</span>
-            Home
-        </button>
+    <button data-page="home">
+        <span class="mobile-nav-icon">
+            <i class="bi bi-house-fill"></i>
+        </span>
+        Home
+    </button>
 
-        <button data-page="dashboard">
-            <span class="mobile-nav-icon">📊</span>
-            Dashboard
-        </button>
+    <button data-page="dashboard">
+        <span class="mobile-nav-icon">
+            <i class="bi bi-speedometer2"></i>
+        </span>
+        Dashboard
+    </button>
 
-        <button data-page="sos">
-            <span class="mobile-nav-icon">🚨</span>
-            SOS
-        </button>
+    <button data-page="sos">
+        <span class="mobile-nav-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </span>
+        SOS
+    </button>
 
-        <button data-page="chat" class="chat-nav-button">
-            <span class="mobile-nav-icon messenger-icon">💬</span>
-            Chat
-        </button>
+    <button data-page="contacts">
+        <span class="mobile-nav-icon">
+            <i class="bi bi-people-fill"></i>
+        </span>
+        Contacts
+    </button>
 
-        <button data-page="contacts">
-            <span class="mobile-nav-icon">👥</span>
-            Contacts
-        </button>
+    <button data-page="profile">
+        <span class="mobile-nav-icon">
+            <i class="bi bi-person-fill"></i>
+        </span>
+        Profile
+    </button>
 
-        <button data-page="profile">
-            <span class="mobile-nav-icon">👤</span>
-            Profile
-        </button>
-
-    </nav>
+</nav>
 
 
     <!-- =====================================================
