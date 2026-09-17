@@ -412,57 +412,41 @@ body {
        MOBILE NAV
     ========================== */
 
-   
-
     .mobile-nav {
-    display: none;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 68px;
-    background: rgba(8, 8, 8, .98);
-    border-top: 1px solid #ff1493;
-    z-index: 1000;
-    justify-content: space-around;
-    align-items: center;
-    font-family: Arial, Helvetica, sans-serif;
-}
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 68px;
+        background: rgba(8, 8, 8, .98);
+        border-top: 1px solid #ff1493;
+        z-index: 1000;
+        justify-content: space-around;
+        align-items: center;
+        font-family: Arial, Helvetica, sans-serif;
+    }
 
-.mobile-nav button {
-    border: none;
-    background: transparent;
-    color: white;
-    font-size: 11px;
-    padding: 4px 8px;
-    font-family: Arial, Helvetica, sans-serif;
+    .mobile-nav button {
+        border: none;
+        background: transparent;
+        color: white;
+        font-size: 11px;
+        padding: 6px;
+        font-family: Arial, Helvetica, sans-serif;
+    }
 
-    /* ICON ABOVE NAME */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    min-width: 55px;
-}
+    .mobile-nav button.active {
+          color: white;
+        font-family: Arial, Helvetica, sans-serif;
+    }
 
-.mobile-nav button.active {
-    color: white;
-}
-
-.mobile-nav-icon {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    font-size: 20px;
-}
-
-.mobile-nav-icon i {
-    font-size: 20px !important;
-    color: #ff1493 !important;
-}
+    .mobile-nav-icon {
+        display: block;
+        font-size: 20px;
+        margin-bottom: 2px;
+        font-family: Arial, Helvetica, sans-serif;
+    }
 
     /* =========================
        GENERAL
@@ -2317,25 +2301,6 @@ body {
 .icon-nav:hover i {
     color: #ffffff !important;
 }
-
-
-/* =====================================================
-   BOTTOM NAV - BOOTSTRAP ICONS
-===================================================== */
-
-.mobile-nav-icon {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-
-    width: 30px;
-    height: 30px;
-}
-
-.mobile-nav-icon i {
-    font-size: 20px !important;
-    color: #ff1493 !important;
-}
 </style>
 </head>
 
@@ -2558,42 +2523,37 @@ body {
 
     <nav id="mobileNavigation" class="mobile-nav" style="display:none;">
 
-    <button data-page="home">
-        <span class="mobile-nav-icon">
-            <i class="bi bi-house-fill"></i>
-        </span>
-        Home
-    </button>
+        <button data-page="home">
+            <span class="mobile-nav-icon">🏠</span>
+            Home
+        </button>
 
-    <button data-page="dashboard">
-        <span class="mobile-nav-icon">
-            <i class="bi bi-speedometer2"></i>
-        </span>
-        Dashboard
-    </button>
+        <button data-page="dashboard">
+            <span class="mobile-nav-icon">📊</span>
+            Dashboard
+        </button>
 
-    <button data-page="sos">
-        <span class="mobile-nav-icon">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-        </span>
-        SOS
-    </button>
+        <button data-page="sos">
+            <span class="mobile-nav-icon">🚨</span>
+            SOS
+        </button>
 
-    <button data-page="contacts">
-        <span class="mobile-nav-icon">
-            <i class="bi bi-people-fill"></i>
-        </span>
-        Contacts
-    </button>
+        <button data-page="chat" class="chat-nav-button">
+            <span class="mobile-nav-icon messenger-icon">💬</span>
+            Chat
+        </button>
 
-    <button data-page="profile">
-        <span class="mobile-nav-icon">
-            <i class="bi bi-person-fill"></i>
-        </span>
-        Profile
-    </button>
+        <button data-page="contacts">
+            <span class="mobile-nav-icon">👥</span>
+            Contacts
+        </button>
 
-</nav>
+        <button data-page="profile">
+            <span class="mobile-nav-icon">👤</span>
+            Profile
+        </button>
+
+    </nav>
 
 
     <!-- =====================================================
