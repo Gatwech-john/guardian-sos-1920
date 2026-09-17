@@ -1088,7 +1088,52 @@ io.on("connection", (socket) => {
         "user:" + socket.userId;
 
     socket.join(userRoom);
+    /* ============================================================
+       USER ONLINE STATUS
+    ============================================================ */
 
+    socket.on(
+        "check_user_status",
+        function(userId) {
+
+            if (!userId) {
+                return;
+            }
+
+            const targetRoom =
+                io.sockets.adapter.rooms.get(
+                    "user:" + String(userId)
+                );
+
+            const online =
+                !!targetRoom &&
+                targetRoom.size > 0;
+
+            socket.emit(
+                "user_status",
+                {
+                    userId: String(userId),
+                    online: online
+                }
+            );
+
+        }
+    );
+
+
+    /*
+     * Tell the other user when this user
+     * becomes available.
+     */
+    io.to(
+        userRoom
+    ).emit(
+        "user_status",
+        {
+            userId: String(socket.userId),
+            online: true
+        }
+    );
 
     /*
      * SEND MESSAGE
@@ -1475,16 +1520,44 @@ socket.on(
      */
 
     socket.on(
-        "disconnect",
-        () => {
+    "disconnect",
+    () => {
 
-            console.log(
-                "Chat disconnected:",
-                socket.userId
+        console.log(
+            "Chat disconnected:",
+            socket.userId
+        );
+
+        /*
+         * Check whether this user still has
+         * another active socket connection.
+         */
+        const remainingRoom =
+            io.sockets.adapter.rooms.get(
+                "user:" + String(socket.userId)
+            );
+
+        const stillOnline =
+            !!remainingRoom &&
+            remainingRoom.size > 0;
+
+        if (!stillOnline) {
+
+            io.emit(
+                "user_status",
+                {
+                    userId:
+                        String(socket.userId),
+
+                    online:
+                        false
+                }
             );
 
         }
-    );
+
+    }
+);
 
 });
 
@@ -3773,6 +3846,427 @@ app.post(
                 message:
                     "Unable to react."
 
+            });
+
+        }
+
+    }
+);
+
+/* ============================================================
+   DELETE MESSAGE FOR ME
+============================================================ */
+
+app.delete(
+    "/api/chat/messages/:id/delete-for-me",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const message =
+                await ChatMessage.findById(
+                    req.params.id
+                );
+
+            if (!message) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Message not found."
+                });
+
+            }
+
+            const isParticipant =
+                String(message.senderId) ===
+                    String(req.user.userId) ||
+                String(message.recipientId) ===
+                    String(req.user.userId);
+
+            if (!isParticipant) {
+
+                return res.status(403).json({
+                    success: false,
+                    message:
+                        "You are not allowed to delete this message."
+                });
+
+            }
+
+            if (
+                !message.deletedFor.some(
+                    userId =>
+                        String(userId) ===
+                        String(req.user.userId)
+                )
+            ) {
+
+                message.deletedFor.push(
+                    req.user.userId
+                );
+
+                await message.save();
+
+            }
+
+            return res.json({
+                success: true,
+                message:
+                    "Message deleted for you."
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Delete for me error:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    "Unable to delete message."
+            });
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   DELETE MESSAGE FOR EVERYONE
+============================================================ */
+
+app.delete(
+    "/api/chat/messages/:id/delete-for-everyone",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const message =
+                await ChatMessage.findById(
+                    req.params.id
+                );
+
+            if (!message) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Message not found."
+                });
+
+            }
+
+            if (
+                String(message.senderId) !==
+                String(req.user.userId)
+            ) {
+
+                return res.status(403).json({
+                    success: false,
+                    message:
+                        "Only the sender can delete this message for everyone."
+                });
+
+            }
+
+            message.deletedForEveryone =
+                true;
+
+            message.text =
+                "This message was deleted";
+
+            await message.save();
+
+            io.to(
+                "user:" +
+                String(message.senderId)
+            ).emit(
+                "message_deleted",
+                {
+                    messageId:
+                        String(message._id),
+
+                    deletedForEveryone:
+                        true
+                }
+            );
+
+            io.to(
+                "user:" +
+                String(message.recipientId)
+            ).emit(
+                "message_deleted",
+                {
+                    messageId:
+                        String(message._id),
+
+                    deletedForEveryone:
+                        true
+                }
+            );
+
+            return res.json({
+                success: true,
+                message:
+                    "Message deleted for everyone."
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Delete for everyone error:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    "Unable to delete message."
+            });
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   EDIT MESSAGE
+============================================================ */
+
+app.patch(
+    "/api/chat/messages/:id",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const text =
+                String(
+                    req.body.text || ""
+                ).trim();
+
+            if (!text) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Message text is required."
+                });
+
+            }
+
+            if (text.length > 5000) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Message is too long."
+                });
+
+            }
+
+            const message =
+                await ChatMessage.findById(
+                    req.params.id
+                );
+
+            if (!message) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Message not found."
+                });
+
+            }
+
+            if (
+                String(message.senderId) !==
+                String(req.user.userId)
+            ) {
+
+                return res.status(403).json({
+                    success: false,
+                    message:
+                        "Only the sender can edit this message."
+                });
+
+            }
+
+            if (
+                message.deletedForEveryone
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Deleted messages cannot be edited."
+                });
+
+            }
+
+            message.text =
+                text;
+
+            message.edited =
+                true;
+
+            await message.save();
+
+            const updateData = {
+                messageId:
+                    String(message._id),
+
+                text:
+                    message.text,
+
+                edited:
+                    true
+            };
+
+            io.to(
+                "user:" +
+                String(message.senderId)
+            ).emit(
+                "message_updated",
+                updateData
+            );
+
+            io.to(
+                "user:" +
+                String(message.recipientId)
+            ).emit(
+                "message_updated",
+                updateData
+            );
+
+            return res.json({
+                success: true,
+                message:
+                    message
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Edit message error:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    "Unable to edit message."
+            });
+
+        }
+
+    }
+);
+
+/* ============================================================
+   STAR / UNSTAR MESSAGE
+============================================================ */
+
+app.post(
+    "/api/chat/messages/:id/star",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const message =
+                await ChatMessage.findById(
+                    req.params.id
+                );
+
+            if (!message) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Message not found."
+                });
+
+            }
+
+            const userId =
+                String(req.user.userId);
+
+            const alreadyStarred =
+                message.starredBy.some(
+                    id =>
+                        String(id) ===
+                        userId
+                );
+
+            if (alreadyStarred) {
+
+                message.starredBy =
+                    message.starredBy.filter(
+                        id =>
+                            String(id) !==
+                            userId
+                    );
+
+            } else {
+
+                message.starredBy.push(
+                    req.user.userId
+                );
+
+            }
+
+            await message.save();
+
+            const starData = {
+                messageId:
+                    String(message._id),
+
+                starred:
+                    !alreadyStarred
+            };
+
+            io.to(
+                "user:" +
+                String(message.senderId)
+            ).emit(
+                "message_starred",
+                starData
+            );
+
+            io.to(
+                "user:" +
+                String(message.recipientId)
+            ).emit(
+                "message_starred",
+                starData
+            );
+
+            return res.json({
+                success: true,
+                starred:
+                    !alreadyStarred
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Star message error:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    "Unable to star message."
             });
 
         }

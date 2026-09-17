@@ -8564,7 +8564,191 @@ function updateMessageReactions(
             .join("");
 
 }
+/* ============================================================
+   CHAT SEARCH
+============================================================ */
 
+function openChatSearch() {
+
+    const old =
+        document.getElementById(
+            "chatSearchBox"
+        );
+
+    if (old) {
+        old.remove();
+        return;
+    }
+
+    const box =
+        document.createElement("div");
+
+    box.id =
+        "chatSearchBox";
+
+    box.style.position =
+        "absolute";
+
+    box.style.top =
+        "70px";
+
+    box.style.left =
+        "0";
+
+    box.style.right =
+        "0";
+
+    box.style.zIndex =
+        "9999";
+
+    box.style.padding =
+        "10px";
+
+    box.style.background =
+        "#111";
+
+    box.innerHTML = `
+        <input
+            id="chatSearchInput"
+            type="search"
+            placeholder="Search messages..."
+            autocomplete="off"
+            style="
+                width:100%;
+                padding:12px;
+                border-radius:20px;
+                border:1px solid #333;
+                background:#181818;
+                color:white;
+                outline:none;
+            "
+        >
+    `;
+
+    const chatWindow =
+        document.getElementById(
+            "chatWindow"
+        );
+
+    if (!chatWindow) {
+        return;
+    }
+
+    chatWindow.appendChild(box);
+
+    const input =
+        document.getElementById(
+            "chatSearchInput"
+        );
+
+    input.focus();
+
+    input.addEventListener(
+        "input",
+        function() {
+
+            const search =
+                input.value
+                    .trim()
+                    .toLowerCase();
+
+            const messages =
+                document.querySelectorAll(
+                    "#messagesList [data-message-id]"
+                );
+
+            messages.forEach(
+                function(message) {
+
+                    const text =
+                        message.textContent
+                            .toLowerCase();
+
+                    message.style.display =
+                        !search ||
+                        text.includes(search)
+                            ? ""
+                            : "none";
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+/* ============================================================
+   CHAT MORE MENU
+============================================================ */
+
+function openChatMenu() {
+
+    const old =
+        document.getElementById(
+            "chatMoreMenu"
+        );
+
+    if (old) {
+        old.remove();
+        return;
+    }
+
+    const menu =
+        document.createElement("div");
+
+    menu.id =
+        "chatMoreMenu";
+
+    menu.style.position =
+        "absolute";
+
+    menu.style.top =
+        "70px";
+
+    menu.style.right =
+        "10px";
+
+    menu.style.zIndex =
+        "10000";
+
+    menu.style.background =
+        "#181818";
+
+    menu.style.border =
+        "1px solid #333";
+
+    menu.style.borderRadius =
+        "10px";
+
+    menu.style.padding =
+        "6px";
+
+    menu.innerHTML = `
+        <button
+            type="button"
+            onclick="openChatSearch(); document.getElementById('chatMoreMenu')?.remove();">
+            🔍 Search
+        </button>
+
+        <button
+            type="button"
+            onclick="closeChatWindow(); document.getElementById('chatMoreMenu')?.remove();">
+            ✕ Close chat
+        </button>
+    `;
+
+    const chatWindow =
+        document.getElementById(
+            "chatWindow"
+        );
+
+    if (chatWindow) {
+        chatWindow.appendChild(menu);
+    }
+
+}
 
 /* ============================================================
    MESSAGE MENU
@@ -9197,6 +9381,197 @@ function setupAdvancedSocketEvents() {
                 );
 
             }
+
+        }
+    );
+        chatSocket.off(
+        "message_deleted"
+    );
+
+    chatSocket.on(
+        "message_deleted",
+        function(data) {
+
+            if (!data || !data.messageId) {
+                return;
+            }
+
+            const element =
+                document.querySelector(
+                    `[data-message-id="${data.messageId}"]`
+                );
+
+            if (!element) {
+                return;
+            }
+
+            const text =
+                element.querySelector(
+                    ".chat-message-text"
+                );
+
+            if (text) {
+
+                text.textContent =
+                    "This message was deleted";
+
+            }
+
+            element.classList.add(
+                "deleted-message"
+            );
+
+        }
+    );
+
+
+    chatSocket.off(
+        "message_updated"
+    );
+
+    chatSocket.on(
+        "message_updated",
+        function(data) {
+
+            if (
+                !data ||
+                !data.messageId
+            ) {
+                return;
+            }
+
+            const element =
+                document.querySelector(
+                    `[data-message-id="${data.messageId}"]`
+                );
+
+            if (!element) {
+                return;
+            }
+
+            const text =
+                element.querySelector(
+                    ".chat-message-text"
+                );
+
+            if (text) {
+
+                text.textContent =
+                    data.text || "";
+
+            }
+
+            const edited =
+                element.querySelector(
+                    ".wa-edited"
+                );
+
+            if (
+                data.edited &&
+                !edited
+            ) {
+
+                const label =
+                    document.createElement(
+                        "span"
+                    );
+
+                label.className =
+                    "wa-edited";
+
+                label.textContent =
+                    " edited";
+
+                element.appendChild(
+                    label
+                );
+
+            }
+
+        }
+    );
+
+
+    chatSocket.off(
+        "message_starred"
+    );
+
+    chatSocket.on(
+        "message_starred",
+        function(data) {
+
+            if (!data || !data.messageId) {
+                return;
+            }
+
+            const element =
+                document.querySelector(
+                    `[data-message-id="${data.messageId}"]`
+                );
+
+            if (!element) {
+                return;
+            }
+
+            let star =
+                element.querySelector(
+                    ".wa-star"
+                );
+
+            if (
+                data.starred &&
+                !star
+            ) {
+
+                star =
+                    document.createElement(
+                        "span"
+                    );
+
+                star.className =
+                    "wa-star";
+
+                star.textContent =
+                    " ⭐";
+
+                element.appendChild(
+                    star
+                );
+
+            }
+
+            if (
+                !data.starred &&
+                star
+            ) {
+
+                star.remove();
+
+            }
+
+        }
+    );
+
+
+    chatSocket.off(
+        "message_reaction"
+    );
+
+    chatSocket.on(
+        "message_reaction",
+        function(data) {
+
+            if (
+                !data ||
+                !data.messageId
+            ) {
+                return;
+            }
+
+            updateMessageReactions(
+                data.messageId,
+                data.reactions || []
+            );
 
         }
     );
@@ -9890,6 +10265,202 @@ setInterval(
     },
     1000
 );
+
+/* =========================================================
+   CHAT SEARCH
+========================================================= */
+
+function openChatSearch() {
+
+    const existing =
+        document.getElementById("chatSearchBox");
+
+    if (existing) {
+        existing.remove();
+        return;
+    }
+
+    const box =
+        document.createElement("div");
+
+    box.id = "chatSearchBox";
+
+    box.innerHTML = `
+        <div class="chat-search-inner">
+
+            <input
+                id="chatSearchInput"
+                type="text"
+                placeholder="Search messages..."
+                autocomplete="off"
+            >
+
+            <button
+                type="button"
+                onclick="closeChatSearch()">
+                ✕
+            </button>
+
+        </div>
+
+        <div id="chatSearchResults"></div>
+    `;
+
+    document
+        .querySelector("#chatPage .chat-page")
+        .appendChild(box);
+
+    const input =
+        document.getElementById(
+            "chatSearchInput"
+        );
+
+    if (input) {
+
+        input.focus();
+
+        input.addEventListener(
+            "input",
+            function () {
+
+                const query =
+                    input.value
+                        .trim()
+                        .toLowerCase();
+
+                const messages =
+                    document.querySelectorAll(
+                        "#messagesList .wa-message, #messagesList .chat-message"
+                    );
+
+                messages.forEach(
+                    function(message) {
+
+                        const text =
+                            message.textContent
+                                .toLowerCase();
+
+                        message.style.display =
+                            !query ||
+                            text.includes(query)
+                                ? ""
+                                : "none";
+                    }
+                );
+
+            }
+        );
+    }
+}
+
+
+function closeChatSearch() {
+
+    const box =
+        document.getElementById(
+            "chatSearchBox"
+        );
+
+    if (box) {
+        box.remove();
+    }
+
+    const messages =
+        document.querySelectorAll(
+            "#messagesList .wa-message, #messagesList .chat-message"
+        );
+
+    messages.forEach(
+        function(message) {
+            message.style.display = "";
+        }
+    );
+}
+
+
+/* =========================================================
+   CHAT MORE MENU
+========================================================= */
+
+function openChatMenu() {
+
+    const old =
+        document.getElementById(
+            "chatMoreMenu"
+        );
+
+    if (old) {
+        old.remove();
+        return;
+    }
+
+    const menu =
+        document.createElement("div");
+
+    menu.id =
+        "chatMoreMenu";
+
+    menu.className =
+        "chat-more-menu";
+
+    menu.innerHTML = `
+
+        <button
+            type="button"
+            onclick="clearCurrentChat()">
+            🗑️ Clear chat
+        </button>
+
+        <button
+            type="button"
+            onclick="closeChatMenu()">
+            ✕ Close
+        </button>
+
+    `;
+
+    document
+        .querySelector("#chatPage .chat-page")
+        .appendChild(menu);
+}
+
+
+function closeChatMenu() {
+
+    const menu =
+        document.getElementById(
+            "chatMoreMenu"
+        );
+
+    if (menu) {
+        menu.remove();
+    }
+}
+
+
+async function clearCurrentChat() {
+
+    closeChatMenu();
+
+    if (!currentConversationId) {
+        showToast(
+            "No conversation is open."
+        );
+        return;
+    }
+
+    if (
+        !confirm(
+            "Clear this conversation from your view?"
+        )
+    ) {
+        return;
+    }
+
+    showToast(
+        "Chat clearing requires the chat delete endpoint."
+    );
+}
 </script>
 </body>
 </html>
