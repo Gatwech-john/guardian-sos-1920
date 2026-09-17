@@ -2317,12 +2317,8 @@ body {
     color: #ffffff !important;
 }
 
-.icon-nav.active[data-page="sos"] {
+.icon-nav[data-page="sos"] {
     border: 1px solid white !important;
-}
-
-.icon-nav.active[data-page="sos"] i {
-    color: #ff1493 !important;
 }
 </style>
 </head>
@@ -2620,22 +2616,23 @@ body {
 
                     <div class="home-actions">
 
-                        <button
-                            class="sos-main-button"
-                            
-                            onclick="activateSOS()"
-                        >
-                            🚨 ACTIVATE SOS
-                        </button>
+    <button 
+        class="sos-main-button"
+        onclick="activateSOS()"
+        title="Activate SOS"
+    >
+        <i class="bi bi-exclamation-triangle-fill"></i>
+    </button>
 
-                        <button
-                            class="secondary-button"
-                            onclick="navigateTo('dashboard')"
-                        >
-                            Open Dashboard
-                        </button>
+    <button 
+        class="secondary-button"
+        onclick="navigateTo('dashboard')"
+        title="Open Dashboard"
+    >
+        <i class="bi bi-speedometer2"></i>
+    </button>
 
-                    </div>
+</div>
 
                     <div class="home-stats">
 
