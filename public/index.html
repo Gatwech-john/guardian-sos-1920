@@ -442,11 +442,26 @@ body {
     }
 
     .mobile-nav-icon {
-        display: block;
-        font-size: 20px;
-        margin-bottom: 2px;
-        font-family: Arial, Helvetica, sans-serif;
-    }
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 42px;
+    height: 42px;
+
+    border: 2px solid #ff1493;
+    border-radius: 50%;
+
+    background: white;
+
+    font-size: 21px;
+    line-height: 1;
+}
+
+.mobile-nav-icon i {
+    color: #ff1493;
+    font-size: 21px;
+}
 
     /* =========================
        GENERAL
@@ -2520,40 +2535,51 @@ body {
     <!-- =====================================================
          MOBILE NAVIGATION
     ====================================================== -->
+<nav id="mobileNavigation" class="mobile-nav" style="display:none;">
 
-    <nav id="mobileNavigation" class="mobile-nav" style="display:none;">
+    <button data-page="home">
+        <span class="mobile-nav-icon">
+            <i class="bi bi-house-fill"></i>
+        </span>
+        Home
+    </button>
 
-        <button data-page="home">
-            <span class="mobile-nav-icon">🏠</span>
-            Home
-        </button>
+    <button data-page="dashboard">
+        <span class="mobile-nav-icon">
+            <i class="bi bi-speedometer2"></i>
+        </span>
+        Dashboard
+    </button>
 
-        <button data-page="dashboard">
-            <span class="mobile-nav-icon">📊</span>
-            Dashboard
-        </button>
+    <button data-page="sos">
+        <span class="mobile-nav-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </span>
+        SOS
+    </button>
 
-        <button data-page="sos">
-            <span class="mobile-nav-icon">🚨</span>
-            SOS
-        </button>
+    <button data-page="chat" class="chat-nav-button">
+        <span class="mobile-nav-icon">
+            <i class="bi bi-chat-fill"></i>
+        </span>
+        Chat
+    </button>
 
-        <button data-page="chat" class="chat-nav-button">
-            <span class="mobile-nav-icon messenger-icon">💬</span>
-            Chat
-        </button>
+    <button data-page="contacts">
+        <span class="mobile-nav-icon">
+            <i class="bi bi-people-fill"></i>
+        </span>
+        Contacts
+    </button>
 
-        <button data-page="contacts">
-            <span class="mobile-nav-icon">👥</span>
-            Contacts
-        </button>
+    <button data-page="profile">
+        <span class="mobile-nav-icon">
+            <i class="bi bi-person-fill"></i>
+        </span>
+        Profile
+    </button>
 
-        <button data-page="profile">
-            <span class="mobile-nav-icon">👤</span>
-            Profile
-        </button>
-
-    </nav>
+</nav>
 
 
     <!-- =====================================================
