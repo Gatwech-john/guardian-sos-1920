@@ -61,6 +61,9 @@ const AfricasTalking = require("africastalking");
 const admin = require("firebase-admin");
 const { cert } = require("firebase-admin/app");
 
+const fs = require("fs");
+const multer = require("multer");
+
 
 
 /* ============================================================
@@ -271,6 +274,65 @@ const UserSchema = new mongoose.Schema(
 
 );
 
+
+
+/* ============================================================
+   GUARDIAN SOS CHAT FILE STORAGE
+============================================================ */
+
+const chatUploadDirectory =
+    path.join(__dirname, "public", "chat-uploads");
+
+if (!fs.existsSync(chatUploadDirectory)) {
+    fs.mkdirSync(chatUploadDirectory, {
+        recursive: true
+    });
+}
+
+const chatStorage =
+    multer.diskStorage({
+
+        destination: function(req, file, cb) {
+
+            cb(
+                null,
+                chatUploadDirectory
+            );
+
+        },
+
+        filename: function(req, file, cb) {
+
+            const safeName =
+                file.originalname
+                    .replace(/[^a-zA-Z0-9._-]/g, "_");
+
+            cb(
+                null,
+                Date.now() +
+                "-" +
+                Math.random()
+                    .toString(36)
+                    .substring(2, 10) +
+                "-" +
+                safeName
+            );
+
+        }
+
+    });
+
+const chatUpload =
+    multer({
+
+        storage: chatStorage,
+
+        limits: {
+            fileSize:
+                100 * 1024 * 1024
+        }
+
+    });
 
 /*
 ------------------------------------------------------------
@@ -616,6 +678,8 @@ const ChatConversationSchema = new mongoose.Schema(
 );
 
 
+
+
 /* ============================================================
    CHAT MESSAGE SCHEMA
 ============================================================ */
@@ -658,6 +722,133 @@ const ChatMessageSchema = new mongoose.Schema(
         }
     }
 );
+
+
+
+/* ============================================================
+   ADVANCED CHAT MESSAGE FIELDS
+============================================================ */
+
+ChatMessageSchema.add({
+
+    type: {
+        type: String,
+        enum: [
+            "text",
+            "image",
+            "video",
+            "audio",
+            "voice",
+            "file",
+            "location",
+            "contact",
+            "system"
+        ],
+        default: "text"
+    },
+
+    attachment: {
+        url: {
+            type: String,
+            default: ""
+        },
+
+        name: {
+            type: String,
+            default: ""
+        },
+
+        mimeType: {
+            type: String,
+            default: ""
+        },
+
+        size: {
+            type: Number,
+            default: 0
+        }
+    },
+
+    thumbnail: {
+        type: String,
+        default: ""
+    },
+
+    duration: {
+        type: Number,
+        default: 0
+    },
+
+    latitude: {
+        type: Number,
+        default: null
+    },
+
+    longitude: {
+        type: Number,
+        default: null
+    },
+
+    contactData: {
+        name: {
+            type: String,
+            default: ""
+        },
+
+        phone: {
+            type: String,
+            default: ""
+        }
+    },
+
+    replyTo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ChatMessage",
+        default: null
+    },
+
+    reactions: [{
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        },
+
+        emoji: {
+            type: String
+        }
+    }],
+
+    edited: {
+        type: Boolean,
+        default: false
+    },
+
+    deletedForEveryone: {
+        type: Boolean,
+        default: false
+    },
+
+    deletedFor: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }],
+
+    deliveredAt: {
+        type: Date,
+        default: null
+    },
+
+    readAt: {
+        type: Date,
+        default: null
+    },
+
+    starredBy: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }]
+
+});
 
 
 /* ============================================================
@@ -1135,7 +1326,150 @@ io.on("connection", (socket) => {
         }
     );
 
+    /* ============================================================
+   TYPING INDICATOR
+============================================================ */
 
+socket.on(
+    "typing",
+    function(data) {
+
+        if (!data || !data.recipientId) {
+            return;
+        }
+
+        io.to(
+            "user:" +
+            data.recipientId
+        ).emit(
+            "typing",
+            {
+                userId:
+                    socket.userId,
+
+                typing:
+                    Boolean(data.typing)
+            }
+        );
+
+    }
+);
+
+/* ============================================================
+   WEBRTC VOICE / VIDEO CALL SIGNALING
+============================================================ */
+
+socket.on(
+    "call_user",
+    function(data) {
+
+        if (!data || !data.userId) {
+            return;
+        }
+
+        io.to(
+            "user:" +
+            data.userId
+        ).emit(
+            "incoming_call",
+            {
+                callerId:
+                    socket.userId,
+
+                callType:
+                    data.callType || "voice",
+
+                offer:
+                    data.offer || null
+            }
+        );
+
+    }
+);
+
+
+socket.on(
+    "answer_call",
+    function(data) {
+
+        if (!data || !data.userId) {
+            return;
+        }
+
+        io.to(
+            "user:" +
+            data.userId
+        ).emit(
+            "call_answered",
+            {
+                answer:
+                    data.answer
+            }
+        );
+
+    }
+);
+
+
+socket.on(
+    "ice_candidate",
+    function(data) {
+
+        if (!data || !data.userId) {
+            return;
+        }
+
+        io.to(
+            "user:" +
+            data.userId
+        ).emit(
+            "ice_candidate",
+            {
+                candidate:
+                    data.candidate
+            }
+        );
+
+    }
+);
+
+
+socket.on(
+    "reject_call",
+    function(data) {
+
+        if (!data || !data.userId) {
+            return;
+        }
+
+        io.to(
+            "user:" +
+            data.userId
+        ).emit(
+            "call_rejected"
+        );
+
+    }
+);
+
+
+socket.on(
+    "end_call",
+    function(data) {
+
+        if (!data || !data.userId) {
+            return;
+        }
+
+        io.to(
+            "user:" +
+            data.userId
+        ).emit(
+            "call_ended"
+        );
+
+    }
+);
     /*
      * DISCONNECT
      */
@@ -2996,6 +3330,448 @@ app.get(
 
                 message:
                     "Unable to load messages."
+
+            });
+
+        }
+
+    }
+);
+
+
+
+
+/* ============================================================
+   CHAT FILE / PHOTO / VIDEO / AUDIO UPLOAD
+============================================================ */
+
+app.post(
+    "/api/chat/upload",
+    authenticateToken,
+    chatUpload.single("file"),
+    async (req, res) => {
+
+        try {
+
+            if (!req.file) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "No file selected."
+                });
+
+            }
+
+            const fileUrl =
+                "/chat-uploads/" +
+                req.file.filename;
+
+            return res.json({
+
+                success: true,
+
+                file: {
+
+                    url: fileUrl,
+
+                    name:
+                        req.file.originalname,
+
+                    mimeType:
+                        req.file.mimetype,
+
+                    size:
+                        req.file.size
+
+                }
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Chat upload error:",
+                error
+            );
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to upload file."
+
+            });
+
+        }
+
+    }
+);
+
+
+
+/* ============================================================
+   CHAT FILE / PHOTO / VIDEO / AUDIO UPLOAD
+============================================================ */
+
+app.post(
+    "/api/chat/upload",
+    authenticateToken,
+    chatUpload.single("file"),
+    async (req, res) => {
+
+        try {
+
+            if (!req.file) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "No file selected."
+                });
+
+            }
+
+            const fileUrl =
+                "/chat-uploads/" +
+                req.file.filename;
+
+            return res.json({
+
+                success: true,
+
+                file: {
+
+                    url: fileUrl,
+
+                    name:
+                        req.file.originalname,
+
+                    mimeType:
+                        req.file.mimetype,
+
+                    size:
+                        req.file.size
+
+                }
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Chat upload error:",
+                error
+            );
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to upload file."
+
+            });
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   SEND ADVANCED CHAT MESSAGE
+============================================================ */
+
+app.post(
+    "/api/chat/messages/advanced",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const {
+                conversationId,
+                text,
+                type,
+                attachment,
+                duration,
+                latitude,
+                longitude,
+                contactData,
+                replyTo
+            } = req.body;
+
+            if (!conversationId) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Conversation ID is required."
+                });
+
+            }
+
+            const conversation =
+                await ChatConversation.findOne({
+
+                    _id: conversationId,
+
+                    participants:
+                        req.user.userId
+
+                });
+
+            if (!conversation) {
+
+                return res.status(403).json({
+                    success: false,
+                    message:
+                        "You are not a member of this chat."
+                });
+
+            }
+
+            const recipientId =
+                conversation.participants.find(
+                    id =>
+                        String(id) !==
+                        String(req.user.userId)
+                );
+
+            if (!recipientId) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Recipient not found."
+                });
+
+            }
+
+            const message =
+                await ChatMessage.create({
+
+                    conversationId:
+                        conversation._id,
+
+                    senderId:
+                        req.user.userId,
+
+                    recipientId,
+
+                    text:
+                        String(text || ""),
+
+                    type:
+                        type || "text",
+
+                    attachment:
+                        attachment || {},
+
+                    duration:
+                        Number(duration || 0),
+
+                    latitude:
+                        latitude !== undefined
+                            ? latitude
+                            : null,
+
+                    longitude:
+                        longitude !== undefined
+                            ? longitude
+                            : null,
+
+                    contactData:
+                        contactData || {},
+
+                    replyTo:
+                        replyTo || null,
+
+                    deliveredAt:
+                        new Date()
+
+                });
+
+            conversation.lastMessage =
+                type === "text"
+                    ? String(text || "")
+                    : type === "image"
+                        ? "📷 Photo"
+                        : type === "video"
+                            ? "🎥 Video"
+                            : type === "voice"
+                                ? "🎤 Voice message"
+                                : type === "audio"
+                                    ? "🎵 Audio"
+                                    : type === "file"
+                                        ? "📎 File"
+                                        : "Message";
+
+            conversation.lastMessageAt =
+                new Date();
+
+            await conversation.save();
+
+            const populatedMessage =
+                await ChatMessage
+                    .findById(message._id)
+                    .populate(
+                        "senderId",
+                        "_id name email phone"
+                    )
+                    .populate(
+                        "recipientId",
+                        "_id name email phone"
+                    );
+
+            const messageData =
+                populatedMessage.toObject();
+
+            io.to(
+                "user:" +
+                req.user.userId
+            ).emit(
+                "new_message",
+                messageData
+            );
+
+            io.to(
+                "user:" +
+                recipientId
+            ).emit(
+                "new_message",
+                messageData
+            );
+
+            return res.status(201).json({
+
+                success: true,
+
+                message:
+                    messageData
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Advanced chat message error:",
+                error
+            );
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to send message."
+
+            });
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   MESSAGE REACTION
+============================================================ */
+
+app.post(
+    "/api/chat/messages/:id/reaction",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const {
+                emoji
+            } = req.body;
+
+            const message =
+                await ChatMessage.findById(
+                    req.params.id
+                );
+
+            if (!message) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Message not found."
+                });
+
+            }
+
+            message.reactions =
+                message.reactions.filter(
+                    reaction =>
+                        String(
+                            reaction.userId
+                        ) !==
+                        String(
+                            req.user.userId
+                        )
+                );
+
+            if (emoji) {
+
+                message.reactions.push({
+
+                    userId:
+                        req.user.userId,
+
+                    emoji
+
+                });
+
+            }
+
+            await message.save();
+
+            const recipientId =
+                String(message.senderId) ===
+                String(req.user.userId)
+                    ? message.recipientId
+                    : message.senderId;
+
+            io.to(
+                "user:" +
+                recipientId
+            ).emit(
+                "message_reaction",
+                {
+                    messageId:
+                        message._id,
+
+                    reactions:
+                        message.reactions
+                }
+            );
+
+            return res.json({
+
+                success: true,
+
+                reactions:
+                    message.reactions
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Reaction error:",
+                error
+            );
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to react."
 
             });
 

@@ -1790,6 +1790,450 @@ body {
     opacity: 0.65;
     font-style: italic;
 }
+
+/* ============================================================
+   GUARDIAN SOS WHATSAPP-STYLE CHAT
+============================================================ */
+
+.wa-chat-header {
+    height: 65px;
+    background: #111;
+    border-bottom: 1px solid #ff1493;
+    display: flex;
+    align-items: center;
+    padding: 7px 10px;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.wa-back {
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 27px;
+    width: 35px;
+}
+
+.wa-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #ff1493;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.wa-user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.wa-user-name {
+    color: white;
+    font-weight: bold;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wa-user-status {
+    color: #999;
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+.wa-call-actions {
+    display: flex;
+    gap: 3px;
+}
+
+.wa-call-actions button {
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 18px;
+    width: 34px;
+    height: 34px;
+}
+
+.wa-messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(255,20,147,.04),
+            transparent 60%
+        ),
+        #080808;
+}
+
+.wa-message {
+    max-width: 80%;
+    padding: 7px 9px;
+    border-radius: 9px;
+    position: relative;
+    word-break: break-word;
+    color: white;
+    font-size: 14px;
+}
+
+.wa-message.mine {
+    align-self: flex-end;
+    background: #ff1493;
+    border-bottom-right-radius: 2px;
+}
+
+.wa-message.theirs {
+    align-self: flex-start;
+    background: #171717;
+    border-bottom-left-radius: 2px;
+}
+
+.wa-message-content {
+    white-space: pre-wrap;
+}
+
+.wa-message-meta {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 4px;
+    margin-top: 3px;
+    font-size: 9px;
+    opacity: .7;
+}
+
+.wa-check {
+    font-size: 12px;
+}
+
+.wa-check.read {
+    color: #5ee7ff;
+}
+
+.wa-reply-preview {
+    background: #181818;
+    border-left: 4px solid #ff1493;
+    padding: 7px 10px;
+    display: flex;
+    justify-content: space-between;
+    color: white;
+}
+
+.wa-reply-preview button {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 20px;
+}
+
+.wa-input-container {
+    min-height: 62px;
+    background: #111;
+    border-top: 1px solid #292929;
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    padding: 8px;
+    flex-shrink: 0;
+}
+
+.wa-message-input {
+    flex: 1;
+    min-height: 42px;
+    max-height: 120px;
+    resize: none;
+    border: 1px solid #333;
+    border-radius: 22px;
+    background: #181818;
+    color: white;
+    padding: 11px 15px;
+    outline: none;
+}
+
+.wa-emoji-button,
+.wa-attach-button,
+.wa-mic-button,
+.wa-send-button {
+    border: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: transparent;
+    color: white;
+    font-size: 19px;
+    flex-shrink: 0;
+}
+
+.wa-send-button {
+    background: #ff1493;
+}
+
+.wa-emoji-picker {
+    position: absolute;
+    bottom: 72px;
+    left: 8px;
+    width: 300px;
+    max-width: calc(100vw - 16px);
+    background: #151515;
+    border: 1px solid #ff1493;
+    border-radius: 14px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    z-index: 100;
+}
+
+.wa-emoji-picker button {
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    padding: 7px;
+}
+
+.wa-attachment-menu {
+    position: absolute;
+    bottom: 70px;
+    left: 8px;
+    width: 220px;
+    background: #151515;
+    border: 1px solid #ff1493;
+    border-radius: 15px;
+    padding: 8px;
+    z-index: 100;
+}
+
+.wa-attachment-menu button {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: white;
+    padding: 12px;
+    text-align: left;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.wa-attachment-menu button:hover {
+    background: #222;
+}
+
+.wa-attachment-preview {
+    padding: 8px;
+    background: #151515;
+    color: white;
+}
+
+.wa-attachment-preview img,
+.wa-attachment-preview video {
+    max-width: 150px;
+    max-height: 120px;
+    border-radius: 8px;
+}
+
+.wa-typing {
+    position: absolute;
+    bottom: 67px;
+    left: 12px;
+    color: #ff1493;
+    font-size: 11px;
+    z-index: 10;
+}
+
+.wa-file-message {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 5px;
+}
+
+.wa-file-icon {
+    font-size: 30px;
+}
+
+.wa-file-name {
+    font-weight: bold;
+    word-break: break-all;
+}
+
+.wa-file-size {
+    opacity: .6;
+    font-size: 10px;
+}
+
+.wa-voice-player {
+    width: 220px;
+    max-width: 100%;
+}
+
+.wa-reaction-row {
+    display: flex;
+    gap: 3px;
+    margin-top: 3px;
+}
+
+.wa-reaction {
+    background: #222;
+    border-radius: 12px;
+    padding: 2px 6px;
+    font-size: 12px;
+}
+
+.wa-message-actions {
+    position: absolute;
+    top: -35px;
+    right: 0;
+    background: #171717;
+    border: 1px solid #ff1493;
+    border-radius: 10px;
+    display: flex;
+    z-index: 50;
+}
+
+.wa-message-actions button {
+    border: none;
+    background: transparent;
+    color: white;
+    padding: 8px;
+}
+
+.wa-call-screen {
+    position: absolute;
+    inset: 0;
+    background: #050505;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wa-remote-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.wa-local-video {
+    position: absolute;
+    top: 20px;
+    right: 15px;
+    width: 120px;
+    height: 170px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid white;
+}
+
+.wa-call-info {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: white;
+}
+
+.wa-call-info div:first-child {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.wa-call-controls {
+    position: absolute;
+    bottom: 35px;
+    display: flex;
+    gap: 20px;
+}
+
+.wa-call-controls button {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: none;
+    background: #333;
+    color: white;
+    font-size: 22px;
+}
+
+.wa-call-controls .wa-end-call {
+    background: #e00000;
+}
+
+.wa-incoming-call {
+    position: absolute;
+    inset: 0;
+    background: #080808;
+    z-index: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.wa-incoming-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: #ff1493;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 45px;
+}
+
+.incoming-call-buttons {
+    display: flex;
+    gap: 50px;
+    margin-top: 50px;
+}
+
+.incoming-call-buttons button {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    border: none;
+    font-size: 25px;
+}
+
+.reject-call {
+    background: #d00000;
+}
+
+.accept-call {
+    background: #00a84f;
+}
+
+@media(max-width:760px) {
+
+    .wa-call-actions button {
+        width: 30px;
+        font-size: 16px;
+    }
+
+    .wa-message {
+        max-width: 88%;
+    }
+
+    .wa-emoji-picker {
+        bottom: 70px;
+        width: 270px;
+    }
+
+}
 </style>
 </head>
 
@@ -4474,78 +4918,311 @@ function showChatWindow(user, conversationId) {
 
         chatWindow.innerHTML = `
 
-            <div class="chat-window-header">
+            <div class="wa-chat-header">
 
     <button
-        class="chat-back-button"
+        class="wa-back"
         onclick="closeChatWindow()"
-        type="button"
-        aria-label="Back"
-    >
+        type="button">
         ←
     </button>
 
     <div
-        class="chat-window-avatar"
-        id="chatWindowAvatar"
-    >
+        class="wa-avatar"
+        id="chatWindowAvatar">
         G
     </div>
 
-    <div class="chat-window-user">
+    <div class="wa-user-info">
 
         <div
-            class="chat-window-title"
             id="chatWindowTitle"
-        >
+            class="wa-user-name">
             Guardian SOS User
         </div>
 
         <div
-            class="chat-window-status offline"
             id="chatWindowStatus"
-        >
+            class="wa-user-status">
             Offline
         </div>
+
+    </div>
+
+    <div class="wa-call-actions">
+
+        <button
+            type="button"
+            onclick="startVoiceCall()"
+            title="Voice call">
+            📞
+        </button>
+
+        <button
+            type="button"
+            onclick="startVideoCall()"
+            title="Video call">
+            🎥
+        </button>
+
+        <button
+            type="button"
+            onclick="openChatSearch()"
+            title="Search">
+            🔍
+        </button>
+
+        <button
+            type="button"
+            onclick="openChatMenu()"
+            title="More">
+            ⋮
+        </button>
 
     </div>
 
 </div>
 
 
-            <div
-                class="chat-messages"
-                id="messagesList"
-            ></div>
+<div
+    id="typingIndicator"
+    class="wa-typing">
+</div>
 
 
-            <div class="chat-input-area">
+<div
+    id="messagesList"
+    class="wa-messages">
+</div>
 
-                <button
-                    class="chat-attach-button"
-                    type="button"
-                >
-                    +
-                </button>
 
-                <input
-                    type="text"
-                    id="chatMessageInput"
-                    class="chat-message-input"
-                    placeholder="Type a message..."
-                    maxlength="5000"
-                    autocomplete="off"
-                >
+<div
+    id="replyPreview"
+    class="wa-reply-preview"
+    style="display:none;">
 
-                <button
-                    class="chat-send-button"
-                    type="button"
-                    onclick="sendChatMessage()"
-                >
-                    ➤
-                </button>
+    <div id="replyPreviewText"></div>
 
-            </div>
+    <button
+        type="button"
+        onclick="cancelReply()">
+        ×
+    </button>
+
+</div>
+
+
+<div
+    id="attachmentPreview"
+    class="wa-attachment-preview"
+    style="display:none;">
+</div>
+
+
+<div class="wa-input-container">
+
+    <button
+        class="wa-emoji-button"
+        type="button"
+        onclick="toggleEmojiPicker()">
+        😊
+    </button>
+
+    <button
+        class="wa-attach-button"
+        type="button"
+        onclick="openAttachmentMenu()">
+        📎
+    </button>
+
+    <textarea
+        id="chatMessageInput"
+        class="wa-message-input"
+        placeholder="Type a message"
+        maxlength="5000"
+        rows="1"></textarea>
+
+    <button
+        id="voiceRecordButton"
+        class="wa-mic-button"
+        type="button"
+        onclick="toggleVoiceRecording()">
+        🎤
+    </button>
+
+    <button
+        id="chatSendButton"
+        class="wa-send-button"
+        type="button"
+        onclick="sendChatMessage()">
+        ➤
+    </button>
+
+</div>
+
+
+<div
+    id="emojiPicker"
+    class="wa-emoji-picker"
+    style="display:none;">
+
+    <button onclick="insertEmoji('😀')">😀</button>
+    <button onclick="insertEmoji('😂')">😂</button>
+    <button onclick="insertEmoji('😍')">😍</button>
+    <button onclick="insertEmoji('🥰')">🥰</button>
+    <button onclick="insertEmoji('😘')">😘</button>
+    <button onclick="insertEmoji('😭')">😭</button>
+    <button onclick="insertEmoji('😡')">😡</button>
+    <button onclick="insertEmoji('👍')">👍</button>
+    <button onclick="insertEmoji('❤️')">❤️</button>
+    <button onclick="insertEmoji('🔥')">🔥</button>
+    <button onclick="insertEmoji('🙏')">🙏</button>
+    <button onclick="insertEmoji('🎉')">🎉</button>
+    <button onclick="insertEmoji('🚨')">🚨</button>
+    <button onclick="insertEmoji('😂')">🤣</button>
+
+</div>
+
+
+<div
+    id="attachmentMenu"
+    class="wa-attachment-menu"
+    style="display:none;">
+
+    <button onclick="selectChatFile('image/*')">
+        📷
+        <span>Photos</span>
+    </button>
+
+    <button onclick="selectChatFile('video/*')">
+        🎥
+        <span>Videos</span>
+    </button>
+
+    <button onclick="selectChatFile('audio/*')">
+        🎵
+        <span>Audio</span>
+    </button>
+
+    <button onclick="selectChatFile('*/*')">
+        📄
+        <span>Document</span>
+    </button>
+
+    <button onclick="shareCurrentLocation()">
+        📍
+        <span>Location</span>
+    </button>
+
+    <button onclick="shareContact()">
+        👤
+        <span>Contact</span>
+    </button>
+
+</div>
+
+
+<input
+    id="chatFileInput"
+    type="file"
+    hidden
+    onchange="handleChatFileSelected(event)"
+    multiple>
+
+
+<div
+    id="callScreen"
+    class="wa-call-screen"
+    style="display:none;">
+
+    <video
+        id="remoteVideo"
+        class="wa-remote-video"
+        autoplay
+        playsinline>
+    </video>
+
+    <video
+        id="localVideo"
+        class="wa-local-video"
+        autoplay
+        muted
+        playsinline>
+    </video>
+
+    <div class="wa-call-info">
+
+        <div
+            id="callUserName">
+            Guardian SOS User
+        </div>
+
+        <div
+            id="callStatus">
+            Calling...
+        </div>
+
+    </div>
+
+    <div class="wa-call-controls">
+
+        <button
+            onclick="toggleCallMute()">
+            🎤
+        </button>
+
+        <button
+            onclick="toggleCallCamera()">
+            🎥
+        </button>
+
+        <button
+            onclick="endCurrentCall()"
+            class="wa-end-call">
+            ☎
+        </button>
+
+    </div>
+
+</div>
+
+
+<div
+    id="incomingCallScreen"
+    class="wa-incoming-call"
+    style="display:none;">
+
+    <div
+        id="incomingCallAvatar"
+        class="wa-incoming-avatar">
+        G
+    </div>
+
+    <h2 id="incomingCallerName">
+        Guardian SOS User
+    </h2>
+
+    <p id="incomingCallType">
+        Incoming voice call
+    </p>
+
+    <div class="incoming-call-buttons">
+
+        <button
+            class="reject-call"
+            onclick="rejectIncomingCall()">
+            ❌
+        </button>
+
+        <button
+            class="accept-call"
+            onclick="acceptIncomingCall()">
+            📞
+        </button>
+
+    </div>
+
+</div>
 
         `;
 
@@ -6942,6 +7619,2277 @@ document.addEventListener(
         }
     );
 
+
+
+/* ============================================================
+   GUARDIAN SOS ADVANCED CHAT
+============================================================ */
+
+let replyMessageId = null;
+let recording = false;
+let mediaRecorder = null;
+let recordedChunks = [];
+
+let selectedChatFiles = [];
+
+let peerConnection = null;
+let localStream = null;
+let remoteStream = null;
+
+let activeCallUserId = null;
+let activeCallType = "voice";
+
+let pendingIncomingOffer = null;
+
+const rtcConfiguration = {
+
+    iceServers: [
+
+        {
+            urls:
+                "stun:stun.l.google.com:19302"
+        },
+
+        {
+            urls:
+                "stun:stun1.l.google.com:19302"
+        }
+
+    ]
+
+};
+
+
+/* ============================================================
+   EMOJI
+============================================================ */
+
+function toggleEmojiPicker() {
+
+    const picker =
+        document.getElementById(
+            "emojiPicker"
+        );
+
+    if (!picker) return;
+
+    picker.style.display =
+        picker.style.display === "none"
+            ? "grid"
+            : "none";
+
+}
+
+
+function insertEmoji(emoji) {
+
+    const input =
+        document.getElementById(
+            "chatMessageInput"
+        );
+
+    if (!input) return;
+
+    input.value += emoji;
+
+    input.focus();
+
+}
+
+
+/* ============================================================
+   ATTACHMENT MENU
+============================================================ */
+
+function openAttachmentMenu() {
+
+    const menu =
+        document.getElementById(
+            "attachmentMenu"
+        );
+
+    if (!menu) return;
+
+    menu.style.display =
+        menu.style.display === "none"
+            ? "block"
+            : "none";
+
+}
+
+
+function selectChatFile(accept) {
+
+    const input =
+        document.getElementById(
+            "chatFileInput"
+        );
+
+    if (!input) return;
+
+    input.accept = accept;
+
+    input.multiple = true;
+
+    input.click();
+
+}
+
+
+/* ============================================================
+   FILE SELECTION
+============================================================ */
+
+async function handleChatFileSelected(event) {
+
+    const files =
+        Array.from(
+            event.target.files || []
+        );
+
+    if (!files.length) {
+        return;
+    }
+
+    selectedChatFiles =
+        files;
+
+    const preview =
+        document.getElementById(
+            "attachmentPreview"
+        );
+
+    if (!preview) return;
+
+    preview.style.display =
+        "block";
+
+    preview.innerHTML =
+        files.map(file => {
+
+            const size =
+                formatFileSize(
+                    file.size
+                );
+
+            if (
+                file.type.startsWith(
+                    "image/"
+                )
+            ) {
+
+                const url =
+                    URL.createObjectURL(
+                        file
+                    );
+
+                return `
+                    <div>
+                        <img src="${url}">
+                        <br>
+                        ${escapeHTML(file.name)}
+                        (${size})
+                    </div>
+                `;
+
+            }
+
+            return `
+                <div class="wa-file-message">
+                    📎
+                    <div>
+                        <div class="wa-file-name">
+                            ${escapeHTML(file.name)}
+                        </div>
+                        <div class="wa-file-size">
+                            ${size}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        }).join("");
+
+    showToast(
+        files.length +
+        " attachment(s) selected."
+    );
+
+}
+
+
+function formatFileSize(bytes) {
+
+    if (!bytes) {
+        return "0 B";
+    }
+
+    const units = [
+        "B",
+        "KB",
+        "MB",
+        "GB"
+    ];
+
+    let index = 0;
+
+    let size = bytes;
+
+    while (
+        size >= 1024 &&
+        index <
+        units.length - 1
+    ) {
+
+        size /= 1024;
+
+        index++;
+
+    }
+
+    return (
+        size.toFixed(
+            size >= 10 ? 0 : 1
+        ) +
+        " " +
+        units[index]
+    );
+
+}
+
+
+/* ============================================================
+   UPLOAD FILE
+============================================================ */
+
+async function uploadChatFile(file) {
+
+    const formData =
+        new FormData();
+
+    formData.append(
+        "file",
+        file
+    );
+
+    const response =
+        await fetch(
+            "/api/chat/upload",
+            {
+                method: "POST",
+
+                headers: {
+                    Authorization:
+                        "Bearer " +
+                        getToken()
+                },
+
+                body:
+                    formData
+            }
+        );
+
+    const data =
+        await response.json();
+
+    if (!response.ok ||
+        !data.success) {
+
+        throw new Error(
+            data.message ||
+            "File upload failed."
+        );
+
+    }
+
+    return data.file;
+
+}
+
+
+/* ============================================================
+   SEND ADVANCED MESSAGE
+============================================================ */
+
+async function sendAdvancedMessage(
+    payload
+) {
+
+    const data =
+        await api(
+            "/api/chat/messages/advanced",
+            {
+                method: "POST",
+                body: payload
+            }
+        );
+
+    return data.message;
+
+}
+
+
+/* ============================================================
+   SEND CHAT MESSAGE
+============================================================ */
+
+async function sendChatMessage() {
+
+    const input =
+        document.getElementById(
+            "chatMessageInput"
+        );
+
+    if (!input) return;
+
+    const text =
+        input.value.trim();
+
+    if (
+        !text &&
+        !selectedChatFiles.length
+    ) {
+        return;
+    }
+
+    if (!currentConversationId) {
+
+        showToast(
+            "Please open a conversation first."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        if (text) {
+
+            const message =
+                await sendAdvancedMessage({
+
+                    conversationId:
+                        currentConversationId,
+
+                    text:
+
+                        text,
+
+                    type:
+                        "text",
+
+                    replyTo:
+                        replyMessageId
+
+                });
+
+            appendChatMessage(
+                message
+            );
+
+        }
+
+
+        for (
+            const file
+            of selectedChatFiles
+        ) {
+
+            showToast(
+                "Uploading " +
+                file.name +
+                "..."
+            );
+
+            const uploaded =
+                await uploadChatFile(
+                    file
+                );
+
+            let type =
+                "file";
+
+            if (
+                file.type.startsWith(
+                    "image/"
+                )
+            ) {
+                type = "image";
+            }
+            else if (
+                file.type.startsWith(
+                    "video/"
+                )
+            ) {
+                type = "video";
+            }
+            else if (
+                file.type.startsWith(
+                    "audio/"
+                )
+            ) {
+                type = "audio";
+            }
+
+            const message =
+                await sendAdvancedMessage({
+
+                    conversationId:
+                        currentConversationId,
+
+                    text: "",
+
+                    type:
+
+                        type,
+
+                    attachment:
+                        uploaded,
+
+                    replyTo:
+                        replyMessageId
+
+                });
+
+            appendChatMessage(
+                message
+            );
+
+        }
+
+
+        input.value = "";
+
+        selectedChatFiles =
+            [];
+
+        replyMessageId =
+            null;
+
+        cancelReply();
+
+        const preview =
+            document.getElementById(
+                "attachmentPreview"
+            );
+
+        if (preview) {
+
+            preview.style.display =
+                "none";
+
+            preview.innerHTML =
+                "";
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+        showToast(
+            error.message ||
+            "Unable to send message."
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   VOICE RECORDING
+============================================================ */
+
+async function toggleVoiceRecording() {
+
+    if (recording) {
+
+        stopVoiceRecording();
+
+        return;
+
+    }
+
+    try {
+
+        const stream =
+            await navigator
+                .mediaDevices
+                .getUserMedia({
+                    audio: true
+                });
+
+        recordedChunks =
+            [];
+
+        mediaRecorder =
+            new MediaRecorder(
+                stream
+            );
+
+        mediaRecorder.ondataavailable =
+            function(event) {
+
+                if (
+                    event.data &&
+                    event.data.size
+                ) {
+
+                    recordedChunks.push(
+                        event.data
+                    );
+
+                }
+
+            };
+
+
+        mediaRecorder.onstop =
+            async function() {
+
+                stream
+                    .getTracks()
+                    .forEach(
+                        track =>
+                            track.stop()
+                    );
+
+                const blob =
+                    new Blob(
+                        recordedChunks,
+                        {
+                            type:
+                                mediaRecorder
+                                    .mimeType ||
+                                "audio/webm"
+                        }
+                    );
+
+                await sendVoiceMessage(
+                    blob
+                );
+
+            };
+
+
+        mediaRecorder.start();
+
+        recording = true;
+
+        const button =
+            document.getElementById(
+                "voiceRecordButton"
+            );
+
+        if (button) {
+
+            button.textContent =
+                "⏹️";
+
+        }
+
+        showToast(
+            "Recording voice message..."
+        );
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+        showToast(
+            "Microphone permission is required."
+        );
+
+    }
+
+}
+
+
+function stopVoiceRecording() {
+
+    if (
+        mediaRecorder &&
+        recording
+    ) {
+
+        recording = false;
+
+        mediaRecorder.stop();
+
+        const button =
+            document.getElementById(
+                "voiceRecordButton"
+            );
+
+        if (button) {
+
+            button.textContent =
+                "🎤";
+
+        }
+
+    }
+
+}
+
+
+async function sendVoiceMessage(blob) {
+
+    try {
+
+        const file =
+            new File(
+                [blob],
+                "voice-message.webm",
+                {
+                    type:
+                        blob.type ||
+                        "audio/webm"
+                }
+            );
+
+        const uploaded =
+            await uploadChatFile(
+                file
+            );
+
+        const message =
+            await sendAdvancedMessage({
+
+                conversationId:
+                    currentConversationId,
+
+                text: "",
+
+                type:
+                    "voice",
+
+                attachment:
+                    uploaded
+
+            });
+
+        appendChatMessage(
+            message
+        );
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+        showToast(
+            "Unable to send voice message."
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   LOCATION SHARING
+============================================================ */
+
+function shareCurrentLocation() {
+
+    if (!navigator.geolocation) {
+
+        showToast(
+            "Location is not available."
+        );
+
+        return;
+
+    }
+
+    navigator.geolocation.getCurrentPosition(
+
+        async function(position) {
+
+            try {
+
+                const message =
+                    await sendAdvancedMessage({
+
+                        conversationId:
+                            currentConversationId,
+
+                        text:
+                            "📍 Shared location",
+
+                        type:
+                            "location",
+
+                        latitude:
+                            position.coords.latitude,
+
+                        longitude:
+                            position.coords.longitude
+
+                    });
+
+                appendChatMessage(
+                    message
+                );
+
+                openAttachmentMenu();
+
+            } catch (error) {
+
+                showToast(
+                    error.message
+                );
+
+            }
+
+        },
+
+        function() {
+
+            showToast(
+                "Unable to access your location."
+            );
+
+        }
+
+    );
+
+}
+
+
+/* ============================================================
+   CONTACT SHARING
+============================================================ */
+
+async function shareContact() {
+
+    const user =
+        getStoredUser();
+
+    if (!user) return;
+
+    try {
+
+        const message =
+            await sendAdvancedMessage({
+
+                conversationId:
+                    currentConversationId,
+
+                text:
+                    "👤 " +
+                    (user.name || "Contact"),
+
+                type:
+                    "contact",
+
+                contactData: {
+
+                    name:
+                        user.name || "",
+
+                    phone:
+                        user.phone || ""
+
+                }
+
+            });
+
+        appendChatMessage(
+            message
+        );
+
+        openAttachmentMenu();
+
+    } catch (error) {
+
+        showToast(
+            error.message
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   REPLY
+============================================================ */
+
+function replyToMessage(message) {
+
+    replyMessageId =
+        message._id ||
+        message.id;
+
+    const preview =
+        document.getElementById(
+            "replyPreview"
+        );
+
+    const text =
+        document.getElementById(
+            "replyPreviewText"
+        );
+
+    if (!preview || !text) {
+        return;
+    }
+
+    text.textContent =
+        message.text ||
+        message.type ||
+        "Attachment";
+
+    preview.style.display =
+        "flex";
+
+}
+
+
+function cancelReply() {
+
+    replyMessageId =
+        null;
+
+    const preview =
+        document.getElementById(
+            "replyPreview"
+        );
+
+    if (preview) {
+
+        preview.style.display =
+            "none";
+
+    }
+
+}
+
+
+/* ============================================================
+   MESSAGE REACTIONS
+============================================================ */
+
+async function reactToMessage(
+    message,
+    emoji
+) {
+
+    try {
+
+        const data =
+            await api(
+                "/api/chat/messages/" +
+                encodeURIComponent(
+                    message._id ||
+                    message.id
+                ) +
+                "/reaction",
+                {
+                    method: "POST",
+
+                    body: {
+                        emoji:
+                            emoji
+                    }
+                }
+            );
+
+        updateMessageReactions(
+            message._id ||
+            message.id,
+            data.reactions
+        );
+
+    } catch (error) {
+
+        showToast(
+            "Unable to react."
+        );
+
+    }
+
+}
+
+
+function updateMessageReactions(
+    messageId,
+    reactions
+) {
+
+    const element =
+        document.querySelector(
+            `[data-message-id="${messageId}"]`
+        );
+
+    if (!element) return;
+
+    let row =
+        element.querySelector(
+            ".wa-reaction-row"
+        );
+
+    if (!row) {
+
+        row =
+            document.createElement(
+                "div"
+            );
+
+        row.className =
+            "wa-reaction-row";
+
+        element.appendChild(
+            row
+        );
+
+    }
+
+    row.innerHTML =
+        (reactions || [])
+            .map(
+                reaction =>
+                    `<span class="wa-reaction">${escapeHTML(reaction.emoji)}</span>`
+            )
+            .join("");
+
+}
+
+
+/* ============================================================
+   MESSAGE MENU
+============================================================ */
+
+function openAdvancedMessageMenu(
+    message,
+    element
+) {
+
+    const old =
+        document.querySelector(
+            ".wa-message-actions"
+        );
+
+    if (old) {
+        old.remove();
+    }
+
+    const menu =
+        document.createElement(
+            "div"
+        );
+
+    menu.className =
+        "wa-message-actions";
+
+    const reply =
+        document.createElement(
+            "button"
+        );
+
+    reply.textContent =
+        "↩";
+
+    reply.title =
+        "Reply";
+
+    reply.onclick =
+        function() {
+
+            replyToMessage(
+                message
+            );
+
+            menu.remove();
+
+        };
+
+
+    const react =
+        document.createElement(
+            "button"
+        );
+
+    react.textContent =
+        "❤️";
+
+    react.title =
+        "React";
+
+    react.onclick =
+        function() {
+
+            reactToMessage(
+                message,
+                "❤️"
+            );
+
+            menu.remove();
+
+        };
+
+
+    const copy =
+        document.createElement(
+            "button"
+        );
+
+    copy.textContent =
+        "📋";
+
+    copy.title =
+        "Copy";
+
+    copy.onclick =
+        async function() {
+
+            if (
+                message.text
+            ) {
+
+                await navigator
+                    .clipboard
+                    .writeText(
+                        message.text
+                    );
+
+            }
+
+            menu.remove();
+
+        };
+
+
+    menu.appendChild(
+        reply
+    );
+
+    menu.appendChild(
+        react
+    );
+
+    menu.appendChild(
+        copy
+    );
+
+    element.appendChild(
+        menu
+    );
+
+}
+
+
+/* ============================================================
+   OVERRIDE MESSAGE RENDERER
+============================================================ */
+
+function renderAdvancedMessage(
+    message
+) {
+
+    const messagesList =
+        document.getElementById(
+            "messagesList"
+        );
+
+    if (!messagesList) {
+        return;
+    }
+
+    const currentUser =
+        getStoredUser();
+
+    const currentUserId =
+        currentUser &&
+        (
+            currentUser._id ||
+            currentUser.id
+        );
+
+    const senderId =
+        message.senderId &&
+        typeof message.senderId === "object"
+            ? (
+                message.senderId._id ||
+                message.senderId.id
+            )
+            : message.senderId;
+
+    const mine =
+        String(senderId) ===
+        String(currentUserId);
+
+    const wrapper =
+        document.createElement(
+            "div"
+        );
+
+    wrapper.className =
+        mine
+            ? "wa-message mine"
+            : "wa-message theirs";
+
+    wrapper.dataset.messageId =
+        message._id ||
+        message.id ||
+        "";
+
+    let content =
+        "";
+
+    if (
+        message.deletedForEveryone
+    ) {
+
+        content =
+            `<i>This message was deleted</i>`;
+
+    }
+    else if (
+        message.type === "image" &&
+        message.attachment
+    ) {
+
+        content =
+            `
+            <img
+                src="${escapeHTML(message.attachment.url)}"
+                style="max-width:260px;border-radius:9px;display:block;"
+                alt="Photo">
+            `;
+
+    }
+    else if (
+        message.type === "video" &&
+        message.attachment
+    ) {
+
+        content =
+            `
+            <video
+                src="${escapeHTML(message.attachment.url)}"
+                controls
+                style="max-width:280px;border-radius:9px;">
+            </video>
+            `;
+
+    }
+    else if (
+        (
+            message.type === "voice" ||
+            message.type === "audio"
+        ) &&
+        message.attachment
+    ) {
+
+        content =
+            `
+            <audio
+                class="wa-voice-player"
+                src="${escapeHTML(message.attachment.url)}"
+                controls>
+            </audio>
+            `;
+
+    }
+    else if (
+        message.type === "file" &&
+        message.attachment
+    ) {
+
+        content =
+            `
+            <a
+                href="${escapeHTML(message.attachment.url)}"
+                target="_blank"
+                download
+                style="color:white;text-decoration:none;">
+
+                <div class="wa-file-message">
+
+                    <div class="wa-file-icon">
+                        📎
+                    </div>
+
+                    <div>
+
+                        <div class="wa-file-name">
+                            ${escapeHTML(message.attachment.name || "File")}
+                        </div>
+
+                        <div class="wa-file-size">
+                            ${formatFileSize(message.attachment.size || 0)}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </a>
+            `;
+
+    }
+    else if (
+        message.type === "location"
+    ) {
+
+        const url =
+            "https://www.google.com/maps?q=" +
+            message.latitude +
+            "," +
+            message.longitude;
+
+        content =
+            `
+            <a
+                href="${url}"
+                target="_blank"
+                style="color:white;text-decoration:none;">
+
+                📍 Shared location
+                <br>
+                <small>
+                    Open in Google Maps
+                </small>
+
+            </a>
+            `;
+
+    }
+    else if (
+        message.type === "contact"
+    ) {
+
+        content =
+            `
+            <div>
+
+                👤
+                <strong>
+                    ${escapeHTML(
+                        message.contactData &&
+                        message.contactData.name
+                            ? message.contactData.name
+                            : "Contact"
+                    )}
+                </strong>
+
+                <br>
+
+                📞
+                ${escapeHTML(
+                    message.contactData &&
+                    message.contactData.phone
+                        ? message.contactData.phone
+                        : ""
+                )}
+
+            </div>
+            `;
+
+    }
+    else {
+
+        content =
+            escapeHTML(
+                message.text || ""
+            );
+
+    }
+
+
+    const time =
+        message.createdAt
+            ? new Date(
+                message.createdAt
+            ).toLocaleTimeString(
+                [],
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            )
+            : "";
+
+
+    const ticks =
+        mine
+            ? (
+                message.read
+                    ? "✓✓"
+                    : message.deliveredAt
+                        ? "✓✓"
+                        : "✓"
+            )
+            : "";
+
+
+    wrapper.innerHTML =
+        `
+        <div class="wa-message-content">
+            ${content}
+        </div>
+
+        <div class="wa-message-meta">
+
+            <span>
+                ${time}
+            </span>
+
+            ${
+                mine
+                    ? `<span class="wa-check ${message.read ? "read" : ""}">
+                            ${ticks}
+                       </span>`
+                    : ""
+            }
+
+        </div>
+        `;
+
+
+    wrapper.addEventListener(
+        "contextmenu",
+        function(event) {
+
+            event.preventDefault();
+
+            openAdvancedMessageMenu(
+                message,
+                wrapper
+            );
+
+        }
+    );
+
+
+    let timer = null;
+
+    wrapper.addEventListener(
+        "touchstart",
+        function() {
+
+            timer =
+                setTimeout(
+                    function() {
+
+                        openAdvancedMessageMenu(
+                            message,
+                            wrapper
+                        );
+
+                    },
+                    600
+                );
+
+        }
+    );
+
+
+    wrapper.addEventListener(
+        "touchend",
+        function() {
+
+            clearTimeout(
+                timer
+            );
+
+        }
+    );
+
+
+    messagesList.appendChild(
+        wrapper
+    );
+
+    messagesList.scrollTop =
+        messagesList.scrollHeight;
+
+}
+
+
+/* ============================================================
+   USE ADVANCED RENDERER
+============================================================ */
+
+const originalAppendChatMessage =
+    window.appendChatMessage;
+
+window.appendChatMessage =
+    function(message) {
+
+        const list =
+            document.getElementById(
+                "messagesList"
+            );
+
+        if (
+            list &&
+            list.classList.contains(
+                "wa-messages"
+            )
+        ) {
+
+            renderAdvancedMessage(
+                message
+            );
+
+            return;
+
+        }
+
+        if (
+            typeof originalAppendChatMessage ===
+            "function"
+        ) {
+
+            originalAppendChatMessage(
+                message
+            );
+
+        }
+
+    };
+
+
+/* ============================================================
+   TYPING
+============================================================ */
+
+let typingTimer = null;
+
+document.addEventListener(
+    "input",
+    function(event) {
+
+        if (
+            event.target.id !==
+            "chatMessageInput"
+        ) {
+            return;
+        }
+
+        if (
+            !chatSocket ||
+            !chatSocket.connected ||
+            !currentChatUserId
+        ) {
+            return;
+        }
+
+        chatSocket.emit(
+            "typing",
+            {
+                recipientId:
+                    currentChatUserId,
+
+                typing:
+                    true
+            }
+        );
+
+        clearTimeout(
+            typingTimer
+        );
+
+        typingTimer =
+            setTimeout(
+                function() {
+
+                    chatSocket.emit(
+                        "typing",
+                        {
+                            recipientId:
+                                currentChatUserId,
+
+                            typing:
+                                false
+                        }
+                    );
+
+                },
+                1200
+            );
+
+    }
+);
+
+
+/* ============================================================
+   RECEIVE TYPING
+============================================================ */
+
+function setupAdvancedSocketEvents() {
+
+    if (!chatSocket) {
+        return;
+    }
+
+    chatSocket.off(
+        "typing"
+    );
+
+    chatSocket.on(
+        "typing",
+        function(data) {
+
+            if (
+                !data ||
+                String(data.userId) !==
+                String(currentChatUserId)
+            ) {
+                return;
+            }
+
+            const indicator =
+                document.getElementById(
+                    "typingIndicator"
+                );
+
+            if (!indicator) {
+                return;
+            }
+
+            indicator.textContent =
+                data.typing
+                    ? "typing..."
+                    : "";
+
+        }
+    );
+
+
+    chatSocket.on(
+        "message_read",
+        function(data) {
+
+            if (!data) return;
+
+            const element =
+                document.querySelector(
+                    `[data-message-id="${data.messageId}"]`
+                );
+
+            if (!element) return;
+
+            const check =
+                element.querySelector(
+                    ".wa-check"
+                );
+
+            if (check) {
+
+                check.textContent =
+                    "✓✓";
+
+                check.classList.add(
+                    "read"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+setInterval(
+    function() {
+
+        if (
+            chatSocket &&
+            chatSocket.connected
+        ) {
+
+            setupAdvancedSocketEvents();
+
+        }
+
+    },
+    1000
+);
+
+
+/* ============================================================
+   WEBRTC CALL
+============================================================ */
+
+async function createPeerConnection(
+    targetUserId
+) {
+
+    peerConnection =
+        new RTCPeerConnection(
+            rtcConfiguration
+        );
+
+    remoteStream =
+        new MediaStream();
+
+    const remoteVideo =
+        document.getElementById(
+            "remoteVideo"
+        );
+
+    if (remoteVideo) {
+
+        remoteVideo.srcObject =
+            remoteStream;
+
+    }
+
+
+    peerConnection.ontrack =
+        function(event) {
+
+            event.streams[0]
+                .getTracks()
+                .forEach(
+                    track =>
+                        remoteStream.addTrack(
+                            track
+                        )
+                );
+
+        };
+
+
+    peerConnection.onicecandidate =
+        function(event) {
+
+            if (
+                event.candidate &&
+                chatSocket
+            ) {
+
+                chatSocket.emit(
+                    "ice_candidate",
+                    {
+                        userId:
+                            targetUserId,
+
+                        candidate:
+                            event.candidate
+                    }
+                );
+
+            }
+
+        };
+
+    return peerConnection;
+
+}
+
+
+async function startVoiceCall() {
+
+    await startCall(
+        "voice"
+    );
+
+}
+
+
+async function startVideoCall() {
+
+    await startCall(
+        "video"
+    );
+
+}
+
+
+async function startCall(
+    type
+) {
+
+    if (!currentChatUserId) {
+
+        showToast(
+            "Open a conversation first."
+        );
+
+        return;
+
+    }
+
+    try {
+
+        activeCallUserId =
+            currentChatUserId;
+
+        activeCallType =
+            type;
+
+        localStream =
+            await navigator
+                .mediaDevices
+                .getUserMedia({
+
+                    audio: true,
+
+                    video:
+                        type === "video"
+
+                });
+
+        showCallScreen();
+
+        await createPeerConnection(
+            activeCallUserId
+        );
+
+        localStream
+            .getTracks()
+            .forEach(
+                track =>
+                    peerConnection.addTrack(
+                        track,
+                        localStream
+                    )
+            );
+
+        const localVideo =
+            document.getElementById(
+                "localVideo"
+            );
+
+        if (localVideo) {
+
+            localVideo.srcObject =
+                localStream;
+
+        }
+
+        const offer =
+            await peerConnection
+                .createOffer();
+
+        await peerConnection
+            .setLocalDescription(
+                offer
+            );
+
+        chatSocket.emit(
+            "call_user",
+            {
+
+                userId:
+                    activeCallUserId,
+
+                callType:
+                    type,
+
+                offer:
+                    offer
+
+            }
+        );
+
+        setCallStatus(
+            "Calling..."
+        );
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+        showToast(
+            "Unable to start call."
+        );
+
+        endCurrentCall();
+
+    }
+
+}
+
+
+/* ============================================================
+   INCOMING CALL
+============================================================ */
+
+function showIncomingCall(
+    data
+) {
+
+    pendingIncomingOffer =
+        data;
+
+    const screen =
+        document.getElementById(
+            "incomingCallScreen"
+        );
+
+    if (!screen) return;
+
+    screen.style.display =
+        "flex";
+
+    const type =
+        document.getElementById(
+            "incomingCallType"
+        );
+
+    if (type) {
+
+        type.textContent =
+            data.callType === "video"
+                ? "Incoming video call"
+                : "Incoming voice call";
+
+    }
+
+}
+
+
+async function acceptIncomingCall() {
+
+    const data =
+        pendingIncomingOffer;
+
+    if (!data) return;
+
+    try {
+
+        activeCallUserId =
+            data.callerId;
+
+        activeCallType =
+            data.callType ||
+            "voice";
+
+        document.getElementById(
+            "incomingCallScreen"
+        ).style.display =
+            "none";
+
+        localStream =
+            await navigator
+                .mediaDevices
+                .getUserMedia({
+
+                    audio: true,
+
+                    video:
+                        activeCallType ===
+                        "video"
+
+                });
+
+        showCallScreen();
+
+        await createPeerConnection(
+            activeCallUserId
+        );
+
+        localStream
+            .getTracks()
+            .forEach(
+                track =>
+                    peerConnection.addTrack(
+                        track,
+                        localStream
+                    )
+            );
+
+        const localVideo =
+            document.getElementById(
+                "localVideo"
+            );
+
+        if (localVideo) {
+
+            localVideo.srcObject =
+                localStream;
+
+        }
+
+        await peerConnection
+            .setRemoteDescription(
+                new RTCSessionDescription(
+                    data.offer
+                )
+            );
+
+        const answer =
+            await peerConnection
+                .createAnswer();
+
+        await peerConnection
+            .setLocalDescription(
+                answer
+            );
+
+        chatSocket.emit(
+            "answer_call",
+            {
+
+                userId:
+                    activeCallUserId,
+
+                answer:
+                    answer
+
+            }
+        );
+
+        setCallStatus(
+            "Connected"
+        );
+
+        pendingIncomingOffer =
+            null;
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+        rejectIncomingCall();
+
+    }
+
+}
+
+
+function rejectIncomingCall() {
+
+    if (
+        pendingIncomingOffer &&
+        chatSocket
+    ) {
+
+        chatSocket.emit(
+            "reject_call",
+            {
+                userId:
+                    pendingIncomingOffer
+                        .callerId
+            }
+        );
+
+    }
+
+    const screen =
+        document.getElementById(
+            "incomingCallScreen"
+        );
+
+    if (screen) {
+
+        screen.style.display =
+            "none";
+
+    }
+
+    pendingIncomingOffer =
+        null;
+
+}
+
+
+/* ============================================================
+   CALL EVENTS
+============================================================ */
+
+function setupCallSocketEvents() {
+
+    if (!chatSocket) {
+        return;
+    }
+
+    chatSocket.off(
+        "incoming_call"
+    );
+
+    chatSocket.on(
+        "incoming_call",
+        function(data) {
+
+            showIncomingCall(
+                data
+            );
+
+        }
+    );
+
+
+    chatSocket.off(
+        "call_answered"
+    );
+
+    chatSocket.on(
+        "call_answered",
+        async function(data) {
+
+            if (
+                !peerConnection ||
+                !data.answer
+            ) {
+                return;
+            }
+
+            await peerConnection
+                .setRemoteDescription(
+                    new RTCSessionDescription(
+                        data.answer
+                    )
+                );
+
+            setCallStatus(
+                "Connected"
+            );
+
+        }
+    );
+
+
+    chatSocket.off(
+        "ice_candidate"
+    );
+
+    chatSocket.on(
+        "ice_candidate",
+        async function(data) {
+
+            if (
+                peerConnection &&
+                data &&
+                data.candidate
+            ) {
+
+                try {
+
+                    await peerConnection
+                        .addIceCandidate(
+                            new RTCIceCandidate(
+                                data.candidate
+                            )
+                        );
+
+                } catch (error) {
+
+                    console.error(
+                        "ICE error:",
+                        error
+                    );
+
+                }
+
+            }
+
+        }
+    );
+
+
+    chatSocket.off(
+        "call_rejected"
+    );
+
+    chatSocket.on(
+        "call_rejected",
+        function() {
+
+            setCallStatus(
+                "Call rejected"
+            );
+
+            setTimeout(
+                endCurrentCall,
+                1000
+            );
+
+        }
+    );
+
+
+    chatSocket.off(
+        "call_ended"
+    );
+
+    chatSocket.on(
+        "call_ended",
+        function() {
+
+            setCallStatus(
+                "Call ended"
+            );
+
+            setTimeout(
+                endCurrentCall,
+                500
+            );
+
+        }
+    );
+
+}
+
+
+function showCallScreen() {
+
+    const screen =
+        document.getElementById(
+            "callScreen"
+        );
+
+    if (screen) {
+
+        screen.style.display =
+            "flex";
+
+    }
+
+}
+
+
+function setCallStatus(
+    status
+) {
+
+    const element =
+        document.getElementById(
+            "callStatus"
+        );
+
+    if (element) {
+
+        element.textContent =
+            status;
+
+    }
+
+}
+
+
+function toggleCallMute() {
+
+    if (!localStream) return;
+
+    localStream
+        .getAudioTracks()
+        .forEach(
+            track => {
+                track.enabled =
+                    !track.enabled;
+            }
+        );
+
+}
+
+
+function toggleCallCamera() {
+
+    if (!localStream) return;
+
+    localStream
+        .getVideoTracks()
+        .forEach(
+            track => {
+                track.enabled =
+                    !track.enabled;
+            }
+        );
+
+}
+
+
+function endCurrentCall() {
+
+    if (
+        activeCallUserId &&
+        chatSocket
+    ) {
+
+        chatSocket.emit(
+            "end_call",
+            {
+                userId:
+                    activeCallUserId
+            }
+        );
+
+    }
+
+    if (localStream) {
+
+        localStream
+            .getTracks()
+            .forEach(
+                track =>
+                    track.stop()
+            );
+
+    }
+
+    if (peerConnection) {
+
+        peerConnection.close();
+
+    }
+
+    peerConnection =
+        null;
+
+    localStream =
+        null;
+
+    remoteStream =
+        null;
+
+    activeCallUserId =
+        null;
+
+    const screen =
+        document.getElementById(
+            "callScreen"
+        );
+
+    if (screen) {
+
+        screen.style.display =
+            "none";
+
+    }
+
+}
+
+
+/* ============================================================
+   CALL SOCKET INITIALIZATION
+============================================================ */
+
+setInterval(
+    function() {
+
+        if (
+            chatSocket &&
+            chatSocket.connected
+        ) {
+
+            setupCallSocketEvents();
+
+        }
+
+    },
+    1000
+);
 </script>
 </body>
 </html>
