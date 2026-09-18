@@ -705,11 +705,12 @@ const ChatMessageSchema = new mongoose.Schema(
         },
 
         text: {
-            type: String,
-            required: true,
-            trim: true,
-            maxlength: 5000
-        },
+    type: String,
+    required: false,
+    default: "",
+    trim: true,
+    maxlength: 5000
+},
 
         read: {
             type: Boolean,
@@ -1125,15 +1126,13 @@ io.on("connection", (socket) => {
      * Tell the other user when this user
      * becomes available.
      */
-    io.to(
-        userRoom
-    ).emit(
-        "user_status",
-        {
-            userId: String(socket.userId),
-            online: true
-        }
-    );
+    io.emit(
+    "user_status",
+    {
+        userId: String(socket.userId),
+        online: true
+    }
+);
 
     /*
      * SEND MESSAGE

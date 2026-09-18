@@ -9271,39 +9271,185 @@ function renderAdvancedMessage(
     );
 
 
-    let timer = null;
+   
+    /* ============================================================
+   WHATSAPP-STYLE SWIPE RIGHT TO REPLY
+============================================================ */
 
-    wrapper.addEventListener(
-        "touchstart",
-        function() {
+let timer = null;
 
-            timer =
-                setTimeout(
-                    function() {
+let startX = 0;
+let startY = 0;
+let currentX = 0;
+let swiping = false;
+let swipeReplyTriggered = false;
 
-                        openAdvancedMessageMenu(
-                            message,
-                            wrapper
-                        );
 
-                    },
-                    600
+/* TOUCH START */
+
+wrapper.addEventListener(
+    "touchstart",
+    function(event) {
+
+        if (!event.touches.length) {
+            return;
+        }
+
+        startX =
+            event.touches[0].clientX;
+
+        startY =
+            event.touches[0].clientY;
+
+        currentX = startX;
+
+        swiping = false;
+
+        swipeReplyTriggered = false;
+
+
+        timer = setTimeout(
+            function() {
+
+                if (!swiping) {
+
+                    openAdvancedMessageMenu(
+                        message,
+                        wrapper
+                    );
+
+                }
+
+            },
+            600
+        );
+
+    },
+    {
+        passive: true
+    }
+);
+
+
+/* TOUCH MOVE */
+
+wrapper.addEventListener(
+    "touchmove",
+    function(event) {
+
+        if (!event.touches.length) {
+            return;
+        }
+
+        currentX =
+            event.touches[0].clientX;
+
+        const currentY =
+            event.touches[0].clientY;
+
+        const deltaX =
+            currentX - startX;
+
+        const deltaY =
+            currentY - startY;
+
+
+        /*
+         * Only treat the gesture as a swipe
+         * when horizontal movement is greater
+         * than vertical movement.
+         */
+
+        if (
+            Math.abs(deltaX) >
+            Math.abs(deltaY)
+            &&
+            deltaX > 8
+        ) {
+
+            swiping = true;
+
+            clearTimeout(timer);
+
+
+            const movement =
+                Math.min(
+                    deltaX,
+                    100
                 );
 
+            wrapper.style.transform =
+                `translateX(${movement}px)`;
+
+
+            /*
+             * Show reply when the user
+             * drags far enough.
+             */
+
+            if (
+                deltaX >= 70 &&
+                !swipeReplyTriggered
+            ) {
+
+                swipeReplyTriggered =
+                    true;
+
+                replyToMessage(
+                    message
+                );
+
+            }
+
         }
-    );
+
+    },
+    {
+        passive: true
+    }
+);
 
 
-    wrapper.addEventListener(
-        "touchend",
-        function() {
+/* TOUCH END */
 
-            clearTimeout(
-                timer
-            );
+wrapper.addEventListener(
+    "touchend",
+    function() {
 
-        }
-    );
+        clearTimeout(timer);
+
+
+        wrapper.style.transform =
+            "";
+
+
+        swiping = false;
+
+        swipeReplyTriggered =
+            false;
+
+    }
+);
+
+
+/* TOUCH CANCEL */
+
+wrapper.addEventListener(
+    "touchcancel",
+    function() {
+
+        clearTimeout(timer);
+
+        wrapper.style.transform =
+            "";
+
+        swiping = false;
+
+        swipeReplyTriggered =
+            false;
+
+    }
+);
 
 
     messagesList.appendChild(
@@ -10575,6 +10721,53 @@ async function clearCurrentChat() {
         "Chat clearing requires the chat delete endpoint."
     );
 }
+
+
+/* ============================================================
+   MAKE CHAT FUNCTIONS AVAILABLE TO INLINE HTML BUTTONS
+============================================================ */
+
+Object.assign(window, {
+
+    closeChatWindow,
+
+    startVoiceCall,
+    startVideoCall,
+
+    openChatSearch,
+    closeChatSearch,
+
+    openChatMenu,
+    closeChatMenu,
+
+    toggleEmojiPicker,
+    insertEmoji,
+
+    openAttachmentMenu,
+    selectChatFile,
+    handleChatFileSelected,
+
+    toggleVoiceRecording,
+    stopVoiceRecording,
+
+    sendChatMessage,
+
+    cancelReply,
+    replyToMessage,
+
+    shareCurrentLocation,
+    shareContact,
+
+    toggleCallMute,
+    toggleCallCamera,
+    endCurrentCall,
+
+    acceptIncomingCall,
+    rejectIncomingCall,
+
+    clearCurrentChat
+
+});
 </script>
 </body>
 </html>
