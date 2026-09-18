@@ -1926,6 +1926,7 @@ body {
     word-break: break-word;
     color: white;
     font-size: 14px;
+    overflow: visible;
 }
 
 .wa-message.mine {
@@ -1950,8 +1951,12 @@ body {
     align-items: center;
     gap: 4px;
     margin-top: 3px;
+    margin-left: 10px;
+    float: right;
     font-size: 9px;
-    opacity: .7;
+    line-height: 12px;
+    white-space: nowrap;
+    opacity: .75;
 }
 
 .wa-check {
@@ -8124,9 +8129,7 @@ async function sendChatMessage() {
 
                 });
 
-            appendChatMessage(
-                message
-            );
+    
 
         }
 
@@ -8811,7 +8814,92 @@ function openAdvancedMessageMenu(
 
         };
 
+const currentUser =
+    getStoredUser();
 
+const currentUserId =
+    currentUser &&
+    (
+        currentUser._id ||
+        currentUser.id
+    );
+
+const senderId =
+    message.senderId &&
+    typeof message.senderId === "object"
+        ? (
+            message.senderId._id ||
+            message.senderId.id
+        )
+        : message.senderId;
+
+const isMine =
+    String(senderId) ===
+    String(currentUserId);
+
+
+/* ============================================================
+   DELETE FOR ME
+============================================================ */
+
+const deleteForMe =
+    document.createElement("button");
+
+deleteForMe.textContent =
+    "🗑️";
+
+deleteForMe.title =
+    "Delete for me";
+
+deleteForMe.onclick =
+    async function() {
+
+        await deleteMessageForMe(
+            message,
+            element
+        );
+
+        menu.remove();
+
+    };
+
+menu.appendChild(
+    deleteForMe
+);
+
+
+/* ============================================================
+   DELETE FOR EVERYONE
+============================================================ */
+
+if (isMine) {
+
+    const deleteForEveryone =
+        document.createElement("button");
+
+    deleteForEveryone.textContent =
+        "❌";
+
+    deleteForEveryone.title =
+        "Delete for everyone";
+
+    deleteForEveryone.onclick =
+        async function() {
+
+            await deleteMessageForEveryone(
+                message,
+                element
+            );
+
+            menu.remove();
+
+        };
+
+    menu.appendChild(
+        deleteForEveryone
+    );
+
+}
     menu.appendChild(
         reply
     );
