@@ -3486,22 +3486,34 @@ function connectChatSocket() {
         return;
     }
 
-    if (chatSocket) {
+   if (chatSocket) {
 
-        if (chatSocket.connected) {
-            console.log(
-                "Guardian SOS real-time chat is already connected."
-            );
-            return;
-        }
+    if (chatSocket.connected) {
 
         console.log(
-            "Guardian SOS chat socket exists but is not connected. Reconnecting..."
+            "Guardian SOS real-time chat is already connected."
         );
 
-        chatSocket.connect();
+        if (currentChatUserId) {
+
+            chatSocket.emit(
+                "check_user_status",
+                currentChatUserId
+            );
+
+        }
+
         return;
     }
+
+    console.log(
+        "Guardian SOS chat socket exists but is not connected. Reconnecting..."
+    );
+
+    chatSocket.connect();
+
+    return;
+}
 
     console.log(
         "Connecting Guardian SOS real-time chat..."
@@ -7640,10 +7652,23 @@ document.addEventListener(
         );
 
 
-    const messaging =
+    let messaging = null;
+
+try {
+
+    messaging =
         getMessaging(
             firebaseApp
         );
+
+} catch (error) {
+
+    console.warn(
+        "Firebase Messaging is unavailable:",
+        error
+    );
+
+}
 
 
     window.guardianMessaging =
@@ -10730,6 +10755,9 @@ async function clearCurrentChat() {
 Object.assign(window, {
 
     closeChatWindow,
+
+    openExistingChat,
+    openChatWithUser,
 
     startVoiceCall,
     startVideoCall,
