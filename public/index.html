@@ -1344,7 +1344,7 @@ body {
     flex-direction: column;
 
     scroll-behavior: smooth;
-
+align-items: flex-start;
     background: #080808;
 }
 
@@ -1355,16 +1355,31 @@ body {
 
 .chat-message {
     display: inline-block;
-    width: fit-content;
+
+    width: auto;
+    min-width: 0;
+
     max-width: 78%;
+
+    height: auto;
+    min-height: auto;
+
     margin-bottom: 4px;
+
     padding: 6px 10px;
+
     border-radius: 10px;
+
     line-height: 1.35;
+
     word-break: break-word;
     overflow-wrap: break-word;
+
     font-size: 14px;
+
     position: relative;
+
+    flex: 0 0 auto;
 }
 
 
@@ -1409,7 +1424,13 @@ body {
     white-space: pre-wrap;
     word-break: break-word;
 }
+.chat-message.sent {
+    align-self: flex-end;
+}
 
+.chat-message.received {
+    align-self: flex-start;
+}
 
 /* =========================================================
    MESSAGE TIME
@@ -1903,10 +1924,11 @@ body {
     padding: 15px 10px;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 5px;
     background:
-        radial-gradient(
-            circle at center,
+    radial-gradient(
+    circle at center,
             rgba(255,20,147,.04),
             transparent 60%
         ),
@@ -1914,14 +1936,18 @@ body {
 }
 
 .wa-message {
+    display: inline-block;
+    width: fit-content;
     max-width: 80%;
     padding: 7px 9px;
     border-radius: 9px;
     position: relative;
     word-break: break-word;
+    overflow-wrap: break-word;
     color: white;
     font-size: 14px;
     overflow: visible;
+    flex: 0 0 auto;
 }
 
 .wa-message.mine {
