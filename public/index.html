@@ -1976,6 +1976,7 @@ body {
     color: white;
 }
 
+
 .wa-reply-preview button {
     background: transparent;
     border: none;
@@ -2040,6 +2041,23 @@ body {
     z-index: 100;
 }
 
+.wa-emoji-picker {
+    max-height: 280px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.wa-emoji-picker button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+}
+
 .wa-emoji-picker button {
     border: none;
     background: transparent;
@@ -2102,6 +2120,20 @@ body {
     gap: 10px;
     align-items: center;
     padding: 5px;
+}
+.wa-file-download {
+    margin-top: 8px;
+    border: 1px solid #ff1493;
+    background: #171717;
+    color: white;
+    border-radius: 7px;
+    padding: 7px 10px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.wa-file-download:hover {
+    background: #ff1493;
 }
 
 .wa-file-icon {
@@ -2279,6 +2311,34 @@ body {
 
 }
 
+
+.wa-replied-message {
+    border-left: 4px solid #ff1493;
+    background: rgba(255, 20, 147, .10);
+    border-radius: 7px;
+    padding: 7px 9px;
+    margin-bottom: 6px;
+    overflow: hidden;
+}
+
+.wa-replied-name {
+    color: #ff1493;
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 3px;
+}
+
+.wa-replied-text {
+    color: #ddd;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wa-message-main-content {
+    word-break: break-word;
+}
 /* =====================================================
    TOP NAV - BOOTSTRAP ICONS ONLY
 ===================================================== */
@@ -4281,7 +4341,75 @@ async function deleteMessageForEveryone(
     }
 }
 
+const forward =
+    document.createElement("button");
 
+forward.textContent = "↪️";
+
+forward.title = "Forward";
+
+forward.onclick =
+    function() {
+
+        forwardMessage(message);
+
+        menu.remove();
+
+    };
+
+menu.appendChild(forward);
+
+async function forwardMessage(message) {
+
+    /*
+     * For now, forward to the currently open
+     * conversation.
+     */
+
+    if (!currentConversationId) {
+
+        showToast(
+            "Open a conversation first."
+        );
+
+        return;
+
+    }
+
+    try {
+
+        const data =
+            await sendAdvancedMessage({
+
+                conversationId:
+                    currentConversationId,
+
+                text:
+                    message.text || "",
+
+                type:
+                    message.type || "text",
+
+                attachment:
+                    message.attachment || null
+
+            });
+
+        showToast(
+            "Message forwarded."
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        showToast(
+            "Unable to forward message."
+        );
+
+    }
+
+}
 /* =========================================================
    ANDROID PHONE CONTACT PICKER
 ========================================================= */
@@ -5273,6 +5401,11 @@ function showChatWindow(user, conversationId) {
         playsinline>
     </video>
 
+    <audio
+    id="remoteAudio"
+    autoplay>
+</audio>
+
     <video
         id="localVideo"
         class="wa-local-video"
@@ -6054,6 +6187,13 @@ loginForm.addEventListener(
             connectChatSocket();
 
             localStorage.setItem(
+    TOKEN_KEY,
+    data.token
+);
+
+connectChatSocket();
+
+            localStorage.setItem(
                 USER_KEY,
                 JSON.stringify(data.user)
             );
@@ -6097,6 +6237,50 @@ loginForm.addEventListener(
 );
 
 
+
+
+async function registerGuardianFCMToken() {
+
+    try {
+
+        if (!window.getGuardianFCMToken) {
+            return;
+        }
+
+        const token =
+            await window.getGuardianFCMToken();
+
+        if (!token) {
+            return;
+        }
+
+        await api(
+            "/api/fcm-token",
+            {
+                method: "POST",
+
+                body: {
+                    token: token
+                }
+            }
+        );
+
+        console.log(
+            "Guardian SOS FCM token registered."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "FCM registration failed:",
+            error
+        );
+
+    }
+
+}
+
+registerGuardianFCMToken();
 /* =========================================================
    REGISTER
 ========================================================= */
@@ -7779,6 +7963,7 @@ let selectedChatFiles = [];
 let peerConnection = null;
 let localStream = null;
 let remoteStream = null;
+let pendingIceCandidates = [];
 
 let activeCallUserId = null;
 let activeCallType = "voice";
@@ -7811,19 +7996,99 @@ const rtcConfiguration = {
 function toggleEmojiPicker() {
 
     const picker =
-        document.getElementById(
-            "emojiPicker"
-        );
+        document.getElementById("emojiPicker");
 
     if (!picker) return;
 
-    picker.style.display =
-        picker.style.display === "none"
-            ? "grid"
-            : "none";
+    const isOpen =
+        picker.style.display !== "none";
+
+    closeChatPopups();
+
+    if (!isOpen) {
+        picker.style.display = "grid";
+    }
 
 }
 
+function closeChatPopups() {
+
+    const emojiPicker =
+        document.getElementById("emojiPicker");
+
+    const attachmentMenu =
+        document.getElementById("attachmentMenu");
+
+    const moreMenu =
+        document.getElementById("chatMoreMenu");
+
+    const searchBox =
+        document.getElementById("chatSearchBox");
+
+    if (emojiPicker) {
+        emojiPicker.style.display = "none";
+    }
+
+    if (attachmentMenu) {
+        attachmentMenu.style.display = "none";
+    }
+
+    if (moreMenu) {
+        moreMenu.remove();
+    }
+
+    if (searchBox) {
+        searchBox.remove();
+    }
+
+}
+
+document.addEventListener(
+    "click",
+    function(event) {
+
+        const emojiPicker =
+            document.getElementById("emojiPicker");
+
+        const emojiButton =
+            event.target.closest(
+                ".wa-emoji-button"
+            );
+
+        if (
+            emojiPicker &&
+            !emojiPicker.contains(event.target) &&
+            !emojiButton
+        ) {
+
+            emojiPicker.style.display =
+                "none";
+
+        }
+
+        const attachmentMenu =
+            document.getElementById(
+                "attachmentMenu"
+            );
+
+        const attachmentButton =
+            event.target.closest(
+                ".wa-attach-button"
+            );
+
+        if (
+            attachmentMenu &&
+            !attachmentMenu.contains(event.target) &&
+            !attachmentButton
+        ) {
+
+            attachmentMenu.style.display =
+                "none";
+
+        }
+
+    }
+);
 
 function insertEmoji(emoji) {
 
@@ -8050,7 +8315,42 @@ async function uploadChatFile(file) {
 
 }
 
+async function downloadChatFile(url, filename) {
+    if (!url) {
+        showToast("File URL is missing");
+        return;
+    }
 
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error("Download failed");
+        }
+
+        const blob = await response.blob();
+
+        const blobUrl = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = filename || "download";
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(() => {
+            URL.revokeObjectURL(blobUrl);
+        }, 1000);
+
+    } catch (error) {
+        console.error("Chat file download error:", error);
+
+        // Fallback for servers that don't allow blob downloads
+        window.open(url, "_blank");
+    }
+}
 /* ============================================================
    SEND ADVANCED MESSAGE
 ============================================================ */
@@ -8195,9 +8495,7 @@ async function sendChatMessage() {
 
                 });
 
-            appendChatMessage(
-                message
-            );
+            
 
         }
 
@@ -8242,6 +8540,32 @@ async function sendChatMessage() {
 
 }
 
+function getSupportedAudioMimeType() {
+
+    const types = [
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/mp4",
+        "audio/ogg;codecs=opus"
+    ];
+
+    for (const type of types) {
+
+        if (
+            MediaRecorder.isTypeSupported(
+                type
+            )
+        ) {
+
+            return type;
+
+        }
+
+    }
+
+    return "";
+
+}
 
 /* ============================================================
    VOICE RECORDING
@@ -8269,10 +8593,46 @@ async function toggleVoiceRecording() {
         recordedChunks =
             [];
 
-        mediaRecorder =
-            new MediaRecorder(
-                stream
-            );
+       const mimeType =
+    getSupportedAudioMimeType();
+
+mediaRecorder =
+    mimeType
+        ? new MediaRecorder(
+            stream,
+            {
+                mimeType
+            }
+        )
+        : new MediaRecorder(
+            stream
+        );
+
+        const extension =
+    mediaRecorder.mimeType.includes("mp4")
+        ? "m4a"
+        : mediaRecorder.mimeType.includes("ogg")
+            ? "ogg"
+            : "webm";
+
+const blob =
+    new Blob(
+        recordedChunks,
+        {
+            type:
+                mediaRecorder.mimeType
+        }
+    );
+
+const file =
+    new File(
+        [blob],
+        `voice-message.${extension}`,
+        {
+            type:
+                mediaRecorder.mimeType
+        }
+    );
 
         mediaRecorder.ondataavailable =
             function(event) {
@@ -8386,16 +8746,29 @@ async function sendVoiceMessage(blob) {
 
     try {
 
-        const file =
-            new File(
-                [blob],
-                "voice-message.webm",
-                {
-                    type:
-                        blob.type ||
-                        "audio/webm"
-                }
-            );
+        const mimeType =
+    blob.type || "audio/webm";
+
+let extension = "webm";
+
+if (mimeType.includes("mp4")) {
+    extension = "m4a";
+}
+else if (mimeType.includes("ogg")) {
+    extension = "ogg";
+}
+else if (mimeType.includes("wav")) {
+    extension = "wav";
+}
+
+const file =
+    new File(
+        [blob],
+        `voice-message.${extension}`,
+        {
+            type: mimeType
+        }
+    );
 
         const uploaded =
             await uploadChatFile(
@@ -8418,9 +8791,7 @@ async function sendVoiceMessage(blob) {
 
             });
 
-        appendChatMessage(
-            message
-        );
+        
 
     } catch (error) {
 
@@ -8814,6 +9185,25 @@ function openAdvancedMessageMenu(
 
         };
 
+
+        const forward =
+    document.createElement("button");
+
+forward.textContent = "↗";
+
+forward.title = "Forward";
+
+forward.onclick =
+    function() {
+
+        menu.remove();
+
+        forwardChatMessage(
+            message
+        );
+
+    };
+
 const currentUser =
     getStoredUser();
 
@@ -8915,6 +9305,9 @@ if (isMine) {
     element.appendChild(
         menu
     );
+    menu.appendChild(
+    forward
+);
 
 }
 
@@ -8974,6 +9367,64 @@ function renderAdvancedMessage(
         message.id ||
         "";
 
+        let replyHTML = "";
+
+if (message.replyTo) {
+
+    const replied =
+        message.replyTo;
+
+    let repliedText =
+        replied.text || "";
+
+    if (!repliedText) {
+
+        if (replied.type === "image") {
+            repliedText = "📷 Photo";
+        }
+        else if (replied.type === "video") {
+            repliedText = "🎥 Video";
+        }
+        else if (replied.type === "voice") {
+            repliedText = "🎤 Voice message";
+        }
+        else if (replied.type === "audio") {
+            repliedText = "🎵 Audio";
+        }
+        else if (replied.type === "file") {
+            repliedText = "📎 File";
+        }
+        else {
+            repliedText = "Message";
+        }
+
+    }
+
+    replyHTML = `
+        <div class="wa-replied-message">
+            <div class="wa-replied-name">
+                ${escapeHTML(
+                    replied.senderId &&
+                    replied.senderId.name
+                        ? replied.senderId.name
+                        : "Message"
+                )}
+            </div>
+
+            <div class="wa-replied-text">
+                ${escapeHTML(repliedText)}
+            </div>
+        </div>
+    `;
+
+}
+
+
+
+
+
+
+
     let content =
         "";
 
@@ -8990,13 +9441,32 @@ function renderAdvancedMessage(
         message.attachment
     ) {
 
-        content =
-            `
-            <img
-                src="${escapeHTML(message.attachment.url)}"
-                style="max-width:260px;border-radius:9px;display:block;"
-                alt="Photo">
-            `;
+       content =
+    `
+    <div class="wa-media-message">
+
+        <img
+            src="${escapeHTML(message.attachment.url)}"
+            style="max-width:260px;border-radius:9px;display:block;"
+            alt="Photo">
+
+        <button
+            type="button"
+            class="wa-file-download"
+            onclick="downloadChatFile(
+                '${String(
+                    message.attachment.url || ""
+                ).replace(/'/g, "\\'")}',
+                '${String(
+                    message.attachment.name ||
+                    "photo"
+                ).replace(/'/g, "\\'")}'
+            )">
+            ⬇ Download
+        </button>
+
+    </div>
+    `;
 
     }
     else if (
@@ -9011,9 +9481,25 @@ function renderAdvancedMessage(
                 controls
                 style="max-width:280px;border-radius:9px;">
             </video>
+
+            <button
+    type="button"
+    class="wa-file-download"
+    onclick="downloadChatFile(
+        '${String(
+            message.attachment.url || ""
+        ).replace(/'/g, "\\'")}',
+        '${String(
+            message.attachment.name ||
+            "video"
+        ).replace(/'/g, "\\'")}'
+    )">
+    ⬇ Download
+</button>
             `;
 
     }
+    
     else if (
         (
             message.type === "voice" ||
@@ -9029,6 +9515,21 @@ function renderAdvancedMessage(
                 src="${escapeHTML(message.attachment.url)}"
                 controls>
             </audio>
+
+            <button
+    type="button"
+    class="wa-file-download"
+    onclick="downloadChatFile(
+        '${String(
+            message.attachment.url || ""
+        ).replace(/'/g, "\\'")}',
+        '${String(
+            message.attachment.name ||
+            "voice-message"
+        ).replace(/'/g, "\\'")}'
+    )">
+    ⬇ Download
+</button>
             `;
 
     }
@@ -9037,36 +9538,48 @@ function renderAdvancedMessage(
         message.attachment
     ) {
 
-        content =
-            `
-            <a
-                href="${escapeHTML(message.attachment.url)}"
-                target="_blank"
-                download
-                style="color:white;text-decoration:none;">
+       content =
+    `
+    <div class="wa-file-message">
 
-                <div class="wa-file-message">
+        <div class="wa-file-icon">
+            📎
+        </div>
 
-                    <div class="wa-file-icon">
-                        📎
-                    </div>
+        <div style="flex:1;min-width:0;">
 
-                    <div>
+            <div class="wa-file-name">
+                ${escapeHTML(
+                    message.attachment.name ||
+                    "File"
+                )}
+            </div>
 
-                        <div class="wa-file-name">
-                            ${escapeHTML(message.attachment.name || "File")}
-                        </div>
+            <div class="wa-file-size">
+                ${formatFileSize(
+                    message.attachment.size || 0
+                )}
+            </div>
 
-                        <div class="wa-file-size">
-                            ${formatFileSize(message.attachment.size || 0)}
-                        </div>
+            <button
+                type="button"
+                class="wa-file-download"
+                onclick="downloadChatFile(
+                    '${String(
+                        message.attachment.url || ""
+                    ).replace(/'/g, "\\'")}',
+                    '${String(
+                        message.attachment.name ||
+                        "download"
+                    ).replace(/'/g, "\\'")}'
+                )">
+                ⬇ Download
+            </button>
 
-                    </div>
+        </div>
 
-                </div>
-
-            </a>
-            `;
+    </div>
+    `;
 
     }
     else if (
@@ -9167,8 +9680,14 @@ function renderAdvancedMessage(
     wrapper.innerHTML =
         `
         <div class="wa-message-content">
-            ${content}
-        </div>
+
+    ${replyHTML}
+
+    <div class="wa-message-main-content">
+        ${content}
+    </div>
+
+</div>
 
         <div class="wa-message-meta">
 
@@ -9804,40 +10323,71 @@ async function createPeerConnection(
     remoteStream =
         new MediaStream();
 
+    pendingIceCandidates = [];
+
     const remoteVideo =
         document.getElementById(
             "remoteVideo"
         );
 
-    if (remoteVideo) {
+    const remoteAudio =
+        document.getElementById(
+            "remoteAudio"
+        );
 
+    if (remoteVideo) {
         remoteVideo.srcObject =
             remoteStream;
-
     }
 
+    if (remoteAudio) {
+        remoteAudio.srcObject =
+            remoteStream;
+    }
 
     peerConnection.ontrack =
         function(event) {
 
-            event.streams[0]
-                .getTracks()
-                .forEach(
-                    track =>
-                        remoteStream.addTrack(
-                            track
-                        )
-                );
+            if (
+                event.streams &&
+                event.streams[0]
+            ) {
+
+                event.streams[0]
+                    .getTracks()
+                    .forEach(
+                        track => {
+
+                            if (
+                                !remoteStream
+                                    .getTracks()
+                                    .some(
+                                        existing =>
+                                            existing.id ===
+                                            track.id
+                                    )
+                            ) {
+
+                                remoteStream.addTrack(
+                                    track
+                                );
+
+                            }
+
+                        }
+                    );
+
+            }
 
         };
-
 
     peerConnection.onicecandidate =
         function(event) {
 
             if (
                 event.candidate &&
-                chatSocket
+                chatSocket &&
+                chatSocket.connected
             ) {
 
                 chatSocket.emit(
@@ -9856,7 +10406,6 @@ async function createPeerConnection(
         };
 
     return peerConnection;
-
 }
 
 
@@ -10093,6 +10642,31 @@ async function acceptIncomingCall() {
                 )
             );
 
+            for (
+    const candidate
+    of pendingIceCandidates
+) {
+
+    try {
+
+        await peerConnection
+            .addIceCandidate(
+                candidate
+            );
+
+    } catch (error) {
+
+        console.error(
+            "Queued ICE error:",
+            error
+        );
+
+    }
+
+}
+
+pendingIceCandidates = [];
+
         const answer =
             await peerConnection
                 .createAnswer();
@@ -10218,6 +10792,30 @@ function setupCallSocketEvents() {
                         data.answer
                     )
                 );
+                for (
+    const candidate
+    of pendingIceCandidates
+) {
+
+    try {
+
+        await peerConnection
+            .addIceCandidate(
+                candidate
+            );
+
+    } catch (error) {
+
+        console.error(
+            "Queued ICE error:",
+            error
+        );
+
+    }
+
+}
+
+pendingIceCandidates = [];
 
             setCallStatus(
                 "Connected"
@@ -10227,42 +10825,56 @@ function setupCallSocketEvents() {
     );
 
 
-    chatSocket.off(
-        "ice_candidate"
-    );
+   chatSocket.off(
+    "ice_candidate"
+);
 
-    chatSocket.on(
-        "ice_candidate",
-        async function(data) {
+chatSocket.on(
+    "ice_candidate",
+    async function(data) {
 
-            if (
-                peerConnection &&
-                data &&
+        if (
+            !data ||
+            !data.candidate
+        ) {
+            return;
+        }
+
+        const candidate =
+            new RTCIceCandidate(
                 data.candidate
-            ) {
+            );
 
-                try {
+        if (
+            !peerConnection ||
+            !peerConnection.remoteDescription
+        ) {
 
-                    await peerConnection
-                        .addIceCandidate(
-                            new RTCIceCandidate(
-                                data.candidate
-                            )
-                        );
+            pendingIceCandidates.push(
+                candidate
+            );
 
-                } catch (error) {
+            return;
+        }
 
-                    console.error(
-                        "ICE error:",
-                        error
-                    );
+        try {
 
-                }
+            await peerConnection
+                .addIceCandidate(
+                    candidate
+                );
 
-            }
+        } catch (error) {
+
+            console.error(
+                "ICE candidate error:",
+                error
+            );
 
         }
-    );
+
+    }
+);
 
 
     chatSocket.off(
@@ -10380,15 +10992,18 @@ function toggleCallCamera() {
 function endCurrentCall() {
 
     if (
-        activeCallUserId &&
-        chatSocket
-    ) {
-
+    userToEnd &&
+    chatSocket &&
+    chatSocket.connected
+)
+     {
+const userToEnd =
+    activeCallUserId;
         chatSocket.emit(
             "end_call",
             {
                 userId:
-                    activeCallUserId
+    userToEnd
             }
         );
 
@@ -10434,7 +11049,7 @@ function endCurrentCall() {
             "none";
 
     }
-
+pendingIceCandidates = [];
 }
 
 
@@ -10703,6 +11318,8 @@ Object.assign(window, {
     clearCurrentChat
 
 });
+
+
 </script>
 </body>
 </html>
