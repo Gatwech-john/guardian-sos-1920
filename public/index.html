@@ -2458,6 +2458,51 @@ align-items: flex-start;
 .icon-nav[data-page="sos"] {
     border: 1px solid white !important;
 }
+
+
+
+
+
+
+
+
+/* =====================================================
+   FIX WHATSAPP MESSAGE BUBBLE HEIGHT
+===================================================== */
+
+.wa-messages .wa-message {
+    height: fit-content !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: 0 0 auto !important;
+    align-self: flex-start;
+    padding: 5px 8px !important;
+    margin-top: 1px !important;
+    margin-bottom: 1px !important;
+    line-height: 1.25 !important;
+}
+
+.wa-messages .wa-message.mine {
+    align-self: flex-end !important;
+    height: fit-content !important;
+    min-height: 0 !important;
+}
+
+.wa-messages .wa-message.theirs {
+    align-self: flex-start !important;
+    height: fit-content !important;
+    min-height: 0 !important;
+}
+
+.wa-messages .wa-message-content {
+    height: auto !important;
+    min-height: 0 !important;
+}
+
+.wa-messages .wa-message-main-content {
+    height: auto !important;
+    min-height: 0 !important;
+}
 </style>
 </head>
 
