@@ -2645,7 +2645,74 @@ align-items: flex-start;
 
 
 
+/* ============================================================
+   CHAT MORE MENU
+============================================================ */
 
+.chat-more-menu {
+
+    position: absolute;
+
+    top: 58px;
+
+    right: 8px;
+
+    width: 210px;
+
+    background: #171717;
+
+    border: 1px solid #ff1493;
+
+    border-radius: 12px;
+
+    padding: 6px;
+
+    box-shadow:
+        0 8px 30px
+        rgba(0,0,0,.7);
+
+    z-index: 99999;
+
+}
+
+
+.chat-more-menu button {
+
+    display: block;
+
+    width: 100%;
+
+    border: none;
+
+    background: transparent;
+
+    color: white;
+
+    text-align: left;
+
+    padding: 13px 12px;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+}
+
+
+.chat-more-menu button:hover {
+
+    background: #ff1493;
+
+}
+
+
+.chat-more-menu button:active {
+
+    background: #ff1493;
+
+}
 
 </style>
 </head>
@@ -5694,10 +5761,11 @@ function showChatWindow(user, conversationId) {
         </button>
 
         <button
-            onclick="endCurrentCall()"
-            class="wa-end-call">
-            ☎
-        </button>
+    type="button"
+    onclick="endCurrentCall()"
+    class="wa-end-call">
+    ☎ End call
+</button>
 
     </div>
 
@@ -8230,6 +8298,171 @@ let activeCallType = "voice";
 
 let pendingIncomingOffer = null;
 
+/* ============================================================
+   CALL RINGTONE
+============================================================ */
+
+let ringtoneContext = null;
+let ringtoneTimer = null;
+let ringtoneOscillator = null;
+
+
+function startCallRingtone() {
+
+    stopCallRingtone();
+
+
+    try {
+
+        ringtoneContext =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+
+        if (
+            ringtoneContext.state ===
+            "suspended"
+        ) {
+
+            ringtoneContext.resume();
+
+        }
+
+
+        function ringOnce() {
+
+            if (!ringtoneContext) {
+                return;
+            }
+
+
+            ringtoneOscillator =
+                ringtoneContext.createOscillator();
+
+            const gain =
+                ringtoneContext.createGain();
+
+
+            ringtoneOscillator.type =
+                "sine";
+
+            ringtoneOscillator.frequency.setValueAtTime(
+                880,
+                ringtoneContext.currentTime
+            );
+
+
+            gain.gain.setValueAtTime(
+                0.0001,
+                ringtoneContext.currentTime
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.20,
+                ringtoneContext.currentTime + 0.05
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.0001,
+                ringtoneContext.currentTime + 0.45
+            );
+
+
+            ringtoneOscillator.connect(
+                gain
+            );
+
+            gain.connect(
+                ringtoneContext.destination
+            );
+
+
+            ringtoneOscillator.start();
+
+            ringtoneOscillator.stop(
+                ringtoneContext.currentTime +
+                0.5
+            );
+
+        }
+
+
+        ringOnce();
+
+
+        ringtoneTimer =
+            setInterval(
+                function() {
+
+                    ringOnce();
+
+                },
+                1200
+            );
+
+
+    } catch (error) {
+
+        console.warn(
+            "Ringtone unavailable:",
+            error
+        );
+
+    }
+
+}
+
+
+function stopCallRingtone() {
+
+    if (ringtoneTimer) {
+
+        clearInterval(
+            ringtoneTimer
+        );
+
+        ringtoneTimer = null;
+
+    }
+
+
+    if (ringtoneOscillator) {
+
+        try {
+
+            ringtoneOscillator.stop();
+
+        } catch (error) {
+
+            // Already stopped.
+
+        }
+
+        ringtoneOscillator = null;
+
+    }
+
+
+    if (ringtoneContext) {
+
+        try {
+
+            ringtoneContext.close();
+
+        } catch (error) {
+
+            // Already closed.
+
+        }
+
+        ringtoneContext = null;
+
+    }
+
+}
+
 const rtcConfiguration = {
 
     iceServers: [
@@ -8875,24 +9108,7 @@ mediaRecorder =
             ? "ogg"
             : "webm";
 
-const blob =
-    new Blob(
-        recordedChunks,
-        {
-            type:
-                mediaRecorder.mimeType
-        }
-    );
 
-const file =
-    new File(
-        [blob],
-        `voice-message.${extension}`,
-        {
-            type:
-                mediaRecorder.mimeType
-        }
-    );
 
         mediaRecorder.ondataavailable =
             function(event) {
@@ -10691,6 +10907,22 @@ async function startCall(
     type
 ) {
 
+    if (
+        !chatSocket ||
+        !chatSocket.connected
+    ) {
+
+        connectChatSocket();
+
+        showToast(
+            "Connecting to Guardian SOS..."
+        );
+
+        return;
+
+    }
+
+
     if (!currentChatUserId) {
 
         showToast(
@@ -10805,6 +11037,7 @@ function showIncomingCall(
 
     pendingIncomingOffer =
         data;
+        startCallRingtone();
 
     const screen =
         document.getElementById(
@@ -10834,7 +11067,7 @@ function showIncomingCall(
 
 
 async function acceptIncomingCall() {
-
+stopCallRingtone();
     const data =
         pendingIncomingOffer;
 
@@ -10970,7 +11203,7 @@ pendingIceCandidates = [];
 
 
 function rejectIncomingCall() {
-
+stopCallRingtone();
     if (
         pendingIncomingOffer &&
         chatSocket
@@ -11251,53 +11484,124 @@ function toggleCallCamera() {
 
 function endCurrentCall() {
 
+    const userToEnd =
+        activeCallUserId;
+
+
+    /*
+     * Tell the other user that
+     * this call has ended.
+     */
     if (
-    userToEnd &&
-    chatSocket &&
-    chatSocket.connected
-)
-     {
-const userToEnd =
-    activeCallUserId;
+        userToEnd &&
+        chatSocket &&
+        chatSocket.connected
+    ) {
+
         chatSocket.emit(
             "end_call",
             {
                 userId:
-    userToEnd
+                    userToEnd
             }
         );
 
     }
 
+
+    /*
+     * Stop microphone and camera.
+     */
     if (localStream) {
 
         localStream
             .getTracks()
             .forEach(
-                track =>
-                    track.stop()
+                function(track) {
+                    track.stop();
+                }
             );
 
     }
 
+
+    /*
+     * Stop remote media.
+     */
+    if (remoteStream) {
+
+        remoteStream
+            .getTracks()
+            .forEach(
+                function(track) {
+                    track.stop();
+                }
+            );
+
+    }
+
+
+    /*
+     * Clear video/audio elements.
+     */
+    const localVideo =
+        document.getElementById(
+            "localVideo"
+        );
+
+    const remoteVideo =
+        document.getElementById(
+            "remoteVideo"
+        );
+
+    const remoteAudio =
+        document.getElementById(
+            "remoteAudio"
+        );
+
+
+    if (localVideo) {
+        localVideo.srcObject = null;
+    }
+
+    if (remoteVideo) {
+        remoteVideo.srcObject = null;
+    }
+
+    if (remoteAudio) {
+        remoteAudio.srcObject = null;
+    }
+
+
+    /*
+     * Close WebRTC connection.
+     */
     if (peerConnection) {
+
+        peerConnection.ontrack = null;
+        peerConnection.onicecandidate = null;
 
         peerConnection.close();
 
     }
 
-    peerConnection =
-        null;
 
-    localStream =
-        null;
+    peerConnection = null;
 
-    remoteStream =
-        null;
+    localStream = null;
 
-    activeCallUserId =
-        null;
+    remoteStream = null;
 
+    pendingIceCandidates = [];
+
+    activeCallUserId = null;
+
+    activeCallType = "voice";
+
+
+    /*
+     * Hide call screen.
+     */
     const screen =
         document.getElementById(
             "callScreen"
@@ -11309,7 +11613,10 @@ const userToEnd =
             "none";
 
     }
-pendingIceCandidates = [];
+
+
+    stopCallRingtone();
+
 }
 
 

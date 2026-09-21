@@ -3211,13 +3211,18 @@ app.get(
              */
 
             const messages =
-                await ChatMessage
-                    .find({
+    await ChatMessage
+        .find({
 
-                        conversationId:
-                            conversation._id
+            conversationId:
+                conversation._id,
 
-                    })
+            deletedFor: {
+                $ne:
+                    req.user.userId
+            }
+
+        })
                     .populate(
                         "senderId",
                         "_id name email phone"
