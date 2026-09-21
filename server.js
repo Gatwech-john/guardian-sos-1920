@@ -1625,212 +1625,9 @@ SEND SOS SMS
 ------------------------------------------------------------
 */
 
-async function sendSOSAlerts(
-    user,
-    contacts,
-    emergency
-) {
-
-    if (
-        !process.env.AT_API_KEY ||
-        !process.env.AT_USERNAME
-    ) {
-
-        console.error(
-            "Africa's Talking SMS credentials are missing."
-        );
-
-        return {
-            success: false,
-            message: "SMS service is not configured."
-        };
-
-    }
-
-
-    if (
-        !contacts ||
-        contacts.length === 0
-    ) {
-
-        return {
-            success: false,
-            message:
-                "No emergency contacts found."
-        };
-
-    }
-
-
-    let locationText =
-        "Location unavailable.";
-
-
-    if (
-        emergency.latitude !== null &&
-        emergency.longitude !== null
-    ) {
-
-        locationText =
-            `https://www.google.com/maps?q=${emergency.latitude},${emergency.longitude}`;
-
-    }
-
-
-    const message =
-        `🚨 GUARDIAN SOS ALERT 🚨\n\n` +
-        `${user.name} has activated an emergency SOS.\n\n` +
-        `Phone: ${user.phone || "Not provided"}\n` +
-        `Location: ${locationText}\n\n` +
-        `Please contact or assist them immediately.`;
-
-
-    const phoneNumbers =
-    contacts
-        .map(contact => {
-
-            let phone =
-                String(contact.phone).trim();
-
-            if (
-                phone.startsWith("07") &&
-                phone.length === 10
-            ) {
-                phone =
-                    "+254" +
-                    phone.substring(1);
-            }
-
-            if (
-                phone.startsWith("254") &&
-                !phone.startsWith("+254")
-            ) {
-                phone =
-                    "+" +
-                    phone;
-            }
-
-            return phone;
-
-        })
-        .filter(phone => phone.length > 0);
-
-
-console.log(
-    "========================================"
-);
-
-console.log(
-    "GUARDIAN SOS SMS"
-);
-
-console.log(
-    "AT USERNAME:",
-    process.env.AT_USERNAME
-        ? "CONFIGURED"
-        : "MISSING"
-);
-
-console.log(
-    "AT API KEY:",
-    process.env.AT_API_KEY
-        ? "CONFIGURED"
-        : "MISSING"
-);
-
-console.log(
-    "CONTACTS:",
-    contacts.map(contact => ({
-        name: contact.name,
-        phone: contact.phone
-    }))
-);
-
-console.log(
-    "SMS RECIPIENTS:",
-    phoneNumbers
-);
-
-console.log(
-    "========================================"
-);
-
-
-    if (phoneNumbers.length === 0) {
-
-        return {
-            success: false,
-            message:
-                "Emergency contacts do not have valid phone numbers."
-        };
-
-    }
-
-
-    try {
-
-        const result =
-    await sms.send({
-
-        to: phoneNumbers.join(","),
-
-        message:
-            message
-
-    });
-
-
-        console.log(
-            "SOS SMS sent:",
-            JSON.stringify(
-                result,
-                null,
-                2
-            )
-        );
-
-
-        return {
-
-            success: true,
-
-            message:
-                "SOS alerts sent successfully.",
-
-            recipients:
-                phoneNumbers
-
-        };
-
-
-    } catch (error) {
-
-        console.error(
-            "SOS SMS error:",
-            error
-        );
-
-
-        return {
-
-            success: false,
-
-            message:
-                error.message ||
-                "Unable to send SOS SMS."
-
-        };
-
-    }
-
-}
-
-/* ============================================================
-   SEND FCM PUSH NOTIFICATIONS
-============================================================ */
-
 async function sendFCMAlerts(
     user,
+    contacts,
     emergency
 ) {
 
@@ -1839,28 +1636,107 @@ async function sendFCMAlerts(
         if (!admin.apps.length) {
 
             return {
-
                 success: false,
-
                 message:
                     "Firebase Admin is not initialized."
-
             };
 
         }
 
-        const tokens =
-            user.fcmTokens || [];
-
-        if (tokens.length === 0) {
+        if (
+            !contacts ||
+            !contacts.length
+        ) {
 
             return {
-
                 success: false,
-
                 message:
-                    "No registered FCM devices found."
+                    "No emergency contacts saved."
+            };
 
+        }
+
+        const recipientIds =
+            new Set();
+
+        for (
+            const contact
+            of contacts
+        ) {
+
+            const variants =
+                getPhoneVariants(
+                    contact.phone
+                );
+
+            if (!variants.length) {
+                continue;
+            }
+
+            const users =
+                await User.find({
+                    _id: {
+                        $ne: user._id
+                    },
+                    phone: {
+                        $in: variants
+                    }
+                }).select(
+                    "_id fcmTokens"
+                );
+
+            for (
+                const registeredUser
+                of users
+            ) {
+
+                recipientIds.add(
+                    String(
+                        registeredUser._id
+                    )
+                );
+
+            }
+
+        }
+
+        if (
+            recipientIds.size === 0
+        ) {
+
+            return {
+                success: false,
+                message:
+                    "No saved emergency contacts are registered on Guardian SOS."
+            };
+
+        }
+
+        const recipients =
+            await User.find({
+                _id: {
+                    $in:
+                        [...recipientIds]
+                }
+            }).select(
+                "fcmTokens"
+            );
+
+        const tokens = [
+            ...new Set(
+                recipients.flatMap(
+                    recipient =>
+                        recipient.fcmTokens || []
+                )
+            )
+        ];
+
+        if (!tokens.length) {
+
+            return {
+                success: false,
+                message:
+                    "Saved contacts have no registered notification devices."
             };
 
         }
@@ -1879,44 +1755,13 @@ async function sendFCMAlerts(
         }
 
         const response =
-            await admin.messaging().sendEachForMulticast({
+            await admin
+                .messaging()
+                .sendEachForMulticast({
 
-                tokens: tokens,
+                    tokens:
 
-                notification: {
-
-                    title:
-                        "🚨 GUARDIAN SOS ALERT",
-
-                    body:
-                        `${user.name} has activated an emergency SOS.`
-
-                },
-
-                data: {
-
-                    type:
-                        "SOS",
-
-                    emergencyId:
-                        emergency._id.toString(),
-
-                    latitude:
-                        emergency.latitude !== null
-                            ? String(emergency.latitude)
-                            : "",
-
-                    longitude:
-                        emergency.longitude !== null
-                            ? String(emergency.longitude)
-                            : "",
-
-                    location:
-                        locationText
-
-                },
-
-                webpush: {
+                        tokens,
 
                     notification: {
 
@@ -1924,28 +1769,35 @@ async function sendFCMAlerts(
                             "🚨 GUARDIAN SOS ALERT",
 
                         body:
-                            `${user.name} has activated an emergency SOS.`,
-
-                        requireInteraction:
-                            true
-
+                            `${user.name} has activated an emergency SOS.`
                     },
 
-                    fcmOptions: {
+                    data: {
 
-                        link:
-                            "https://guardian-sos-1920.vercel.app"
+                        type:
+                            "SOS",
 
+                        emergencyId:
+                            emergency._id
+                                .toString(),
+
+                        latitude:
+                            String(
+                                emergency.latitude ??
+                                ""
+                            ),
+
+                        longitude:
+                            String(
+                                emergency.longitude ??
+                                ""
+                            ),
+
+                        location:
+                            locationText
                     }
 
-                }
-
-            });
-
-        console.log(
-            "FCM notification result:",
-            response
-        );
+                });
 
         return {
 
@@ -1953,7 +1805,7 @@ async function sendFCMAlerts(
                 response.successCount > 0,
 
             message:
-                `${response.successCount} notification(s) sent.`,
+                `${response.successCount} emergency contact notification(s) sent.`,
 
             successCount:
                 response.successCount,
@@ -1966,7 +1818,7 @@ async function sendFCMAlerts(
     } catch (error) {
 
         console.error(
-            "FCM notification error:",
+            "FCM SOS error:",
             error
         );
 
@@ -1976,7 +1828,7 @@ async function sendFCMAlerts(
 
             message:
                 error.message ||
-                "Unable to send FCM notification."
+                "Unable to send SOS notifications."
 
         };
 
