@@ -1925,7 +1925,7 @@ align-items: flex-start;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 5px;
+    gap: 3px;
     background:
     radial-gradient(
     circle at center,
@@ -1939,13 +1939,15 @@ align-items: flex-start;
     display: inline-block;
     width: fit-content;
     max-width: 80%;
-    padding: 7px 9px;
-    border-radius: 9px;
+    padding: 5px 8px;
+    margin: 1px 0;
+    border-radius: 8px;
     position: relative;
     word-break: break-word;
     overflow-wrap: break-word;
     color: white;
     font-size: 14px;
+    line-height: 1.25;
     overflow: visible;
     flex: 0 0 auto;
 }
@@ -1970,12 +1972,12 @@ align-items: flex-start;
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 4px;
-    margin-top: 3px;
-    margin-left: 10px;
+    gap: 3px;
+    margin-top: 1px;
+    margin-left: 8px;
     float: right;
-    font-size: 9px;
-    line-height: 12px;
+    font-size: 8px;
+    line-height: 9px;
     white-space: nowrap;
     opacity: .75;
 }
@@ -2006,27 +2008,34 @@ align-items: flex-start;
 }
 
 .wa-input-container {
-    min-height: 62px;
+    height: 54px;
+    min-height: 54px;
     background: #111;
     border-top: 1px solid #292929;
     display: flex;
-    align-items: flex-end;
-    gap: 5px;
-    padding: 8px;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 7px;
     flex-shrink: 0;
+    box-sizing: border-box;
 }
 
 .wa-message-input {
     flex: 1;
-    min-height: 42px;
-    max-height: 120px;
+    height: 40px;
+    min-height: 40px;
+    max-height: 40px;
     resize: none;
     border: 1px solid #333;
-    border-radius: 22px;
+    border-radius: 20px;
     background: #181818;
     color: white;
-    padding: 11px 15px;
+    padding: 9px 13px;
     outline: none;
+    box-sizing: border-box;
+    line-height: 20px;
+    font-size: 14px;
+    overflow-y: hidden;
 }
 
 .wa-emoji-button,
@@ -2034,13 +2043,18 @@ align-items: flex-start;
 .wa-mic-button,
 .wa-send-button {
     border: none;
-    width: 42px;
-    height: 42px;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
     border-radius: 50%;
     background: transparent;
     color: white;
-    font-size: 19px;
+    font-size: 18px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .wa-send-button {
@@ -2322,8 +2336,35 @@ align-items: flex-start;
     }
 
     .wa-message {
-        max-width: 88%;
-    }
+    max-width: 88%;
+    padding: 5px 8px;
+    font-size: 14px;
+    line-height: 1.25;
+}
+
+.wa-input-container {
+    height: 54px;
+    min-height: 54px;
+    padding: 5px 6px;
+}
+
+.wa-message-input {
+    height: 40px;
+    min-height: 40px;
+    max-height: 40px;
+    padding: 9px 12px;
+}
+
+.wa-emoji-button,
+.wa-attach-button,
+.wa-mic-button,
+.wa-send-button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 17px;
+}
 
     .wa-emoji-picker {
         bottom: 70px;
