@@ -1831,7 +1831,6 @@ console.log(
 
 async function sendFCMAlerts(
     user,
-    contacts,
     emergency
 ) {
 
@@ -1840,107 +1839,28 @@ async function sendFCMAlerts(
         if (!admin.apps.length) {
 
             return {
+
                 success: false,
+
                 message:
                     "Firebase Admin is not initialized."
+
             };
 
         }
 
-        if (
-            !contacts ||
-            !contacts.length
-        ) {
+        const tokens =
+            user.fcmTokens || [];
+
+        if (tokens.length === 0) {
 
             return {
+
                 success: false,
+
                 message:
-                    "No emergency contacts saved."
-            };
+                    "No registered FCM devices found."
 
-        }
-
-        const recipientIds =
-            new Set();
-
-        for (
-            const contact
-            of contacts
-        ) {
-
-            const variants =
-                getPhoneVariants(
-                    contact.phone
-                );
-
-            if (!variants.length) {
-                continue;
-            }
-
-            const users =
-                await User.find({
-                    _id: {
-                        $ne: user._id
-                    },
-                    phone: {
-                        $in: variants
-                    }
-                }).select(
-                    "_id fcmTokens"
-                );
-
-            for (
-                const registeredUser
-                of users
-            ) {
-
-                recipientIds.add(
-                    String(
-                        registeredUser._id
-                    )
-                );
-
-            }
-
-        }
-
-        if (
-            recipientIds.size === 0
-        ) {
-
-            return {
-                success: false,
-                message:
-                    "No saved emergency contacts are registered on Guardian SOS."
-            };
-
-        }
-
-        const recipients =
-            await User.find({
-                _id: {
-                    $in:
-                        [...recipientIds]
-                }
-            }).select(
-                "fcmTokens"
-            );
-
-        const tokens = [
-            ...new Set(
-                recipients.flatMap(
-                    recipient =>
-                        recipient.fcmTokens || []
-                )
-            )
-        ];
-
-        if (!tokens.length) {
-
-            return {
-                success: false,
-                message:
-                    "Saved contacts have no registered notification devices."
             };
 
         }
@@ -1959,13 +1879,44 @@ async function sendFCMAlerts(
         }
 
         const response =
-            await admin
-                .messaging()
-                .sendEachForMulticast({
+            await admin.messaging().sendEachForMulticast({
 
-                    tokens:
+                tokens: tokens,
 
-                        tokens,
+                notification: {
+
+                    title:
+                        "🚨 GUARDIAN SOS ALERT",
+
+                    body:
+                        `${user.name} has activated an emergency SOS.`
+
+                },
+
+                data: {
+
+                    type:
+                        "SOS",
+
+                    emergencyId:
+                        emergency._id.toString(),
+
+                    latitude:
+                        emergency.latitude !== null
+                            ? String(emergency.latitude)
+                            : "",
+
+                    longitude:
+                        emergency.longitude !== null
+                            ? String(emergency.longitude)
+                            : "",
+
+                    location:
+                        locationText
+
+                },
+
+                webpush: {
 
                     notification: {
 
@@ -1973,35 +1924,28 @@ async function sendFCMAlerts(
                             "🚨 GUARDIAN SOS ALERT",
 
                         body:
-                            `${user.name} has activated an emergency SOS.`
+                            `${user.name} has activated an emergency SOS.`,
+
+                        requireInteraction:
+                            true
+
                     },
 
-                    data: {
+                    fcmOptions: {
 
-                        type:
-                            "SOS",
+                        link:
+                            "https://guardian-sos-1920.vercel.app"
 
-                        emergencyId:
-                            emergency._id
-                                .toString(),
-
-                        latitude:
-                            String(
-                                emergency.latitude ??
-                                ""
-                            ),
-
-                        longitude:
-                            String(
-                                emergency.longitude ??
-                                ""
-                            ),
-
-                        location:
-                            locationText
                     }
 
-                });
+                }
+
+            });
+
+        console.log(
+            "FCM notification result:",
+            response
+        );
 
         return {
 
@@ -2009,7 +1953,7 @@ async function sendFCMAlerts(
                 response.successCount > 0,
 
             message:
-                `${response.successCount} emergency contact notification(s) sent.`,
+                `${response.successCount} notification(s) sent.`,
 
             successCount:
                 response.successCount,
@@ -2022,7 +1966,7 @@ async function sendFCMAlerts(
     } catch (error) {
 
         console.error(
-            "FCM SOS error:",
+            "FCM notification error:",
             error
         );
 
@@ -2032,13 +1976,14 @@ async function sendFCMAlerts(
 
             message:
                 error.message ||
-                "Unable to send SOS notifications."
+                "Unable to send FCM notification."
 
         };
 
     }
 
 }
+
 /* ============================================================
    BASIC ROUTES
 ============================================================ */
@@ -3333,13 +3278,7 @@ app.post(
                     .populate(
                         "recipientId",
                         "_id name email phone"
-                    )
-                    .populate(
-                        "replyTo",
-                     "_id senderId text type attachment createdAt"
-);
-                    ;
-                    
+                    );
 
 
             return res.status(201).json({
@@ -4932,7 +4871,6 @@ const fcmResult =
         contacts,
         emergency
     );
-
 
 const chatSOSResult =
     await sendChatSOSAlert(

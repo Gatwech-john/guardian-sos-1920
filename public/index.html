@@ -6185,6 +6185,13 @@ loginForm.addEventListener(
                 data.token
             );
             connectChatSocket();
+            setTimeout(
+    function() {
+        registerGuardianFCMToken();
+    },
+    1500
+);
+            
 
             localStorage.setItem(
     TOKEN_KEY,
