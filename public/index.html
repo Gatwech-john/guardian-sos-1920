@@ -1935,21 +1935,145 @@ align-items: flex-start;
         #080808;
 }
 
+/* ============================================================
+   WHATSAPP MESSAGE BUBBLE - CORRECT SIZE
+============================================================ */
+
 .wa-message {
-    display: inline-block;
-    width: fit-content;
-    max-width: 80%;
-    padding: 5px 8px;
-    margin: 1px 0;
+    display: block !important;
+
+    width: max-content !important;
+    max-width: 80% !important;
+
+    height: fit-content !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    padding: 6px 9px !important;
+    margin: 2px 0 !important;
+
     border-radius: 8px;
     position: relative;
+
+    box-sizing: border-box !important;
+
     word-break: break-word;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
+
     color: white;
     font-size: 14px;
     line-height: 1.25;
-    overflow: visible;
-    flex: 0 0 auto;
+
+    overflow: visible !important;
+
+    flex: 0 0 auto !important;
+    align-self: flex-start;
+}
+
+.wa-message.mine {
+    align-self: flex-end !important;
+    background: #ff1493;
+    border-bottom-right-radius: 2px;
+}
+
+.wa-message.theirs {
+    align-self: flex-start !important;
+    background: #171717;
+    border-bottom-left-radius: 2px;
+}
+
+
+/* ============================================================
+   MESSAGE CONTENT MUST NOT STRETCH THE BUBBLE
+============================================================ */
+
+.wa-message-content {
+    display: block !important;
+
+    width: max-content !important;
+    max-width: 100% !important;
+
+    height: fit-content !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    white-space: normal !important;
+    line-height: 1.25 !important;
+
+    box-sizing: border-box !important;
+}
+
+.wa-message-main-content {
+    display: block !important;
+
+    width: max-content !important;
+    max-width: 100% !important;
+
+    height: fit-content !important;
+    min-height: 0 !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    line-height: 1.25 !important;
+    word-break: break-word !important;
+}
+
+
+/* ============================================================
+   MESSAGE TIME
+============================================================ */
+
+.wa-message-meta {
+    display: flex !important;
+
+    width: max-content !important;
+    height: auto !important;
+    min-height: 0 !important;
+
+    padding: 0 !important;
+    margin-top: 2px !important;
+    margin-left: auto !important;
+
+    justify-content: flex-end;
+    align-items: center;
+
+    gap: 3px;
+
+    font-size: 8px;
+    line-height: 9px;
+
+    white-space: nowrap;
+    opacity: .75;
+
+    box-sizing: border-box !important;
+}
+
+/* ============================================================
+   SHARED CONTACT MESSAGE
+============================================================ */
+
+.wa-message-main-content > div {
+    display: block !important;
+
+    width: max-content !important;
+    max-width: 100% !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    line-height: 1.3 !important;
+}
+
+.wa-message-main-content strong {
+    display: inline !important;
+    line-height: 1.3 !important;
 }
 
 .wa-message.mine {
