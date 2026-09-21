@@ -1354,21 +1354,16 @@ body {
 ========================================================= */
 
 .chat-message {
-    max-width: min(78%, 520px);
-
-    margin-bottom: 7px;
-
-    padding: 8px 11px 6px;
-
-    border-radius: 12px;
-
-    line-height: 1.4;
-
-    word-wrap: break-word;
-    overflow-wrap: anywhere;
-
+    display: inline-block;
+    width: fit-content;
+    max-width: 78%;
+    margin-bottom: 4px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    line-height: 1.35;
+    word-break: break-word;
+    overflow-wrap: break-word;
     font-size: 14px;
-
     position: relative;
 }
 
@@ -1411,8 +1406,8 @@ body {
 
 .chat-message-text {
     display: inline;
-
     white-space: pre-wrap;
+    word-break: break-word;
 }
 
 
