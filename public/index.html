@@ -9147,8 +9147,7 @@ mediaRecorder =
             };
 
 
-     mediaRecorder.onstop =
-    async function() {
+     mediaRecorder.onstop = async function() {
 
         stream
             .getTracks()
@@ -9265,16 +9264,6 @@ async function sendVoiceMessage(blob) {
 
     try {
 
-        if (!currentConversationId) {
-
-            showToast(
-                "Please open a conversation first."
-            );
-
-            return;
-
-        }
-
         if (!blob || !blob.size) {
 
             showToast(
@@ -9285,60 +9274,62 @@ async function sendVoiceMessage(blob) {
 
         }
 
+        if (!currentConversationId) {
 
-        const mimeType =
-            blob.type || "audio/webm";
+            showToast(
+                "Please open a conversation first."
+            );
 
-        let extension = "webm";
-
-        if (mimeType.includes("mp4")) {
-
-            extension = "m4a";
-
-        }
-        else if (mimeType.includes("ogg")) {
-
-            extension = "ogg";
-
-        }
-        else if (mimeType.includes("wav")) {
-
-            extension = "wav";
+            return;
 
         }
 
+        /*
+         * Convert the recorded voice
+         * into a data URL.
+         *
+         * This avoids saving the voice
+         * file to the Vercel filesystem.
+         */
 
-        const file =
-            new File(
-                [blob],
-                `voice-message-${Date.now()}.${extension}`,
-                {
-                    type: mimeType
+        const reader =
+            new FileReader();
+
+        const audioData =
+            await new Promise(
+                function(resolve, reject) {
+
+                    reader.onload =
+                        function() {
+
+                            resolve(
+                                reader.result
+                            );
+
+                        };
+
+                    reader.onerror =
+                        function() {
+
+                            reject(
+                                new Error(
+                                    "Unable to read voice recording."
+                                )
+                            );
+
+                        };
+
+                    reader.readAsDataURL(
+                        blob
+                    );
+
                 }
             );
 
 
-        showToast(
-            "Uploading voice message..."
-        );
-
-
-        const uploaded =
-            await uploadChatFile(
-                file
-            );
-
-
-        if (
-            !uploaded ||
-            !uploaded.url
-        ) {
-
-            throw new Error(
-                "Voice upload failed."
-            );
-
-        }
+        const mimeType =
+            blob.type ||
+            "audio/webm";
 
 
         const message =
@@ -9353,28 +9344,29 @@ async function sendVoiceMessage(blob) {
                 type:
                     "voice",
 
-                attachment:
-                    uploaded,
+                attachment: {
 
-                duration:
-                    0
+                    url:
+                        audioData,
+
+                    name:
+                        "voice-message.webm",
+
+                    mimeType:
+                        mimeType,
+
+                    size:
+                        blob.size
+
+                }
 
             });
 
 
-        if (!message) {
-
-            throw new Error(
-                "Voice message was not created."
-            );
-
-        }
-
-
-        /* IMPORTANT:
-           Put the voice message
-           immediately into the chat.
-        */
+        /*
+         * Immediately show the
+         * voice message in the chat.
+         */
 
         appendChatMessage(
             message
@@ -9402,7 +9394,7 @@ async function sendVoiceMessage(blob) {
     } catch (error) {
 
         console.error(
-            "VOICE MESSAGE ERROR:",
+            "Voice message error:",
             error
         );
 
