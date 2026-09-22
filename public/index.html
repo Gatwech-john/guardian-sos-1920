@@ -4131,21 +4131,50 @@ if (
 
 function handleIncomingChatMessage(message) {
 
+    if (!message) {
+        return;
+    }
+
+    const conversationId =
+        message.conversationId &&
+        (
+            message.conversationId._id ||
+            message.conversationId
+        );
+
     if (
         currentConversationId &&
-        String(message.conversationId) ===
+        String(conversationId) ===
         String(currentConversationId)
     ) {
+
         appendChatMessage(message);
+
+        const messagesList =
+            document.getElementById(
+                "messagesList"
+            );
+
+        if (messagesList) {
+            messagesList.scrollTop =
+                messagesList.scrollHeight;
+        }
+
         return;
     }
 
     showToast(
         "💬 New message from " +
-        (message.senderName || "User")
+        (
+            message.senderName ||
+            (
+                message.senderId &&
+                message.senderId.name
+            ) ||
+            "User"
+        )
     );
 }
-
 
 
 
@@ -8569,16 +8598,16 @@ document.addEventListener(
                 ".wa-attach-button"
             );
 
-        if (
-            attachmentMenu &&
-            !attachmentMenu.contains(event.target) &&
-            !attachmentButton
-        ) {
+       if (
+    attachmentMenu &&
+    !attachmentMenu.contains(event.target) &&
+    !attachmentButton
+) {
 
-            attachmentMenu.style.display =
-                "none";
+    attachmentMenu.style.display =
+        "none";
 
-        }
+}
 
     }
 );
@@ -8653,6 +8682,17 @@ async function handleChatFileSelected(event) {
         return;
     }
 
+    const attachmentMenu =
+    document.getElementById(
+        "attachmentMenu"
+    );
+
+if (attachmentMenu) {
+    attachmentMenu.style.display =
+        "none";
+}
+
+
     selectedChatFiles =
         files;
 
@@ -8717,6 +8757,35 @@ async function handleChatFileSelected(event) {
         " attachment(s) selected."
     );
 
+}
+
+
+function clearSelectedAttachments() {
+
+    selectedChatFiles = [];
+
+    const input =
+        document.getElementById(
+            "chatFileInput"
+        );
+
+    if (input) {
+        input.value = "";
+    }
+
+    const preview =
+        document.getElementById(
+            "attachmentPreview"
+        );
+
+    if (preview) {
+
+        preview.innerHTML = "";
+
+        preview.style.display =
+            "none";
+
+    }
 }
 
 
@@ -8905,22 +8974,23 @@ async function sendChatMessage() {
         if (text) {
 
             const message =
-                await sendAdvancedMessage({
+    await sendAdvancedMessage({
+        conversationId:
+            currentConversationId,
 
-                    conversationId:
-                        currentConversationId,
+        text:
+            text,
 
-                    text:
+        type:
+            "text",
 
-                        text,
+        replyTo:
+            replyMessageId
+    });
 
-                    type:
-                        "text",
-
-                    replyTo:
-                        replyMessageId
-
-                });
+if (message) {
+    appendChatMessage(message);
+}
 
     
 
@@ -8969,24 +9039,32 @@ async function sendChatMessage() {
             }
 
             const message =
-                await sendAdvancedMessage({
+    await sendAdvancedMessage({
 
-                    conversationId:
-                        currentConversationId,
+        conversationId:
+            currentConversationId,
 
-                    text: "",
+        text:
+            "",
 
-                    type:
+        type:
+            type,
 
-                        type,
+        attachment:
+            uploaded,
 
-                    attachment:
-                        uploaded,
+        replyTo:
+            replyMessageId
 
-                    replyTo:
-                        replyMessageId
+    });
 
-                });
+if (message) {
+
+    appendChatMessage(
+        message
+    );
+
+}
 
             
 
@@ -9220,6 +9298,16 @@ function stopVoiceRecording() {
 
 async function sendVoiceMessage(blob) {
 
+    if (!currentConversationId) {
+
+    showToast(
+        "Open a conversation first."
+    );
+
+    return;
+
+}
+
     try {
 
         const mimeType =
@@ -9251,21 +9339,33 @@ const file =
                 file
             );
 
-        const message =
-            await sendAdvancedMessage({
+       const message =
+    await sendAdvancedMessage({
 
-                conversationId:
-                    currentConversationId,
+        conversationId:
+            currentConversationId,
 
-                text: "",
+        text:
+            "",
 
-                type:
-                    "voice",
+        type:
+            "voice",
 
-                attachment:
-                    uploaded
+        attachment:
+            uploaded,
 
-            });
+        duration:
+            0
+
+    });
+
+if (message) {
+
+    appendChatMessage(
+        message
+    );
+
+}
 
         
 
@@ -9796,6 +9896,12 @@ function renderAdvancedMessage(
     message
 ) {
 
+
+
+
+
+    
+
     const messagesList =
         document.getElementById(
             "messagesList"
@@ -9832,6 +9938,10 @@ function renderAdvancedMessage(
         document.createElement(
             "div"
         );
+        if (messageId) {
+    wrapper.dataset.messageId =
+        String(messageId);
+}
 
     wrapper.className =
         mine

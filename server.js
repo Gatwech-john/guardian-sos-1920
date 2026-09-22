@@ -743,7 +743,8 @@ ChatMessageSchema.add({
             "file",
             "location",
             "contact",
-            "system"
+            "system'",
+             "call"
         ],
         default: "text"
     },
@@ -1405,8 +1406,10 @@ socket.on(
 
 socket.on(
     "call_user",
+    
     function(data) {
 
+      
         if (!data || !data.userId) {
             return;
         }
@@ -1430,6 +1433,7 @@ socket.on(
 
     }
 );
+
 
 
 socket.on(
@@ -3343,72 +3347,7 @@ app.post(
 
 
 
-/* ============================================================
-   CHAT FILE / PHOTO / VIDEO / AUDIO UPLOAD
-============================================================ */
 
-app.post(
-    "/api/chat/upload",
-    authenticateToken,
-    chatUpload.single("file"),
-    async (req, res) => {
-
-        try {
-
-            if (!req.file) {
-
-                return res.status(400).json({
-                    success: false,
-                    message: "No file selected."
-                });
-
-            }
-
-            const fileUrl =
-                "/chat-uploads/" +
-                req.file.filename;
-
-            return res.json({
-
-                success: true,
-
-                file: {
-
-                    url: fileUrl,
-
-                    name:
-                        req.file.originalname,
-
-                    mimeType:
-                        req.file.mimetype,
-
-                    size:
-                        req.file.size
-
-                }
-
-            });
-
-        } catch (error) {
-
-            console.error(
-                "Chat upload error:",
-                error
-            );
-
-            return res.status(500).json({
-
-                success: false,
-
-                message:
-                    "Unable to upload file."
-
-            });
-
-        }
-
-    }
-);
 
 
 /* ============================================================
