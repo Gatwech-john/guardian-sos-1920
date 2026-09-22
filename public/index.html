@@ -8766,6 +8766,16 @@ function formatFileSize(bytes) {
 
 async function uploadChatFile(file) {
 
+    const token = getToken();
+
+    if (!token) {
+
+        throw new Error(
+            "Authentication token is missing. Please login again."
+        );
+
+    }
+
     const formData =
         new FormData();
 
@@ -8781,9 +8791,9 @@ async function uploadChatFile(file) {
                 method: "POST",
 
                 headers: {
-                    Authorization:
+                    "Authorization":
                         "Bearer " +
-                        getToken()
+                        String(token).trim()
                 },
 
                 body:
@@ -8791,8 +8801,18 @@ async function uploadChatFile(file) {
             }
         );
 
-    const data =
-        await response.json();
+    let data = {};
+
+    try {
+
+        data =
+            await response.json();
+
+    } catch (error) {
+
+        data = {};
+
+    }
 
     if (!response.ok ||
         !data.success) {
