@@ -9127,32 +9127,55 @@ mediaRecorder =
             };
 
 
-        mediaRecorder.onstop =
-            async function() {
+     mediaRecorder.onstop =
+    async function() {
 
-                stream
-                    .getTracks()
-                    .forEach(
-                        track =>
-                            track.stop()
-                    );
+        stream
+            .getTracks()
+            .forEach(
+                track =>
+                    track.stop()
+            );
 
-                const blob =
-                    new Blob(
-                        recordedChunks,
-                        {
-                            type:
-                                mediaRecorder
-                                    .mimeType ||
-                                "audio/webm"
-                        }
-                    );
 
-                await sendVoiceMessage(
-                    blob
-                );
+        if (!recordedChunks.length) {
 
-            };
+            showToast(
+                "No audio was recorded."
+            );
+
+            return;
+
+        }
+
+
+        const blob =
+            new Blob(
+                recordedChunks,
+                {
+                    type:
+                        mediaRecorder.mimeType ||
+                        "audio/webm"
+                }
+            );
+
+
+        if (!blob.size) {
+
+            showToast(
+                "Voice recording is empty."
+            );
+
+            return;
+
+        }
+
+
+        await sendVoiceMessage(
+            blob
+        );
+
+    };
 
 
         mediaRecorder.start();
@@ -9222,34 +9245,81 @@ async function sendVoiceMessage(blob) {
 
     try {
 
-        const mimeType =
-    blob.type || "audio/webm";
+        if (!currentConversationId) {
 
-let extension = "webm";
+            showToast(
+                "Please open a conversation first."
+            );
 
-if (mimeType.includes("mp4")) {
-    extension = "m4a";
-}
-else if (mimeType.includes("ogg")) {
-    extension = "ogg";
-}
-else if (mimeType.includes("wav")) {
-    extension = "wav";
-}
+            return;
 
-const file =
-    new File(
-        [blob],
-        `voice-message.${extension}`,
-        {
-            type: mimeType
         }
-    );
+
+        if (!blob || !blob.size) {
+
+            showToast(
+                "No voice recording was created."
+            );
+
+            return;
+
+        }
+
+
+        const mimeType =
+            blob.type || "audio/webm";
+
+        let extension = "webm";
+
+        if (mimeType.includes("mp4")) {
+
+            extension = "m4a";
+
+        }
+        else if (mimeType.includes("ogg")) {
+
+            extension = "ogg";
+
+        }
+        else if (mimeType.includes("wav")) {
+
+            extension = "wav";
+
+        }
+
+
+        const file =
+            new File(
+                [blob],
+                `voice-message-${Date.now()}.${extension}`,
+                {
+                    type: mimeType
+                }
+            );
+
+
+        showToast(
+            "Uploading voice message..."
+        );
+
 
         const uploaded =
             await uploadChatFile(
                 file
             );
+
+
+        if (
+            !uploaded ||
+            !uploaded.url
+        ) {
+
+            throw new Error(
+                "Voice upload failed."
+            );
+
+        }
+
 
         const message =
             await sendAdvancedMessage({
@@ -9257,32 +9327,73 @@ const file =
                 conversationId:
                     currentConversationId,
 
-                text: "",
+                text:
+                    "",
 
                 type:
                     "voice",
 
                 attachment:
-                    uploaded
+                    uploaded,
+
+                duration:
+                    0
 
             });
 
-        
+
+        if (!message) {
+
+            throw new Error(
+                "Voice message was not created."
+            );
+
+        }
+
+
+        /* IMPORTANT:
+           Put the voice message
+           immediately into the chat.
+        */
+
+        appendChatMessage(
+            message
+        );
+
+
+        const messagesList =
+            document.getElementById(
+                "messagesList"
+            );
+
+        if (messagesList) {
+
+            messagesList.scrollTop =
+                messagesList.scrollHeight;
+
+        }
+
+
+        showToast(
+            "Voice message sent."
+        );
+
 
     } catch (error) {
 
         console.error(
+            "VOICE MESSAGE ERROR:",
             error
         );
 
         showToast(
+            error.message ||
             "Unable to send voice message."
         );
 
     }
 
 }
-
 
 /* ============================================================
    LOCATION SHARING
