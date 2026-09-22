@@ -9690,6 +9690,15 @@ function openAdvancedMessageMenu(
     element
 ) {
 
+    const existingMenu =
+        document.querySelector(".wa-message-actions");
+
+    if (existingMenu) {
+        existingMenu.remove();
+    }
+
+    // Close any other open message menu when this one opens
+
     const old =
         document.querySelector(
             ".wa-message-actions"
@@ -9909,7 +9918,61 @@ if (isMine) {
 );
 
 }
+/* =========================================================
+   CLOSE MESSAGE MENU WHEN CLICKING EMPTY SPACE
+========================================================= */
 
+document.addEventListener("click", function(event) {
+
+    const menu =
+        document.querySelector(".wa-message-actions");
+
+    if (!menu) {
+        return;
+    }
+
+    // If the click is inside the menu, keep it open
+    if (menu.contains(event.target)) {
+        return;
+    }
+
+    // If the click is on a message that is opening another menu,
+    // let that message handler handle it.
+    if (
+        event.target.closest &&
+        event.target.closest(".wa-message")
+    ) {
+        return;
+    }
+
+    menu.remove();
+
+});
+
+
+document.addEventListener("touchstart", function(event) {
+
+    const menu =
+        document.querySelector(".wa-message-actions");
+
+    if (!menu) {
+        return;
+    }
+
+    if (menu.contains(event.target)) {
+        return;
+    }
+
+    if (
+        event.target.closest &&
+        event.target.closest(".wa-message")
+    ) {
+        return;
+    }
+
+    menu.remove();
+
+}, { passive: true });
 
 /* ============================================================
    OVERRIDE MESSAGE RENDERER
@@ -9927,7 +9990,26 @@ function renderAdvancedMessage(
     if (!messagesList) {
         return;
     }
+/* =========================================================
+   PREVENT DUPLICATE MESSAGE RENDERING
+========================================================= */
 
+const messageId =
+    message._id ||
+    message.id;
+
+if (messageId) {
+
+    const alreadyShown =
+        messagesList.querySelector(
+            `[data-message-id="${String(messageId)}"]`
+        );
+
+    if (alreadyShown) {
+        return;
+    }
+
+}
     const currentUser =
         getStoredUser();
 
@@ -10099,39 +10181,24 @@ if (message.replyTo) {
 
     }
     
-    else if (
-        (
-            message.type === "voice" ||
-            message.type === "audio"
-        ) &&
-        message.attachment
-    ) {
+   else if (
+    (
+        message.type === "voice" ||
+        message.type === "audio"
+    ) &&
+    message.attachment
+) {
 
-        content =
-            `
-            <audio
-                class="wa-voice-player"
-                src="${escapeHTML(message.attachment.url)}"
-                controls>
-            </audio>
+    content =
+        `
+        <audio
+            class="wa-voice-player"
+            src="${escapeHTML(message.attachment.url)}"
+            controls>
+        </audio>
+        `;
 
-            <button
-    type="button"
-    class="wa-file-download"
-    onclick="downloadChatFile(
-        '${String(
-            message.attachment.url || ""
-        ).replace(/'/g, "\\'")}',
-        '${String(
-            message.attachment.name ||
-            "voice-message"
-        ).replace(/'/g, "\\'")}'
-    )">
-    ⬇ Download
-</button>
-            `;
-
-    }
+}
     else if (
         message.type === "file" &&
         message.attachment
@@ -10172,7 +10239,7 @@ if (message.replyTo) {
                         "download"
                     ).replace(/'/g, "\\'")}'
                 )">
-               
+                ⬇ Download
             </button>
 
         </div>
