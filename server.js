@@ -74,10 +74,14 @@ const app = express();
 const httpServer = http.createServer(app);
 
 const io = new Server(httpServer, {
+    transports: ["websocket"],
+
     cors: {
         origin: true,
         credentials: true
-    }
+    },
+
+    allowEIO3: false
 });
 
 
