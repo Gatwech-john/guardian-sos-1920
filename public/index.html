@@ -3886,7 +3886,7 @@ let chatSocket = null;
 
 function connectChatSocket() {
 
-    const token = getGuardianToken();
+    const token = getToken();
 
     if (!token) {
         console.error(
@@ -6546,7 +6546,7 @@ function showToast(message) {
 
 async function api(url, options = {}) {
 
-    const token = getGuardianToken();
+    const token = getToken();
 
     if (!token) {
 
@@ -6637,7 +6637,7 @@ function navigateTo(page) {
 
     if (
         protectedPages.includes(page) &&
-        !getGuardianToken()
+        !getToken()
     ) {
 
         page = "login";
@@ -6657,13 +6657,13 @@ function showPage(page) {
 
     if (!allPages.includes(page)) {
 
-        page = getGuardianToken() ? "home" : "login";
+        page = getToken() ? "home" : "login";
 
     }
 
     if (
         protectedPages.includes(page) &&
-        !getGuardianToken()
+        !getToken()
     ) {
 
         page = "login";
@@ -6672,7 +6672,7 @@ function showPage(page) {
 
     if (
         (page === "login" || page === "register") &&
-        getGuardianToken()
+        getToken()
     ) {
 
         page = "home";
@@ -6697,7 +6697,7 @@ function showPage(page) {
     }
 
 
-    const loggedIn = !!getGuardianToken();
+    const loggedIn = !!getToken();
 
     document.getElementById("mainNavigation").style.display =
         loggedIn ? "flex" : "none";
@@ -6791,7 +6791,7 @@ function handleRoute() {
          * first page opened.
          */
 
-        page = getGuardianToken() ? "home" : "login";
+        page = getToken() ? "home" : "login";
 
     }
 
@@ -9303,7 +9303,8 @@ function renderSelectedChatFiles() {
 
 function removeSelectedChatFile(index) {
 
-    index = Number(index);
+    index =
+        Number(index);
 
     if (
         !Number.isInteger(index) ||
@@ -9313,15 +9314,33 @@ function removeSelectedChatFile(index) {
         return;
     }
 
-    selectedChatFiles.splice(index, 1);
+    /*
+     * Remove the selected file
+     */
+    selectedChatFiles.splice(
+        index,
+        1
+    );
 
+    /*
+     * Reset the real file input when
+     * there are no selected files.
+     */
     const input =
-        document.getElementById("chatFileInput");
+        document.getElementById(
+            "chatFileInput"
+        );
 
-    if (input) {
+    if (
+        input &&
+        selectedChatFiles.length === 0
+    ) {
         input.value = "";
     }
 
+    /*
+     * Rebuild the attachment preview.
+     */
     renderSelectedChatFiles();
 
 }
@@ -9373,7 +9392,7 @@ function formatFileSize(bytes) {
 
 async function uploadChatFile(file) {
 
-    const token = getGuardianToken();
+    const token = getToken();
 
     if (!token) {
 
@@ -12476,7 +12495,7 @@ setInterval(
     1000
 );
 
-if (getGuardianToken()) {
+if (getToken()) {
     setTimeout(() => {
         connectChatSocket();
     }, 300);
@@ -12704,9 +12723,6 @@ Object.assign(window, {
     openAttachmentMenu,
     selectChatFile,
     handleChatFileSelected,
-
-    removeSelectedChatFile,
-    renderSelectedChatFiles,
 
     toggleVoiceRecording,
     stopVoiceRecording,
