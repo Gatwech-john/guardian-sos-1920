@@ -3914,11 +3914,15 @@ function connectChatSocket() {
         "Connecting Guardian SOS real-time chat..."
     );
 
-    chatSocket = io({
-        auth: {
-            token: token
-        }
-    });
+  
+chatSocket = io({
+    transports: ["websocket"],
+    auth: {
+        token: token
+    }
+});
+
+
 
    chatSocket.on(
     "connect",
@@ -6811,12 +6815,7 @@ loginForm.addEventListener(
 );
             
 
-            localStorage.setItem(
-    TOKEN_KEY,
-    data.token
-);
-
-connectChatSocket();
+     
 
             localStorage.setItem(
                 USER_KEY,
@@ -9217,19 +9216,18 @@ function formatFileSize(bytes) {
    UPLOAD FILE
 ============================================================ */
 
+
 async function uploadChatFile(file) {
-console.log("CHAT TOKEN:", getToken());
+
     const token =
-    localStorage.getItem(
-        "token"
-    );
+        localStorage.getItem(
+            TOKEN_KEY
+        );
 
     if (!token) {
-
         throw new Error(
             "Authentication token is missing. Please login again."
         );
-
     }
 
     const formData =
@@ -9260,29 +9258,26 @@ console.log("CHAT TOKEN:", getToken());
     let data = {};
 
     try {
-
         data =
             await response.json();
-
     } catch (error) {
-
         data = {};
-
     }
 
-    if (!response.ok ||
-        !data.success) {
-
+    if (
+        !response.ok ||
+        !data.success
+    ) {
         throw new Error(
             data.message ||
             "File upload failed."
         );
-
     }
 
     return data.file;
-
 }
+
+
 
 async function downloadChatFile(url, filename) {
     if (!url) {
