@@ -3859,31 +3859,19 @@ const allPages = [
    TOKEN
 ========================================================= */
 
-function getToken() {
-
-    let token =
-        localStorage.getItem(TOKEN_KEY);
+function getGuardianToken() {
+    let token = localStorage.getItem(TOKEN_KEY);
 
     if (!token) {
         return null;
     }
 
-    token =
-        String(token).trim();
-
-    /*
-     * Make sure the stored value is ONLY
-     * the JWT token.
-     *
-     * If "Bearer " was accidentally stored,
-     * remove it before creating the header.
-     */
+    token = String(token).trim();
 
     if (
         token.toLowerCase().startsWith("bearer ")
     ) {
-        token =
-            token.substring(7).trim();
+        token = token.substring(7).trim();
     }
 
     return token;
@@ -3898,7 +3886,7 @@ let chatSocket = null;
 
 function connectChatSocket() {
 
-    const token = getToken();
+    const token = getGuardianToken();
 
     if (!token) {
         console.error(
@@ -6558,7 +6546,7 @@ function showToast(message) {
 
 async function api(url, options = {}) {
 
-    const token = getToken();
+    const token = getGuardianToken();
 
     if (!token) {
 
@@ -6649,7 +6637,7 @@ function navigateTo(page) {
 
     if (
         protectedPages.includes(page) &&
-        !getToken()
+        !getGuardianToken()
     ) {
 
         page = "login";
@@ -6669,13 +6657,13 @@ function showPage(page) {
 
     if (!allPages.includes(page)) {
 
-        page = getToken() ? "home" : "login";
+        page = getGuardianToken() ? "home" : "login";
 
     }
 
     if (
         protectedPages.includes(page) &&
-        !getToken()
+        !getGuardianToken()
     ) {
 
         page = "login";
@@ -6684,7 +6672,7 @@ function showPage(page) {
 
     if (
         (page === "login" || page === "register") &&
-        getToken()
+        getGuardianToken()
     ) {
 
         page = "home";
@@ -6709,7 +6697,7 @@ function showPage(page) {
     }
 
 
-    const loggedIn = !!getToken();
+    const loggedIn = !!getGuardianToken();
 
     document.getElementById("mainNavigation").style.display =
         loggedIn ? "flex" : "none";
@@ -6803,7 +6791,7 @@ function handleRoute() {
          * first page opened.
          */
 
-        page = getToken() ? "home" : "login";
+        page = getGuardianToken() ? "home" : "login";
 
     }
 
@@ -9315,8 +9303,7 @@ function renderSelectedChatFiles() {
 
 function removeSelectedChatFile(index) {
 
-    index =
-        Number(index);
+    index = Number(index);
 
     if (
         !Number.isInteger(index) ||
@@ -9326,33 +9313,15 @@ function removeSelectedChatFile(index) {
         return;
     }
 
-    /*
-     * Remove the selected file
-     */
-    selectedChatFiles.splice(
-        index,
-        1
-    );
+    selectedChatFiles.splice(index, 1);
 
-    /*
-     * Reset the real file input when
-     * there are no selected files.
-     */
     const input =
-        document.getElementById(
-            "chatFileInput"
-        );
+        document.getElementById("chatFileInput");
 
-    if (
-        input &&
-        selectedChatFiles.length === 0
-    ) {
+    if (input) {
         input.value = "";
     }
 
-    /*
-     * Rebuild the attachment preview.
-     */
     renderSelectedChatFiles();
 
 }
@@ -9404,7 +9373,7 @@ function formatFileSize(bytes) {
 
 async function uploadChatFile(file) {
 
-    const token = getToken();
+    const token = getGuardianToken();
 
     if (!token) {
 
@@ -12507,7 +12476,7 @@ setInterval(
     1000
 );
 
-if (getToken()) {
+if (getGuardianToken()) {
     setTimeout(() => {
         connectChatSocket();
     }, 300);
@@ -12735,6 +12704,9 @@ Object.assign(window, {
     openAttachmentMenu,
     selectChatFile,
     handleChatFileSelected,
+
+    removeSelectedChatFile,
+    renderSelectedChatFiles,
 
     toggleVoiceRecording,
     stopVoiceRecording,
