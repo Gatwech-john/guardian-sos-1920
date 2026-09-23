@@ -11811,7 +11811,6 @@ function showIncomingCall(
 
     pendingIncomingOffer =
         data;
-        startCallRingtone();
 
     const screen =
         document.getElementById(
@@ -11822,6 +11821,39 @@ function showIncomingCall(
 
     screen.style.display =
         "flex";
+
+
+    const callerName =
+        document.getElementById(
+            "incomingCallerName"
+        );
+
+    if (callerName) {
+
+        callerName.textContent =
+            data.callerName ||
+            "Guardian SOS User";
+
+    }
+
+
+    const callerAvatar =
+        document.getElementById(
+            "incomingCallAvatar"
+        );
+
+    if (callerAvatar) {
+
+        callerAvatar.textContent =
+            (
+                data.callerName ||
+                "G"
+            )
+            .charAt(0)
+            .toUpperCase();
+
+    }
+
 
     const type =
         document.getElementById(

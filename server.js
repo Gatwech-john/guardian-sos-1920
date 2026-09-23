@@ -1419,16 +1419,19 @@ socket.on(
             data.userId
         ).emit(
             "incoming_call",
-            {
-                callerId:
-                    socket.userId,
+           {
+    callerId:
+        socket.userId,
 
-                callType:
-                    data.callType || "voice",
+    callerName:
+        socket.userName || "Guardian SOS User",
 
-                offer:
-                    data.offer || null
-            }
+    callType:
+        data.callType || "voice",
+
+    offer:
+        data.offer || null
+}
         );
 
     }
