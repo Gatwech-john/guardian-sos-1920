@@ -8489,74 +8489,75 @@ try {
         messaging;
 
 
-    window.getGuardianFCMToken = async function () {
+    window.getGuardianFCMToken =
+        async function () {
 
-    try {
+            try {
 
-        if (!messaging) {
-            console.warn(
-                "Firebase Messaging is not available."
-            );
+                const permission =
+                    await Notification.requestPermission();
 
-            return null;
-        }
 
-        if (
-            typeof Notification === "undefined"
-        ) {
-            console.warn(
-                "Notifications are not supported."
-            );
+                if (
+                    permission !== "granted"
+                ) {
 
-            return null;
-        }
+                    console.log(
+                        "Notification permission was not granted."
+                    );
 
-        const permission =
-            await Notification.requestPermission();
+                    return null;
 
-        if (permission !== "granted") {
+                }
 
-            console.log(
-                "Notification permission was not granted."
-            );
 
-            return null;
-        }
+                const token =
+                    await getToken(
 
-        const token = await getToken(
-            messaging,
-            {
-                vapidKey:
-                    "BLq8pOvtQQc0yJnW6QPzgOd45ov-ZXQIw84DX_HtN1kF9f_rrNJ0kode5y1OGz4qn16tatOEghJwl7oETXDPSc4"
+                        messaging,
+
+                        {
+
+                            vapidKey:
+                                "BLq8pOvtQQc0yJnW6QPzgOd45ov-ZXQIw84DX_HtN1kF9f_rrNJ0kode5y1OGz4qn16tatOEghJwl7oETXDPSc4"
+
+                        }
+
+                    );
+
+
+                if (!token) {
+
+                    console.log(
+                        "No FCM token received."
+                    );
+
+                    return null;
+
+                }
+
+
+                console.log(
+                    "Guardian SOS FCM token:",
+                    token
+                );
+
+
+                return token;
+
+
+            } catch (error) {
+
+                console.error(
+                    "FCM token error:",
+                    error
+                );
+
+                return null;
+
             }
-        );
 
-        if (!token) {
-
-            console.log(
-                "No FCM token received."
-            );
-
-            return null;
-        }
-
-        console.log(
-            "Guardian SOS FCM token:",
-            token
-        );
-
-        return token;
-
-    } catch (error) {
-
-        console.error(
-            "Guardian SOS FCM token error:",
-            error
-        );
-
-        return null;
-    }
-};
+        };
 
 
     onMessage(
@@ -9217,57 +9218,70 @@ function formatFileSize(bytes) {
 ============================================================ */
 
 async function uploadChatFile(file) {
-
-    const token = localStorage.getItem(TOKEN_KEY);
-
-    console.log("CHAT TOKEN:", token);
+console.log("CHAT TOKEN:", getToken());
+    const token =
+    localStorage.getItem(
+        "token"
+    );
 
     if (!token) {
+
         throw new Error(
             "Authentication token is missing. Please login again."
         );
+
     }
 
-    const formData = new FormData();
+    const formData =
+        new FormData();
 
     formData.append(
         "file",
         file
     );
 
-    const response = await fetch(
-        "/api/chat/upload",
-        {
-            method: "POST",
+    const response =
+        await fetch(
+            "/api/chat/upload",
+            {
+                method: "POST",
 
-            headers: {
-                "Authorization":
-                    "Bearer " + token.trim()
-            },
+                headers: {
+                    "Authorization":
+                        "Bearer " +
+                        String(token).trim()
+                },
 
-            body: formData
-        }
-    );
+                body:
+                    formData
+            }
+        );
 
     let data = {};
 
     try {
-        data = await response.json();
+
+        data =
+            await response.json();
+
     } catch (error) {
+
         data = {};
+
     }
 
-    if (
-        !response.ok ||
-        !data.success
-    ) {
+    if (!response.ok ||
+        !data.success) {
+
         throw new Error(
             data.message ||
             "File upload failed."
         );
+
     }
 
     return data.file;
+
 }
 
 async function downloadChatFile(url, filename) {
