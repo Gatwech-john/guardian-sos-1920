@@ -6816,6 +6816,17 @@ loginForm.addEventListener(
     data.token
 );
 
+localStorage.setItem(
+    TOKEN_KEY,
+    data.token
+);
+
+if (data.token) {
+    setTimeout(() => {
+        connectChatSocket();
+    }, 300);
+}
+
 connectChatSocket();
 
             localStorage.setItem(
@@ -8490,75 +8501,76 @@ try {
 
 
     window.getGuardianFCMToken =
-        async function () {
+    async function () {
 
-            try {
+        try {
 
-                const permission =
-                    await Notification.requestPermission();
+            if (!messaging) {
 
-
-                if (
-                    permission !== "granted"
-                ) {
-
-                    console.log(
-                        "Notification permission was not granted."
-                    );
-
-                    return null;
-
-                }
-
-
-                const token =
-                    await getToken(
-
-                        messaging,
-
-                        {
-
-                            vapidKey:
-                                "BLq8pOvtQQc0yJnW6QPzgOd45ov-ZXQIw84DX_HtN1kF9f_rrNJ0kode5y1OGz4qn16tatOEghJwl7oETXDPSc4"
-
-                        }
-
-                    );
-
-
-                if (!token) {
-
-                    console.log(
-                        "No FCM token received."
-                    );
-
-                    return null;
-
-                }
-
-
-                console.log(
-                    "Guardian SOS FCM token:",
-                    token
-                );
-
-
-                return token;
-
-
-            } catch (error) {
-
-                console.error(
-                    "FCM token error:",
-                    error
+                console.warn(
+                    "Firebase Messaging is not available."
                 );
 
                 return null;
 
             }
 
-        };
+            const permission =
+                await Notification.requestPermission();
 
+            if (
+                permission !== "granted"
+            ) {
+
+                console.log(
+                    "Notification permission was not granted."
+                );
+
+                return null;
+
+            }
+
+            const token =
+                await getToken(
+                    messaging,
+                    {
+                        vapidKey:
+                            "BLq8pOvtQQc0yJnW6QPzgOd45ov-ZXQIw84DX_HtN1kF9f_rrNJ0kode5y1OGz4qn16tatOEghJwl7oETXDPSc4"
+                    }
+                );
+
+            if (!token) {
+
+                console.log(
+                    "No FCM token received."
+                );
+
+                return null;
+
+            }
+
+            console.log(
+                "Guardian SOS FCM token:",
+                token
+            );
+
+            return token;
+
+        } catch (error) {
+
+            console.error(
+                "FCM token error:",
+                error
+            );
+
+            return null;
+
+        }
+
+    };
+
+
+    if (messaging) {
 
     onMessage(
         messaging,
@@ -8571,6 +8583,8 @@ try {
 
         }
     );
+
+}
 
 
 
