@@ -9169,6 +9169,8 @@ function removeSelectedChatFile(index) {
     renderSelectedChatFiles();
 
 }
+window.removeSelectedChatFile =
+    removeSelectedChatFile;
 
 
 function formatFileSize(bytes) {
@@ -9217,7 +9219,10 @@ function formatFileSize(bytes) {
 
 async function uploadChatFile(file) {
 console.log("CHAT TOKEN:", getToken());
-    const token = getToken();
+    const token =
+    localStorage.getItem(
+        "token"
+    );
 
     if (!token) {
 
