@@ -3860,7 +3860,33 @@ const allPages = [
 ========================================================= */
 
 function getToken() {
-    return localStorage.getItem(TOKEN_KEY);
+
+    let token =
+        localStorage.getItem(TOKEN_KEY);
+
+    if (!token) {
+        return null;
+    }
+
+    token =
+        String(token).trim();
+
+    /*
+     * Make sure the stored value is ONLY
+     * the JWT token.
+     *
+     * If "Bearer " was accidentally stored,
+     * remove it before creating the header.
+     */
+
+    if (
+        token.toLowerCase().startsWith("bearer ")
+    ) {
+        token =
+            token.substring(7).trim();
+    }
+
+    return token;
 }
 
 /* =========================================================
@@ -4388,10 +4414,101 @@ if (message.deletedForEveryone) {
     const type =
         message.type || "text";
 
+
+        
+   if (type === "system") {
+
+    const latitude =
+        message.latitude;
+
+    const longitude =
+        message.longitude;
+
+    let locationButton = "";
+
     if (
-        type === "image" &&
-        attachment.url
+        latitude !== null &&
+        latitude !== undefined &&
+        longitude !== null &&
+        longitude !== undefined
     ) {
+
+        locationButton = `
+            <button
+                type="button"
+                onclick="
+                    openSOSLocation(
+                        '${escapeHTML(latitude)}',
+                        '${escapeHTML(longitude)}'
+                    )
+                "
+                style="
+                    width:100%;
+                    margin-top:12px;
+                    padding:10px 12px;
+                    border:none;
+                    border-radius:9px;
+                    background:#ff1493;
+                    color:white;
+                    font-weight:bold;
+                    cursor:pointer;
+                "
+            >
+                📍 OPEN SOS LOCATION
+            </button>
+        `;
+
+    }
+
+    messageText.innerHTML = `
+
+        <div
+            style="
+                width:100%;
+                max-width:320px;
+                padding:15px;
+                background:#171717;
+                border:1px solid #ff1493;
+                border-radius:14px;
+                box-sizing:border-box;
+            "
+        >
+
+            <div
+                style="
+                    color:#ff1493;
+                    font-size:18px;
+                    font-weight:900;
+                    margin-bottom:10px;
+                "
+            >
+                🚨 GUARDIAN SOS ALERT
+            </div>
+
+            <div
+                style="
+                    color:white;
+                    font-size:14px;
+                    line-height:1.6;
+                    white-space:pre-line;
+                "
+            >
+                ${escapeHTML(
+                    message.text || 
+                    "Emergency SOS activated."
+                )}
+            </div>
+
+            ${locationButton}
+
+        </div>
+
+    `;
+
+} else if (
+    type === "image" &&
+    attachment.url
+) {
 
         messageText.innerHTML = `
 
@@ -4665,7 +4782,37 @@ if (message.deletedForEveryone) {
 }
 
 
+function openSOSLocation(
+    latitude,
+    longitude
+) {
 
+    if (
+        latitude === null ||
+        latitude === undefined ||
+        longitude === null ||
+        longitude === undefined
+    ) {
+
+        showToast(
+            "SOS location is unavailable."
+        );
+
+        return;
+    }
+
+    const mapsUrl =
+        "https://www.google.com/maps?q=" +
+        encodeURIComponent(
+            latitude + "," + longitude
+        );
+
+    window.open(
+        mapsUrl,
+        "_blank"
+    );
+
+}
 
 
 
@@ -9168,18 +9315,44 @@ function renderSelectedChatFiles() {
 
 function removeSelectedChatFile(index) {
 
+    index =
+        Number(index);
+
     if (
+        !Number.isInteger(index) ||
         index < 0 ||
         index >= selectedChatFiles.length
     ) {
         return;
     }
 
+    /*
+     * Remove the selected file
+     */
     selectedChatFiles.splice(
         index,
         1
     );
 
+    /*
+     * Reset the real file input when
+     * there are no selected files.
+     */
+    const input =
+        document.getElementById(
+            "chatFileInput"
+        );
+
+    if (
+        input &&
+        selectedChatFiles.length === 0
+    ) {
+        input.value = "";
+    }
+
+    /*
+     * Rebuild the attachment preview.
+     */
     renderSelectedChatFiles();
 
 }
@@ -9258,7 +9431,7 @@ async function uploadChatFile(file) {
                 headers: {
                     "Authorization":
                         "Bearer " +
-                        String(token).trim()
+                        token
                 },
 
                 body:
@@ -9279,8 +9452,19 @@ async function uploadChatFile(file) {
 
     }
 
-    if (!response.ok ||
-        !data.success) {
+    if (response.status === 401) {
+
+        throw new Error(
+            data.message ||
+            "Authentication failed. Please login again."
+        );
+
+    }
+
+    if (
+        !response.ok ||
+        !data.success
+    ) {
 
         throw new Error(
             data.message ||
@@ -9290,7 +9474,6 @@ async function uploadChatFile(file) {
     }
 
     return data.file;
-
 }
 
 async function downloadChatFile(url, filename) {
@@ -9509,10 +9692,18 @@ async function sendChatMessage() {
 
         input.value = "";
 
-        selectedChatFiles =
-            [];
+const fileInput =
+    document.getElementById(
+        "chatFileInput"
+    );
 
-        renderSelectedChatFiles();
+if (fileInput) {
+    fileInput.value = "";
+}
+
+selectedChatFiles = [];
+
+renderSelectedChatFiles();
 
         replyMessageId =
             null;
