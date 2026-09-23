@@ -10603,20 +10603,7 @@ if (message.replyTo) {
             style="max-width:260px;border-radius:9px;display:block;"
             alt="Photo">
 
-        <button
-            type="button"
-            class="wa-file-download"
-            onclick="downloadChatFile(
-                '${String(
-                    message.attachment.url || ""
-                ).replace(/'/g, "\\'")}',
-                '${String(
-                    message.attachment.name ||
-                    "photo"
-                ).replace(/'/g, "\\'")}'
-            )">
-            ⬇ Download
-        </button>
+        
 
     </div>
     `;
@@ -10635,20 +10622,7 @@ if (message.replyTo) {
                 style="max-width:280px;border-radius:9px;">
             </video>
 
-            <button
-    type="button"
-    class="wa-file-download"
-    onclick="downloadChatFile(
-        '${String(
-            message.attachment.url || ""
-        ).replace(/'/g, "\\'")}',
-        '${String(
-            message.attachment.name ||
-            "video"
-        ).replace(/'/g, "\\'")}'
-    )">
-    ⬇ Download
-</button>
+           
             `;
 
     }
@@ -10699,20 +10673,7 @@ if (message.replyTo) {
                 )}
             </div>
 
-            <button
-                type="button"
-                class="wa-file-download"
-                onclick="downloadChatFile(
-                    '${String(
-                        message.attachment.url || ""
-                    ).replace(/'/g, "\\'")}',
-                    '${String(
-                        message.attachment.name ||
-                        "download"
-                    ).replace(/'/g, "\\'")}'
-                )">
-                ⬇ Download
-            </button>
+           
 
         </div>
 
