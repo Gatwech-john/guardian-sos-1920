@@ -278,60 +278,17 @@ const UserSchema = new mongoose.Schema(
 
 /* ============================================================
    GUARDIAN SOS CHAT FILE STORAGE
+   MongoDB storage - works on Vercel
 ============================================================ */
-
-const chatUploadDirectory = path.join(__dirname, "public", "chat-uploads");
-
-// Create the upload folder only when the filesystem allows it.
-// Vercel's deployed filesystem is read-only, so do not create
-// directories there.
-if (!process.env.VERCEL && !fs.existsSync(chatUploadDirectory)) {
-    fs.mkdirSync(chatUploadDirectory, { recursive: true });
-}
-
-const chatStorage =
-    multer.diskStorage({
-
-        destination: function(req, file, cb) {
-
-            cb(
-                null,
-                chatUploadDirectory
-            );
-
-        },
-
-        filename: function(req, file, cb) {
-
-            const safeName =
-                file.originalname
-                    .replace(/[^a-zA-Z0-9._-]/g, "_");
-
-            cb(
-                null,
-                Date.now() +
-                "-" +
-                Math.random()
-                    .toString(36)
-                    .substring(2, 10) +
-                "-" +
-                safeName
-            );
-
-        }
-
-    });
 
 const chatUpload =
     multer({
-
-        storage: chatStorage,
+        storage: multer.memoryStorage(),
 
         limits: {
             fileSize:
                 100 * 1024 * 1024
         }
-
     });
 
 /*
@@ -678,7 +635,46 @@ const ChatConversationSchema = new mongoose.Schema(
 );
 
 
+/* ============================================================
+   CHAT FILE STORAGE
+============================================================ */
 
+const ChatFileSchema =
+    new mongoose.Schema({
+
+        filename: {
+            type: String,
+            required: true
+        },
+
+        contentType: {
+            type: String,
+            required: true
+        },
+
+        size: {
+            type: Number,
+            default: 0
+        },
+
+        data: {
+            type: Buffer,
+            required: true
+        },
+
+        uploadedBy: {
+            type:
+                mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
+
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+
+    });
 
 /* ============================================================
    CHAT MESSAGE SCHEMA
@@ -868,6 +864,13 @@ const ChatMessage =
     mongoose.model(
         "ChatMessage",
         ChatMessageSchema
+    );
+
+    const ChatFile =
+    mongoose.models.ChatFile ||
+    mongoose.model(
+        "ChatFile",
+        ChatFileSchema
     );
 
 
@@ -3274,8 +3277,11 @@ app.get(
 
 
 
+
+
 /* ============================================================
    CHAT FILE / PHOTO / VIDEO / AUDIO UPLOAD
+   STORED IN MONGODB
 ============================================================ */
 
 app.post(
@@ -3290,14 +3296,31 @@ app.post(
 
                 return res.status(400).json({
                     success: false,
-                    message: "No file selected."
+                    message:
+                        "No file selected."
                 });
 
             }
 
-            const fileUrl =
-                "/chat-uploads/" +
-                req.file.filename;
+            const chatFile =
+                await ChatFile.create({
+
+                    filename:
+                        req.file.originalname,
+
+                    contentType:
+                        req.file.mimetype,
+
+                    size:
+                        req.file.size,
+
+                    data:
+                        req.file.buffer,
+
+                    uploadedBy:
+                        req.user.userId
+
+                });
 
             return res.json({
 
@@ -3305,7 +3328,9 @@ app.post(
 
                 file: {
 
-                    url: fileUrl,
+                    url:
+                        "/api/chat/files/" +
+                        String(chatFile._id),
 
                     name:
                         req.file.originalname,
@@ -3344,66 +3369,62 @@ app.post(
 
 
 /* ============================================================
-   CHAT FILE / PHOTO / VIDEO / AUDIO UPLOAD
+   SERVE CHAT FILE
 ============================================================ */
 
-app.post(
-    "/api/chat/upload",
-    authenticateToken,
-    chatUpload.single("file"),
+app.get(
+    "/api/chat/files/:id",
     async (req, res) => {
 
         try {
 
-            if (!req.file) {
+            const file =
+                await ChatFile.findById(
+                    req.params.id
+                );
 
-                return res.status(400).json({
-                    success: false,
-                    message: "No file selected."
-                });
+            if (!file) {
+
+                return res.status(404).send(
+                    "File not found."
+                );
 
             }
 
-            const fileUrl =
-                "/chat-uploads/" +
-                req.file.filename;
+            res.setHeader(
+                "Content-Type",
+                file.contentType
+            );
 
-            return res.json({
+            res.setHeader(
+                "Content-Length",
+                String(file.size)
+            );
 
-                success: true,
+            res.setHeader(
+                "Content-Disposition",
+                "inline; filename=\"" +
+                file.filename.replace(
+                    /"/g,
+                    ""
+                ) +
+                "\""
+            );
 
-                file: {
-
-                    url: fileUrl,
-
-                    name:
-                        req.file.originalname,
-
-                    mimeType:
-                        req.file.mimetype,
-
-                    size:
-                        req.file.size
-
-                }
-
-            });
+            return res.send(
+                file.data
+            );
 
         } catch (error) {
 
             console.error(
-                "Chat upload error:",
+                "Chat file read error:",
                 error
             );
 
-            return res.status(500).json({
-
-                success: false,
-
-                message:
-                    "Unable to upload file."
-
-            });
+            return res.status(500).send(
+                "Unable to load file."
+            );
 
         }
 

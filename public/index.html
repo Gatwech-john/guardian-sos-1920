@@ -1326,6 +1326,18 @@ body {
 }
 
 
+.chat-date-separator {
+    width: fit-content;
+    margin: 14px auto;
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: #222;
+    color: #aaa;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+}
+
 /* =========================================================
    CHAT MESSAGES AREA
 ========================================================= */
@@ -4149,6 +4161,114 @@ function handleIncomingChatMessage(message) {
 
 
 
+/* ============================================================
+   WHATSAPP DATE LABEL
+============================================================ */
+
+function getChatDateLabel(dateValue) {
+
+    const date =
+        new Date(dateValue);
+
+    const now =
+        new Date();
+
+    const today =
+        new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+        );
+
+    const messageDay =
+        new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate()
+        );
+
+    const difference =
+        Math.floor(
+            (
+                today -
+                messageDay
+            ) /
+            86400000
+        );
+
+    if (difference === 0) {
+        return "Today";
+    }
+
+    if (difference === 1) {
+        return "Yesterday";
+    }
+
+    if (
+        date.getFullYear() ===
+        now.getFullYear()
+    ) {
+
+        return date.toLocaleDateString(
+            [],
+            {
+                day: "numeric",
+                month: "long"
+            }
+        );
+
+    }
+
+    return date.toLocaleDateString(
+        [],
+        {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        }
+    );
+
+}
+
+/* ============================================================
+   ADD CHAT DATE SEPARATOR
+============================================================ */
+
+function addChatDateSeparator(
+    dateValue
+) {
+
+    const messagesList =
+        document.getElementById(
+            "messagesList"
+        );
+
+    if (!messagesList) {
+        return;
+    }
+
+    const separator =
+        document.createElement("div");
+
+    separator.className =
+        "chat-date-separator";
+
+    separator.dataset.chatDate =
+        getChatDateLabel(
+            dateValue
+        );
+
+    separator.textContent =
+        getChatDateLabel(
+            dateValue
+        );
+
+    messagesList.appendChild(
+        separator
+    );
+
+}
+
 
 function appendChatMessage(message) {
 
@@ -4158,6 +4278,30 @@ function appendChatMessage(message) {
     if (!messagesList) {
         return;
     }
+
+const messageDateLabel =
+    getChatDateLabel(
+        message.createdAt ||
+        new Date()
+    );
+
+const lastSeparator =
+    messagesList.querySelector(
+        ".chat-date-separator:last-of-type"
+    );
+
+if (
+    !lastSeparator ||
+    lastSeparator.dataset.chatDate !==
+    messageDateLabel
+) {
+
+    addChatDateSeparator(
+        message.createdAt ||
+        new Date()
+    );
+
+}
 
     const currentUser =
         getStoredUser();
@@ -4221,25 +4365,176 @@ function appendChatMessage(message) {
 
 
     const messageText =
-        document.createElement("span");
+    document.createElement("div");
 
-    messageText.className =
-        "chat-message-text";
+messageText.className =
+    "chat-message-text";
 
 
-    /*
-     * If deleted for everyone,
-     * show the deleted-message text.
-     */
+if (message.deletedForEveryone) {
 
-    if (message.deletedForEveryone) {
+    messageText.textContent =
+        "This message was deleted";
 
-        messageText.textContent =
-            "This message was deleted";
+    messageElement.classList.add(
+        "deleted-message"
+    );
 
-        messageElement.classList.add(
-            "deleted-message"
-        );
+} else {
+
+    const attachment =
+        message.attachment || {};
+
+    const type =
+        message.type || "text";
+
+    if (
+        type === "image" &&
+        attachment.url
+    ) {
+
+        messageText.innerHTML = `
+
+            <img
+                src="${escapeHTML(
+                    attachment.url
+                )}"
+                alt="${escapeHTML(
+                    attachment.name ||
+                    "Photo"
+                )}"
+                style="
+                    display:block;
+                    max-width:260px;
+                    max-height:320px;
+                    border-radius:12px;
+                    cursor:pointer;
+                    object-fit:cover;
+                "
+                onclick="
+                    window.open(
+                        '${escapeHTML(
+                            attachment.url
+                        )}',
+                        '_blank'
+                    )
+                "
+            >
+
+        `;
+
+    } else if (
+        type === "video" &&
+        attachment.url
+    ) {
+
+        messageText.innerHTML = `
+
+            <video
+                controls
+                playsinline
+                style="
+                    display:block;
+                    width:260px;
+                    max-width:100%;
+                    border-radius:12px;
+                "
+            >
+                <source
+                    src="${escapeHTML(
+                        attachment.url
+                    )}"
+                    type="${escapeHTML(
+                        attachment.mimeType ||
+                        "video/mp4"
+                    )}"
+                >
+            </video>
+
+        `;
+
+    } else if (
+        (
+            type === "audio" ||
+            type === "voice"
+        ) &&
+        attachment.url
+    ) {
+
+        messageText.innerHTML = `
+
+            <audio
+                controls
+                style="
+                    width:260px;
+                    max-width:100%;
+                "
+            >
+                <source
+                    src="${escapeHTML(
+                        attachment.url
+                    )}"
+                    type="${escapeHTML(
+                        attachment.mimeType ||
+                        "audio/mpeg"
+                    )}"
+                >
+            </audio>
+
+        `;
+
+    } else if (
+        type === "file" &&
+        attachment.url
+    ) {
+
+        messageText.innerHTML = `
+
+            <button
+                type="button"
+                onclick="
+                    downloadChatFile(
+                        '${escapeHTML(
+                            attachment.url
+                        )}',
+                        '${escapeHTML(
+                            attachment.name ||
+                            "download"
+                        )}'
+                    )
+                "
+                style="
+                    display:flex;
+                    align-items:center;
+                    gap:10px;
+                    padding:10px;
+                    border:1px solid #ff1493;
+                    border-radius:10px;
+                    background:#171717;
+                    color:white;
+                    cursor:pointer;
+                    max-width:260px;
+                "
+            >
+
+                <span
+                    style="
+                        font-size:25px;
+                    "
+                >
+                    📎
+                </span>
+
+                <span>
+                    ${escapeHTML(
+                        attachment.name ||
+                        "Document"
+                    )}
+                </span>
+
+            </button>
+
+        `;
 
     } else {
 
@@ -4247,6 +4542,8 @@ function appendChatMessage(message) {
             message.text || "";
 
     }
+
+}
 
 
     const messageTime =
@@ -8656,66 +8953,220 @@ async function handleChatFileSelected(event) {
     selectedChatFiles =
         files;
 
-    const preview =
-        document.getElementById(
-            "attachmentPreview"
-        );
-
-    if (!preview) return;
-
-    preview.style.display =
-        "block";
-
-    preview.innerHTML =
-        files.map(file => {
-
-            const size =
-                formatFileSize(
-                    file.size
-                );
-
-            if (
-                file.type.startsWith(
-                    "image/"
-                )
-            ) {
-
-                const url =
-                    URL.createObjectURL(
-                        file
-                    );
-
-                return `
-                    <div>
-                        <img src="${url}">
-                        <br>
-                        ${escapeHTML(file.name)}
-                        (${size})
-                    </div>
-                `;
-
-            }
-
-            return `
-                <div class="wa-file-message">
-                    📎
-                    <div>
-                        <div class="wa-file-name">
-                            ${escapeHTML(file.name)}
-                        </div>
-                        <div class="wa-file-size">
-                            ${size}
-                        </div>
-                    </div>
-                </div>
-            `;
-
-        }).join("");
+    renderSelectedChatFiles();
 
     showToast(
         files.length +
         " attachment(s) selected."
     );
+
+}
+
+
+/* ============================================================
+   RENDER SELECTED CHAT FILES
+============================================================ */
+
+function renderSelectedChatFiles() {
+
+    const preview =
+        document.getElementById(
+            "attachmentPreview"
+        );
+
+    if (!preview) {
+        return;
+    }
+
+    if (!selectedChatFiles.length) {
+
+        preview.style.display =
+            "none";
+
+        preview.innerHTML =
+            "";
+
+        return;
+    }
+
+    preview.style.display =
+        "block";
+
+    preview.innerHTML =
+        selectedChatFiles
+            .map((file, index) => {
+
+                const size =
+                    formatFileSize(
+                        file.size
+                    );
+
+                let content = "";
+
+                if (
+                    file.type.startsWith(
+                        "image/"
+                    )
+                ) {
+
+                    const url =
+                        URL.createObjectURL(
+                            file
+                        );
+
+                    content = `
+                        <img
+                            src="${url}"
+                            style="
+                                width:70px;
+                                height:70px;
+                                object-fit:cover;
+                                border-radius:10px;
+                            "
+                        >
+                    `;
+
+                } else if (
+                    file.type.startsWith(
+                        "video/"
+                    )
+                ) {
+
+                    content = `
+                        <div
+                            style="
+                                font-size:30px;
+                            "
+                        >
+                            🎥
+                        </div>
+                    `;
+
+                } else if (
+                    file.type.startsWith(
+                        "audio/"
+                    )
+                ) {
+
+                    content = `
+                        <div
+                            style="
+                                font-size:30px;
+                            "
+                        >
+                            🎵
+                        </div>
+                    `;
+
+                } else {
+
+                    content = `
+                        <div
+                            style="
+                                font-size:30px;
+                            "
+                        >
+                            📄
+                        </div>
+                    `;
+
+                }
+
+                return `
+                    <div
+                        class="selected-chat-file"
+                        style="
+                            display:flex;
+                            align-items:center;
+                            gap:10px;
+                            padding:8px;
+                            margin:5px 0;
+                            background:#171717;
+                            border:1px solid #ff1493;
+                            border-radius:10px;
+                        "
+                    >
+
+                        ${content}
+
+                        <div
+                            style="
+                                flex:1;
+                                min-width:0;
+                            "
+                        >
+
+                            <div
+                                style="
+                                    overflow:hidden;
+                                    text-overflow:ellipsis;
+                                    white-space:nowrap;
+                                "
+                            >
+                                ${escapeHTML(
+                                    file.name
+                                )}
+                            </div>
+
+                            <div
+                                style="
+                                    color:#999;
+                                    font-size:12px;
+                                "
+                            >
+                                ${size}
+                            </div>
+
+                        </div>
+
+                        <button
+                            type="button"
+                            onclick="
+                                removeSelectedChatFile(
+                                    ${index}
+                                )
+                            "
+                            style="
+                                width:34px;
+                                height:34px;
+                                border-radius:50%;
+                                border:1px solid #ff4444;
+                                background:#111;
+                                color:#ff4444;
+                                cursor:pointer;
+                                font-size:18px;
+                            "
+                        >
+                            ×
+                        </button>
+
+                    </div>
+                `;
+
+            })
+            .join("");
+
+}
+
+/* ============================================================
+   REMOVE SELECTED CHAT FILE
+============================================================ */
+
+function removeSelectedChatFile(index) {
+
+    if (
+        index < 0 ||
+        index >= selectedChatFiles.length
+    ) {
+        return;
+    }
+
+    selectedChatFiles.splice(
+        index,
+        1
+    );
+
+    renderSelectedChatFiles();
 
 }
 
@@ -8890,6 +9341,7 @@ async function sendAdvancedMessage(
    SEND CHAT MESSAGE
 ============================================================ */
 
+
 async function sendChatMessage() {
 
     const input =
@@ -8897,7 +9349,9 @@ async function sendChatMessage() {
             "chatMessageInput"
         );
 
-    if (!input) return;
+    if (!input) {
+        return;
+    }
 
     const text =
         input.value.trim();
@@ -8916,40 +9370,45 @@ async function sendChatMessage() {
         );
 
         return;
-
     }
 
+    const filesToSend =
+        [...selectedChatFiles];
 
     try {
 
+        /*
+         * SEND TEXT FIRST
+         */
+
         if (text) {
 
-            const message =
-                await sendAdvancedMessage({
+            await sendAdvancedMessage({
 
-                    conversationId:
-                        currentConversationId,
+                conversationId:
+                    currentConversationId,
 
-                    text:
+                text:
+                    text,
 
-                        text,
+                type:
+                    "text",
 
-                    type:
-                        "text",
+                replyTo:
+                    replyMessageId
 
-                    replyTo:
-                        replyMessageId
-
-                });
-
-    
+            });
 
         }
 
 
+        /*
+         * SEND ATTACHMENTS
+         */
+
         for (
             const file
-            of selectedChatFiles
+            of filesToSend
         ) {
 
             showToast(
@@ -8963,6 +9422,18 @@ async function sendChatMessage() {
                     file
                 );
 
+            if (
+                !uploaded ||
+                !uploaded.url
+            ) {
+
+                throw new Error(
+                    "Upload failed for " +
+                    file.name
+                );
+
+            }
+
             let type =
                 "file";
 
@@ -8971,76 +9442,77 @@ async function sendChatMessage() {
                     "image/"
                 )
             ) {
-                type = "image";
-            }
-            else if (
+
+                type =
+                    "image";
+
+            } else if (
                 file.type.startsWith(
                     "video/"
                 )
             ) {
-                type = "video";
-            }
-            else if (
+
+                type =
+                    "video";
+
+            } else if (
                 file.type.startsWith(
                     "audio/"
                 )
             ) {
-                type = "audio";
+
+                type =
+                    "audio";
+
             }
 
-            const message =
-                await sendAdvancedMessage({
+            await sendAdvancedMessage({
 
-                    conversationId:
-                        currentConversationId,
+                conversationId:
+                    currentConversationId,
 
-                    text: "",
+                text:
+                    "",
 
-                    type:
+                type:
+                    type,
 
-                        type,
+                attachment:
+                    uploaded,
 
-                    attachment:
-                        uploaded,
+                replyTo:
+                    replyMessageId
 
-                    replyTo:
-                        replyMessageId
-
-                });
-
-            
+            });
 
         }
 
+
+        /*
+         * CLEAR ONLY AFTER EVERYTHING
+         * HAS BEEN SUCCESSFULLY SENT
+         */
 
         input.value = "";
 
         selectedChatFiles =
             [];
 
+        renderSelectedChatFiles();
+
         replyMessageId =
             null;
 
         cancelReply();
 
-        const preview =
-            document.getElementById(
-                "attachmentPreview"
-            );
-
-        if (preview) {
-
-            preview.style.display =
-                "none";
-
-            preview.innerHTML =
-                "";
-
-        }
+        showToast(
+            "Message sent."
+        );
 
     } catch (error) {
 
         console.error(
+            "Chat send error:",
             error
         );
 
@@ -11830,6 +12302,11 @@ setInterval(
     1000
 );
 
+if (getToken()) {
+    setTimeout(() => {
+        connectChatSocket();
+    }, 300);
+}
 /* =========================================================
    CHAT SEARCH
 ========================================================= */
@@ -12076,7 +12553,25 @@ Object.assign(window, {
 
 });
 
+/* ============================================================
+   DISCONNECT GUARDIAN SOS CHAT WHEN APP/PAGE CLOSES
+============================================================ */
 
+window.addEventListener(
+    "pagehide",
+    function() {
+
+        if (
+            chatSocket &&
+            chatSocket.connected
+        ) {
+
+            chatSocket.disconnect();
+
+        }
+
+    }
+);
 </script>
 </body>
 </html>
