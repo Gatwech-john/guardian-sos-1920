@@ -4393,11 +4393,19 @@ if (message.deletedForEveryone) {
         message.type || "text";
 
     if (
-        type === "image" &&
-        attachment.url
-    ) {
+    type === "image" &&
+    attachment.url
+) {
 
-        messageText.innerHTML = `
+    messageText.innerHTML = `
+
+        <div
+            class="wa-media-wrapper"
+            style="
+                position:relative;
+                display:inline-block;
+            "
+        >
 
             <img
                 src="${escapeHTML(
@@ -4425,7 +4433,32 @@ if (message.deletedForEveryone) {
                 "
             >
 
-        `;
+            <button
+                type="button"
+                class="wa-media-more"
+                onclick="
+                    event.stopPropagation();
+                    openMediaMessageMenu(
+                        this,
+                        '${escapeHTML(
+                            attachment.url
+                        )}',
+                        '${escapeHTML(
+                            attachment.name ||
+                            "Photo"
+                        )}',
+                        'image'
+                    );
+                "
+            >
+                ⋮
+            </button>
+
+        </div>
+
+    `;
+
+
 
     } else if (
         type === "video" &&
@@ -4488,57 +4521,58 @@ if (message.deletedForEveryone) {
         `;
 
     } else if (
-        type === "file" &&
-        attachment.url
-    ) {
+    message.type === "file" &&
+    message.attachment
+) {
 
-        messageText.innerHTML = `
+    const fileUrl =
+        message.attachment.url || "";
+
+    const fileName =
+        message.attachment.name ||
+        "Document";
+
+    content = `
+        <div class="wa-file-message wa-attachment-wrapper">
+
+            <div class="wa-file-icon">
+                📎
+            </div>
+
+            <div style="flex:1;min-width:0;">
+
+                <div class="wa-file-name">
+                    ${escapeHTML(fileName)}
+                </div>
+
+                <div class="wa-file-size">
+                    ${formatFileSize(
+                        message.attachment.size || 0
+                    )}
+                </div>
+
+            </div>
 
             <button
                 type="button"
+                class="wa-attachment-menu-button"
                 onclick="
-                    downloadChatFile(
-                        '${escapeHTML(
-                            attachment.url
-                        )}',
-                        '${escapeHTML(
-                            attachment.name ||
-                            "download"
-                        )}'
-                    )
+                    event.stopPropagation();
+                    openAttachmentMenu(
+                        this,
+                        '${escapeHTML(fileUrl)}',
+                        '${escapeHTML(fileName)}',
+                        'file'
+                    );
                 "
-                style="
-                    display:flex;
-                    align-items:center;
-                    gap:10px;
-                    padding:10px;
-                    border:1px solid #ff1493;
-                    border-radius:10px;
-                    background:#171717;
-                    color:white;
-                    cursor:pointer;
-                    max-width:260px;
-                "
+                aria-label="More options"
             >
-
-                <span
-                    style="
-                        font-size:25px;
-                    "
-                >
-                    📎
-                </span>
-
-                <span>
-                    ${escapeHTML(
-                        attachment.name ||
-                        "Document"
-                    )}
-                </span>
-
+                ⋮
             </button>
 
-        `;
+        </div>
+    `;
+
 
     } else {
 
@@ -10452,7 +10486,7 @@ document.addEventListener("touchstart", function(event) {
 
 function renderAdvancedMessage(
     message
-) {
+) { 
 
     const messagesList =
         document.getElementById(
@@ -10462,6 +10496,34 @@ function renderAdvancedMessage(
     if (!messagesList) {
         return;
     }
+
+    /* ============================================================
+   WHATSAPP DATE SEPARATOR
+============================================================ */
+
+const messageDateLabel =
+    getChatDateLabel(
+        message.createdAt ||
+        new Date()
+    );
+
+const lastSeparator =
+    messagesList.querySelector(
+        ".chat-date-separator:last-of-type"
+    );
+
+if (
+    !lastSeparator ||
+    lastSeparator.dataset.chatDate !==
+    messageDateLabel
+) {
+
+    addChatDateSeparator(
+        message.createdAt ||
+        new Date()
+    );
+
+}
 /* =========================================================
    PREVENT DUPLICATE MESSAGE RENDERING
 ========================================================= */
