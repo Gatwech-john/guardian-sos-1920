@@ -9216,7 +9216,7 @@ function formatFileSize(bytes) {
 ============================================================ */
 
 async function uploadChatFile(file) {
-
+console.log("CHAT TOKEN:", getToken());
     const token = getToken();
 
     if (!token) {
