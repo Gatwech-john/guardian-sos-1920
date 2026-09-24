@@ -883,33 +883,67 @@ const ChatMessage =
    MONGODB CONNECTION
 ============================================================ */
 
-if (!process.env.MONGO_URI) {
+let mongoConnectionPromise = null;
 
-    console.error(
-        "ERROR: MONGO_URI is missing from .env"
-    );
+async function connectMongoDB() {
 
-} else {
+    if (!process.env.MONGO_URI) {
 
-    mongoose
-        .connect(process.env.MONGO_URI)
+        console.error(
+            "ERROR: MONGO_URI is missing from environment variables."
+        );
 
-        .then(() => {
+        throw new Error(
+            "MONGO_URI is missing."
+        );
+    }
 
-            console.log(
-                "MongoDB connected successfully."
-            );
+    if (
+        mongoose.connection.readyState === 1
+    ) {
 
-        })
+        return mongoose.connection;
 
-        .catch((error) => {
+    }
 
-            console.error(
-                "MongoDB connection error:",
-                error.message
-            );
+    if (
+        mongoose.connection.readyState === 2 &&
+        mongoConnectionPromise
+    ) {
 
-        });
+        await mongoConnectionPromise;
+
+        return mongoose.connection;
+
+    }
+
+    mongoConnectionPromise =
+        mongoose.connect(
+            process.env.MONGO_URI
+        );
+
+    try {
+
+        await mongoConnectionPromise;
+
+        console.log(
+            "MongoDB connected successfully."
+        );
+
+        return mongoose.connection;
+
+    } catch (error) {
+
+        console.error(
+            "MongoDB connection error:",
+            error.message
+        );
+
+        mongoConnectionPromise = null;
+
+        throw error;
+
+    }
 
 }
 
@@ -2110,27 +2144,11 @@ app.post(
 
         try {
 
-            /*
-             * MAKE SURE DATABASE IS CONNECTED
-             */
+            /* ====================================================
+               MAKE SURE MONGODB IS CONNECTED
+            ==================================================== */
 
-            if (
-                mongoose.connection.readyState !== 1
-            ) {
-
-                console.error(
-                    "LOGIN ERROR: MongoDB is not connected."
-                );
-
-                return res.status(503).json({
-
-                    success: false,
-
-                    message:
-                        "Database is not connected. Please try again."
-                });
-
-            }
+            await connectMongoDB();
 
 
             const email =
