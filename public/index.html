@@ -8551,11 +8551,6 @@ try {
 
         try {
 
-            /*
-             * Firebase Messaging must exist
-             * before getToken() is called.
-             */
-
             if (!messaging) {
 
                 console.warn(
@@ -8568,11 +8563,12 @@ try {
 
 
             if (
-                !("Notification" in window)
+                typeof Notification ===
+                "undefined"
             ) {
 
                 console.warn(
-                    "Browser notifications are not supported."
+                    "Notifications are not supported."
                 );
 
                 return null;
@@ -8585,7 +8581,8 @@ try {
 
 
             if (
-                permission !== "granted"
+                permission !==
+                "granted"
             ) {
 
                 console.log(
@@ -8599,11 +8596,14 @@ try {
 
             const token =
                 await getToken(
+
                     messaging,
+
                     {
                         vapidKey:
                             "BLq8pOvtQQc0yJnW6QPzgOd45ov-ZXQIw84DX_HtN1kF9f_rrNJ0kode5y1OGz4qn16tatOEghJwl7oETXDPSc4"
                     }
+
                 );
 
 
