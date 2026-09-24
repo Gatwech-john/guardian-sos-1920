@@ -2096,16 +2096,55 @@ POST /api/auth/login
 ------------------------------------------------------------
 */
 
+/*
+------------------------------------------------------------
+LOGIN
+------------------------------------------------------------
+POST /api/auth/login
+------------------------------------------------------------
+*/
+
 app.post(
     "/api/auth/login",
     async (req, res) => {
 
         try {
 
-            const {
-                email,
-                password
-            } = req.body;
+            /*
+             * MAKE SURE DATABASE IS CONNECTED
+             */
+
+            if (
+                mongoose.connection.readyState !== 1
+            ) {
+
+                console.error(
+                    "LOGIN ERROR: MongoDB is not connected."
+                );
+
+                return res.status(503).json({
+
+                    success: false,
+
+                    message:
+                        "Database is not connected. Please try again."
+                });
+
+            }
+
+
+            const email =
+                String(
+                    req.body?.email || ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            const password =
+                String(
+                    req.body?.password || ""
+                );
 
 
             if (
@@ -2125,14 +2164,27 @@ app.post(
             }
 
 
+            if (!isValidEmail(email)) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Please enter a valid email address."
+
+                });
+
+            }
+
+
+            /*
+             * FIND USER
+             */
+
             const user =
                 await User.findOne({
-
-                    email:
-                        email
-                            .toLowerCase()
-                            .trim()
-
+                    email: email
                 });
 
 
@@ -2149,6 +2201,36 @@ app.post(
 
             }
 
+
+            /*
+             * MAKE SURE USER HAS A PASSWORD
+             */
+
+            if (
+                !user.password ||
+                typeof user.password !== "string"
+            ) {
+
+                console.error(
+                    "LOGIN ERROR: User has no valid password hash:",
+                    user._id
+                );
+
+                return res.status(500).json({
+
+                    success: false,
+
+                    message:
+                        "This account has invalid login credentials."
+
+                });
+
+            }
+
+
+            /*
+             * CHECK PASSWORD
+             */
 
             const passwordMatches =
                 await bcrypt.compare(
@@ -2171,23 +2253,31 @@ app.post(
             }
 
 
+            /*
+             * CREATE JWT
+             */
+
             const token =
                 createToken(user);
 
 
-            res.json({
+            /*
+             * RETURN LOGIN RESPONSE
+             */
+
+            return res.status(200).json({
 
                 success: true,
 
                 message:
                     "Login successful.",
 
-                token,
+                token: token,
 
                 user: {
 
                     id:
-                        user._id,
+                        user._id.toString(),
 
                     name:
                         user.name,
@@ -2196,10 +2286,10 @@ app.post(
                         user.email,
 
                     phone:
-                        user.phone,
+                        user.phone || "",
 
                     profileImage:
-                        user.profileImage
+                        user.profileImage || ""
 
                 }
 
@@ -2209,17 +2299,22 @@ app.post(
         } catch (error) {
 
             console.error(
-                "Login error:",
+                "LOGIN ERROR:",
                 error
             );
 
+            console.error(
+                "LOGIN ERROR MESSAGE:",
+                error.message
+            );
 
-            res.status(500).json({
+            return res.status(500).json({
 
                 success: false,
 
                 message:
-                    "Unable to login."
+                    "Unable to login. Server error: " +
+                    error.message
 
             });
 
