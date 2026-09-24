@@ -4713,30 +4713,6 @@ if (message.deletedForEveryone) {
         messagesList.scrollHeight;
 }
 
-function formatFileSize(bytes) {
-    if (!bytes || bytes <= 0) {
-        return "0 Bytes";
-    }
-
-    const units = [
-        "Bytes",
-        "KB",
-        "MB",
-        "GB"
-    ];
-
-    const index = Math.floor(
-        Math.log(bytes) / Math.log(1024)
-    );
-
-    const size = bytes / Math.pow(1024, index);
-
-    return (
-        size.toFixed(index === 0 ? 0 : 1) +
-        " " +
-        units[index]
-    );
-}
 
 
 
@@ -8684,30 +8660,7 @@ try {
 
 }
 
-function initializeCallListeners() {
 
-    socket.on(
-        "incoming_call",
-        handleIncomingCall
-    );
-
-    socket.on(
-        "call_answered",
-        handleCallAnswered
-    );
-
-    socket.on(
-        "call_rejected",
-        handleCallRejected
-    );
-
-    socket.on(
-        "call_ended",
-        handleCallEnded
-    );
-
-}
-initializeCallListeners();
 
 /* ============================================================
    GUARDIAN SOS ADVANCED CHAT
