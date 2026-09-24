@@ -2847,6 +2847,20 @@ align-items: flex-start;
                 </div>
 
                 <div class="form-group">
+
+                     <label for="registerPhoto">
+                        Profile Picture
+                     </label>
+
+                     <input
+                     type="file"
+                     id="registerPhoto"
+                     accept="image/*"
+                      >
+
+</div>
+
+                <div class="form-group">
                     <label for="registerPassword">Password</label>
                     <input
                         type="password"
@@ -11714,6 +11728,24 @@ async function startCall(
 
         activeCallType =
             type;
+            const callUser =
+    document.getElementById(
+        "chatWindowTitle"
+    );
+
+const callUserName =
+    document.getElementById(
+        "callUserName"
+    );
+
+if (callUserName) {
+
+    callUserName.textContent =
+        callUser
+            ? callUser.textContent
+            : "User";
+
+}
 
         localStream =
             await navigator
@@ -11830,9 +11862,11 @@ function showIncomingCall(
 
     if (callerName) {
 
-        callerName.textContent =
-            data.callerName ||
-            "Guardian SOS User";
+        document.getElementById(
+    "incomingCallerName"
+).textContent =
+    data.callerName ||
+    "User";
 
     }
 
@@ -11844,15 +11878,36 @@ function showIncomingCall(
 
     if (callerAvatar) {
 
-        callerAvatar.textContent =
-            (
-                data.callerName ||
-                "G"
-            )
-            .charAt(0)
-            .toUpperCase();
+    callerAvatar.innerHTML = "";
+
+    if (data.callerImage) {
+
+        const img =
+            document.createElement("img");
+
+        img.src =
+            data.callerImage;
+
+        img.alt =
+            data.callerName || "User";
+
+        img.style.width =
+            "100%";
+
+        img.style.height =
+            "100%";
+
+        img.style.objectFit =
+            "cover";
+
+        img.style.borderRadius =
+            "50%";
+
+        callerAvatar.appendChild(img);
 
     }
+
+}
 
 
     const type =

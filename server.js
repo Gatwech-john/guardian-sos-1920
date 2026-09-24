@@ -255,6 +255,10 @@ const UserSchema = new mongoose.Schema(
             trim: true,
             maxlength: 30
         },
+        profileImage: {
+    type: String,
+    default: ""
+},
         fcmTokens: {
     type: [String],
     default: []
@@ -1028,7 +1032,7 @@ function authenticateToken(req, res, next) {
    SOCKET.IO AUTHENTICATION
 ============================================================ */
 
-io.use((socket, next) => {
+io.use(async (socket, next) => {
 
     try {
 
@@ -1048,13 +1052,23 @@ io.use((socket, next) => {
                 JWT_SECRET
             );
 
-        socket.userId =
-            decoded.userId;
+       socket.userId =
+    decoded.userId;
 
-        socket.userEmail =
-            decoded.email;
+socket.userEmail =
+    decoded.email;
 
-        next();
+const socketUser =
+    await User.findById(
+        decoded.userId
+    ).select("name");
+
+socket.userName =
+    socketUser
+        ? socketUser.name
+        : "User";
+
+next();
 
     } catch (error) {
 
@@ -2041,7 +2055,10 @@ app.post(
                         user.email,
 
                     phone:
-                        user.phone
+                        user.phone,
+
+                    profileImage:
+                        user.profileImage
 
                 }
 
@@ -2179,7 +2196,10 @@ app.post(
                         user.email,
 
                     phone:
-                        user.phone
+                        user.phone,
+
+                    profileImage:
+                        user.profileImage
 
                 }
 
@@ -2671,7 +2691,7 @@ app.get(
             const user = await User.findOne({
                 _id: { $ne: req.user.userId },
                 phone: { $in: variants }
-            }).select("_id name email phone");
+            }).select("_id name email phone profileImage")
 
             if (!user) {
                 return res.json({
@@ -2751,7 +2771,7 @@ app.get(
                         }
                     ]
                 })
-                .select("_id name email phone")
+                .select("_id name email phone profileImage")
                 .limit(20);
 
             res.json({
@@ -2818,7 +2838,8 @@ app.post(
 
             const targetUser =
                 await User.findById(userId)
-                    .select("_id name email phone");
+                    .select(
+                       "_id name email phone profileImage");
 
             if (!targetUser) {
 
@@ -2884,9 +2905,9 @@ app.post(
                         conversation._id
                     )
                     .populate(
-                        "participants",
-                        "_id name email phone"
-                    );
+                     "participants",
+                      "_id name email phone profileImage"
+);
 
 
             return res.status(200).json({
@@ -2938,7 +2959,7 @@ app.get(
                     })
                     .populate(
                         "participants",
-                        "_id name email phone"
+                        "_id name email phone profileImage"
                     )
                     .sort({
                         lastMessageAt: -1
@@ -3131,11 +3152,11 @@ app.post(
                     )
                     .populate(
                         "senderId",
-                        "_id name email phone"
+                        "_id name email phone profileImage"
                     )
                     .populate(
                         "recipientId",
-                        "_id name email phone"
+                        "_id name email phone profileImage"
                     );
 
 
@@ -3231,11 +3252,11 @@ app.get(
         })
                     .populate(
                         "senderId",
-                        "_id name email phone"
+                        "_id name email phone profileImage"
                     )
                     .populate(
                         "recipientId",
-                        "_id name email phone"
+                        "_id name email phone profileImage"
                     )
                     .populate(
                         "replyTo",
@@ -3574,11 +3595,11 @@ app.post(
                     .findById(message._id)
                     .populate(
                         "senderId",
-                        "_id name email phone"
+                        "_id name email phone profileImage"
                     )
                     .populate(
                         "recipientId",
-                        "_id name email phone"
+                        "_id name email phone profileImage"
                     );
 
             const messageData =
@@ -4345,11 +4366,11 @@ async function sendChatSOSAlert(user, contacts, emergency) {
                     .findById(message._id)
                     .populate(
                         "senderId",
-                        "_id name email phone"
+                        "_id name email phone profileImage"
                     )
                     .populate(
                         "recipientId",
-                        "_id name email phone"
+                        "_id name email phone profileImage"
                     );
 
             /*
