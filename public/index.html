@@ -8660,7 +8660,30 @@ try {
 
 }
 
+function initializeCallListeners() {
 
+    socket.on(
+        "incoming_call",
+        handleIncomingCall
+    );
+
+    socket.on(
+        "call_answered",
+        handleCallAnswered
+    );
+
+    socket.on(
+        "call_rejected",
+        handleCallRejected
+    );
+
+    socket.on(
+        "call_ended",
+        handleCallEnded
+    );
+
+}
+initializeCallListeners();
 
 /* ============================================================
    GUARDIAN SOS ADVANCED CHAT
