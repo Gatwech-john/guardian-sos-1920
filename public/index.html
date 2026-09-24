@@ -3910,6 +3910,13 @@ function connectChatSocket() {
         }
 
         return;
+
+                /*
+         * Install call listeners immediately
+         * when Socket.IO connects.
+         */
+
+        setupCallSocketEvents();
     }
 
     console.log(
@@ -12150,6 +12157,11 @@ function setupCallSocketEvents() {
         return;
     }
 
+
+    /* =========================================================
+       INCOMING CALL
+    ========================================================= */
+
     chatSocket.off(
         "incoming_call"
     );
@@ -12158,6 +12170,15 @@ function setupCallSocketEvents() {
         "incoming_call",
         function(data) {
 
+            if (!data || !data.callerId) {
+                return;
+            }
+
+            console.log(
+                "INCOMING CALL:",
+                data
+            );
+
             showIncomingCall(
                 data
             );
@@ -12165,6 +12186,10 @@ function setupCallSocketEvents() {
         }
     );
 
+
+    /* =========================================================
+       CALL ANSWERED
+    ========================================================= */
 
     chatSocket.off(
         "call_answered"
@@ -12176,101 +12201,127 @@ function setupCallSocketEvents() {
 
             if (
                 !peerConnection ||
+                !data ||
                 !data.answer
             ) {
                 return;
             }
 
-            await peerConnection
-                .setRemoteDescription(
-                    new RTCSessionDescription(
-                        data.answer
-                    )
-                );
+            try {
+
+                await peerConnection
+                    .setRemoteDescription(
+                        new RTCSessionDescription(
+                            data.answer
+                        )
+                    );
+
+
                 for (
-    const candidate
-    of pendingIceCandidates
-) {
+                    const candidate
+                    of pendingIceCandidates
+                ) {
 
-    try {
+                    try {
 
-        await peerConnection
-            .addIceCandidate(
-                candidate
-            );
+                        await peerConnection
+                            .addIceCandidate(
+                                candidate
+                            );
 
-    } catch (error) {
+                    } catch (error) {
 
-        console.error(
-            "Queued ICE error:",
-            error
-        );
+                        console.error(
+                            "Queued ICE error:",
+                            error
+                        );
 
-    }
+                    }
 
-}
+                }
 
-pendingIceCandidates = [];
+                pendingIceCandidates = [];
 
-            setCallStatus(
-                "Connected"
-            );
+
+                setCallStatus(
+                    "Connected"
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Call answer error:",
+                    error
+                );
+
+            }
 
         }
     );
 
 
-   chatSocket.off(
-    "ice_candidate"
-);
+    /* =========================================================
+       ICE CANDIDATE
+    ========================================================= */
 
-chatSocket.on(
-    "ice_candidate",
-    async function(data) {
+    chatSocket.off(
+        "ice_candidate"
+    );
 
-        if (
-            !data ||
-            !data.candidate
-        ) {
-            return;
-        }
+    chatSocket.on(
+        "ice_candidate",
+        async function(data) {
 
-        const candidate =
-            new RTCIceCandidate(
-                data.candidate
-            );
+            if (
+                !data ||
+                !data.candidate
+            ) {
+                return;
+            }
 
-        if (
-            !peerConnection ||
-            !peerConnection.remoteDescription
-        ) {
+            const candidate =
+                new RTCIceCandidate(
+                    data.candidate
+                );
 
-            pendingIceCandidates.push(
-                candidate
-            );
 
-            return;
-        }
+            if (
+                !peerConnection ||
+                !peerConnection.remoteDescription
+            ) {
 
-        try {
-
-            await peerConnection
-                .addIceCandidate(
+                pendingIceCandidates.push(
                     candidate
                 );
 
-        } catch (error) {
+                return;
 
-            console.error(
-                "ICE candidate error:",
-                error
-            );
+            }
+
+
+            try {
+
+                await peerConnection
+                    .addIceCandidate(
+                        candidate
+                    );
+
+            } catch (error) {
+
+                console.error(
+                    "ICE candidate error:",
+                    error
+                );
+
+            }
 
         }
+    );
 
-    }
-);
 
+    /* =========================================================
+       CALL REJECTED
+    ========================================================= */
 
     chatSocket.off(
         "call_rejected"
@@ -12292,6 +12343,10 @@ chatSocket.on(
         }
     );
 
+
+    /* =========================================================
+       CALL ENDED
+    ========================================================= */
 
     chatSocket.off(
         "call_ended"
@@ -12526,21 +12581,14 @@ function endCurrentCall() {
    CALL SOCKET INITIALIZATION
 ============================================================ */
 
-setInterval(
-    function() {
+if (
+    chatSocket &&
+    chatSocket.connected
+) {
 
-        if (
-            chatSocket &&
-            chatSocket.connected
-        ) {
+    setupCallSocketEvents();
 
-            setupCallSocketEvents();
-
-        }
-
-    },
-    1000
-);
+}
 
 if (getToken()) {
     setTimeout(() => {
