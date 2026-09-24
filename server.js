@@ -3064,6 +3064,12 @@ app.get(
 
         try {
 
+            /* ====================================================
+               MAKE SURE MONGODB IS CONNECTED
+            ==================================================== */
+
+            await connectMongoDB();
+
             const conversations =
                 await ChatConversation
                     .find({
