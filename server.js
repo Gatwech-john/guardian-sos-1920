@@ -1955,6 +1955,7 @@ POST /api/auth/register
 
 app.post(
     "/api/auth/register",
+    upload.single("profileImage"),
     async (req, res) => {
 
         try {
@@ -2045,23 +2046,28 @@ app.post(
 
 
             const user =
-                await User.create({
+    await User.create({
 
-                    name:
-                        name.trim(),
+        name:
+            name.trim(),
 
-                    email:
-                        normalizedEmail,
+        email:
+            normalizedEmail,
 
-                    phone:
-                        phone
-                            ? phone.trim()
-                            : "",
+        phone:
+            phone
+                ? phone.trim()
+                : "",
 
-                    password:
-                        hashedPassword
+        password:
+            hashedPassword,
 
-                });
+        profileImage:
+            req.file
+                ? `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`
+                : ""
+
+    });
 
 
             const token =
