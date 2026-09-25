@@ -2359,10 +2359,10 @@ align-items: flex-start;
 }
 
 .wa-call-screen {
-    position: absolute;
+    position: fixed;
     inset: 0;
     background: #050505;
-    z-index: 500;
+    z-index: 999999;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2421,10 +2421,10 @@ align-items: flex-start;
 }
 
 .wa-incoming-call {
-    position: absolute;
+    position: fixed;
     inset: 0;
     background: #080808;
-    z-index: 600;
+    z-index: 1000000;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -2725,6 +2725,13 @@ align-items: flex-start;
 
     background: #ff1493;
 
+}
+.wa-call-timer {
+    margin-top: 6px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 1px;
 }
 
 </style>
@@ -3958,6 +3965,12 @@ chatSocket = io({
             "Socket ID:",
             chatSocket.id
         );
+        if (
+    typeof window.setupCallSocketEvents ===
+    "function"
+) {
+    window.setupCallSocketEvents();
+}
 
 
         /*
@@ -6120,105 +6133,7 @@ function showChatWindow(user, conversationId) {
     multiple>
 
 
-<div
-    id="callScreen"
-    class="wa-call-screen"
-    style="display:none;">
 
-    <video
-        id="remoteVideo"
-        class="wa-remote-video"
-        autoplay
-        playsinline>
-    </video>
-
-    <audio
-    id="remoteAudio"
-    autoplay>
-</audio>
-
-    <video
-        id="localVideo"
-        class="wa-local-video"
-        autoplay
-        muted
-        playsinline>
-    </video>
-
-    <div class="wa-call-info">
-
-        <div
-            id="callUserName">
-            Guardian SOS User
-        </div>
-
-        <div
-            id="callStatus">
-            Calling...
-        </div>
-
-    </div>
-
-    <div class="wa-call-controls">
-
-        <button
-            onclick="toggleCallMute()">
-            🎤
-        </button>
-
-        <button
-            onclick="toggleCallCamera()">
-            🎥
-        </button>
-
-        <button
-    type="button"
-    onclick="endCurrentCall()"
-    class="wa-end-call">
-    ☎ End call
-</button>
-
-    </div>
-
-</div>
-
-
-<div
-    id="incomingCallScreen"
-    class="wa-incoming-call"
-    style="display:none;">
-
-    <div
-        id="incomingCallAvatar"
-        class="wa-incoming-avatar">
-        G
-    </div>
-
-    <h2 id="incomingCallerName">
-        Guardian SOS User
-    </h2>
-
-    <p id="incomingCallType">
-        Incoming voice call
-    </p>
-
-    <div class="incoming-call-buttons">
-
-        <button
-            class="reject-call"
-            onclick="rejectIncomingCall()">
-            ❌
-        </button>
-
-        <button
-            class="accept-call"
-            onclick="acceptIncomingCall()">
-            📞
-        </button>
-
-    </div>
-
-</div>
 
         `;
 
@@ -8779,6 +8694,118 @@ let pendingIceCandidates = [];
 
 let activeCallUserId = null;
 let activeCallType = "voice";
+
+let callTimerInterval = null;
+let callConnectedAt = null;
+
+function formatCallDuration(totalSeconds) {
+
+    const hours =
+        Math.floor(totalSeconds / 3600);
+
+    const minutes =
+        Math.floor(
+            (totalSeconds % 3600) / 60
+        );
+
+    const seconds =
+        totalSeconds % 60;
+
+    if (hours > 0) {
+
+        return (
+            String(hours).padStart(2, "0") +
+            ":" +
+            String(minutes).padStart(2, "0") +
+            ":" +
+            String(seconds).padStart(2, "0")
+        );
+
+    }
+
+    return (
+        String(minutes).padStart(2, "0") +
+        ":" +
+        String(seconds).padStart(2, "0")
+    );
+}
+
+
+function startCallTimer() {
+
+    stopCallTimer();
+
+    callConnectedAt =
+        Date.now();
+
+    const timerElement =
+        document.getElementById(
+            "callTimer"
+        );
+
+    if (timerElement) {
+        timerElement.textContent =
+            "00:00";
+    }
+
+    callTimerInterval =
+        setInterval(
+            function() {
+
+                if (!callConnectedAt) {
+                    return;
+                }
+
+                const elapsed =
+                    Math.floor(
+                        (
+                            Date.now() -
+                            callConnectedAt
+                        ) / 1000
+                    );
+
+                if (timerElement) {
+
+                    timerElement.textContent =
+                        formatCallDuration(
+                            elapsed
+                        );
+
+                }
+
+            },
+            1000
+        );
+}
+
+
+function stopCallTimer() {
+
+    if (callTimerInterval) {
+
+        clearInterval(
+            callTimerInterval
+        );
+
+        callTimerInterval =
+            null;
+    }
+
+    callConnectedAt =
+        null;
+
+    const timerElement =
+        document.getElementById(
+            "callTimer"
+        );
+
+    if (timerElement) {
+
+        timerElement.textContent =
+            "00:00";
+
+    }
+}
 
 let pendingIncomingOffer = null;
 
@@ -11724,6 +11751,42 @@ async function createPeerConnection(
             rtcConfiguration
         );
 
+        peerConnection.onconnectionstatechange =
+    function() {
+
+        console.log(
+            "Call connection state:",
+            peerConnection.connectionState
+        );
+
+        if (
+            peerConnection.connectionState ===
+            "connected"
+        ) {
+
+            setCallStatus(
+                "Connected"
+            );
+
+            startCallTimer();
+
+        }
+
+        if (
+            peerConnection.connectionState ===
+                "failed" ||
+            peerConnection.connectionState ===
+                "disconnected" ||
+            peerConnection.connectionState ===
+                "closed"
+        ) {
+
+            stopCallTimer();
+
+        }
+
+    };
+
     remoteStream =
         new MediaStream();
 
@@ -11993,6 +12056,17 @@ function showIncomingCall(
 
     screen.style.display =
         "flex";
+        startCallRingtone();
+
+if ("vibrate" in navigator) {
+    navigator.vibrate([
+        500,
+        300,
+        500,
+        300,
+        500
+    ]);
+}
 
 
     const callerName =
@@ -12412,6 +12486,9 @@ chatSocket.on(
         }
     );
 
+    window.setupCallSocketEvents =
+    setupCallSocketEvents;
+
 }
 
 
@@ -12614,7 +12691,7 @@ function endCurrentCall() {
             "none";
 
     }
-
+stopCallTimer();
 
     stopCallRingtone();
 
@@ -13145,5 +13222,110 @@ window.addEventListener(
     }
 );
 </script>
+<div
+    id="callScreen"
+    class="wa-call-screen"
+    style="display:none;">
+
+    <video
+        id="remoteVideo"
+        class="wa-remote-video"
+        autoplay
+        playsinline>
+    </video>
+
+    <audio
+    id="remoteAudio"
+    autoplay>
+</audio>
+
+    <video
+        id="localVideo"
+        class="wa-local-video"
+        autoplay
+        muted
+        playsinline>
+    </video>
+
+    <div class="wa-call-info">
+
+        <div
+            id="callUserName">
+            Guardian SOS User
+        </div>
+
+        <div
+    id="callStatus">
+    Calling...
+</div>
+
+<div
+    id="callTimer"
+    class="wa-call-timer">
+    00:00
+</div>
+
+    </div>
+
+    <div class="wa-call-controls">
+
+        <button
+            onclick="toggleCallMute()">
+            🎤
+        </button>
+
+        <button
+            onclick="toggleCallCamera()">
+            🎥
+        </button>
+
+        <button
+    type="button"
+    onclick="endCurrentCall()"
+    class="wa-end-call">
+    ☎ 
+</button>
+
+    </div>
+
+</div>
+
+
+<div
+    id="incomingCallScreen"
+    class="wa-incoming-call"
+    style="display:none;">
+
+    <div
+        id="incomingCallAvatar"
+        class="wa-incoming-avatar">
+        G
+    </div>
+
+    <h2 id="incomingCallerName">
+        Guardian SOS User
+    </h2>
+
+    <p id="incomingCallType">
+        Incoming voice call
+    </p>
+
+    <div class="incoming-call-buttons">
+
+        <button
+            class="reject-call"
+            onclick="rejectIncomingCall()">
+            ❌
+        </button>
+
+        <button
+            class="accept-call"
+            onclick="acceptIncomingCall()">
+            📞
+        </button>
+
+    </div>
+
+</div>
 </body>
 </html>
