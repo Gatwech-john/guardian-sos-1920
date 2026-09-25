@@ -5040,19 +5040,29 @@ chatSOSRecipients:
                
 
 
-        } catch (error) {
+                } catch (error) {
 
             console.error(
-                "SOS error:",
+                "🔥 SOS ERROR:",
                 error
             );
 
+            console.error(
+                "🔥 SOS ERROR MESSAGE:",
+                error?.message
+            );
 
-            res.status(500).json({
+            console.error(
+                "🔥 SOS ERROR STACK:",
+                error?.stack
+            );
+
+            return res.status(500).json({
 
                 success: false,
 
                 message:
+                    error?.message ||
                     "Unable to activate SOS."
 
             });
