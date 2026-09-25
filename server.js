@@ -2561,6 +2561,14 @@ GET /api/auth/me
 ------------------------------------------------------------
 */
 
+/* 
+------------------------------------------------------------
+VERIFY CURRENT USER
+------------------------------------------------------------
+GET /api/auth/me
+------------------------------------------------------------
+*/
+
 app.get(
     "/api/auth/me",
     authenticateToken,
@@ -2568,11 +2576,44 @@ app.get(
 
         try {
 
+            /* ====================================================
+               MAKE SURE MONGODB IS CONNECTED
+            ==================================================== */
+
+            await connectMongoDB();
+
+
+            /* ====================================================
+               MAKE SURE JWT CONTAINS USER ID
+            ==================================================== */
+
+            if (!req.user || !req.user.userId) {
+
+                return res.status(401).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid authentication token."
+
+                });
+
+            }
+
+
+            /* ====================================================
+               FIND CURRENT USER
+            ==================================================== */
+
             const user =
                 await User.findById(
                     req.user.userId
                 ).select("-password");
 
+
+            /* ====================================================
+               USER NOT FOUND
+            ==================================================== */
 
             if (!user) {
 
@@ -2588,7 +2629,11 @@ app.get(
             }
 
 
-            res.json({
+            /* ====================================================
+               RETURN USER
+            ==================================================== */
+
+            return res.status(200).json({
 
                 success: true,
 
@@ -2599,11 +2644,27 @@ app.get(
 
         } catch (error) {
 
-            res.status(500).json({
+            console.error(
+                "🔥 AUTH ME ERROR:",
+                error
+            );
+
+            console.error(
+                "🔥 AUTH ME ERROR MESSAGE:",
+                error?.message
+            );
+
+            console.error(
+                "🔥 AUTH ME ERROR STACK:",
+                error?.stack
+            );
+
+            return res.status(500).json({
 
                 success: false,
 
                 message:
+                    error?.message ||
                     "Unable to retrieve user."
 
             });
