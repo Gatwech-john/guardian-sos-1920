@@ -1699,6 +1699,183 @@ function validCoordinates(
 
 }
 
+
+
+/* ============================================================
+   SEND SOS SMS
+============================================================ */
+
+async function sendSOSAlerts(
+    user,
+    contacts,
+    emergency
+) {
+
+    try {
+
+        if (
+            !contacts ||
+            !contacts.length
+        ) {
+
+            return {
+                success: false,
+
+                message:
+                    "No emergency contacts saved.",
+
+                recipients: []
+            };
+
+        }
+
+
+        if (
+            !process.env.AT_API_KEY ||
+            !process.env.AT_USERNAME
+        ) {
+
+            console.warn(
+                "Africa's Talking credentials are not configured."
+            );
+
+            return {
+                success: false,
+
+                message:
+                    "SMS service is not configured.",
+
+                recipients: []
+            };
+
+        }
+
+
+        const AfricasTalking =
+            require("africastalking");
+
+
+        const africastalking =
+            AfricasTalking({
+
+                apiKey:
+                    process.env.AT_API_KEY,
+
+                username:
+                    process.env.AT_USERNAME
+
+            });
+
+
+        const sms =
+            africastalking.SMS;
+
+
+        const locationText =
+            emergency.latitude !== null &&
+            emergency.longitude !== null
+                ? `https://www.google.com/maps?q=${emergency.latitude},${emergency.longitude}`
+                : "Location unavailable.";
+
+
+        const message =
+            `🚨 GUARDIAN SOS ALERT\n\n` +
+            `${user.name} has activated an emergency SOS.\n\n` +
+            `Phone: ${user.phone || "Not provided"}\n\n` +
+            `Status: ${emergency.status || "ACTIVE"}\n\n` +
+            `Location: ${locationText}\n\n` +
+            `Emergency ID: ${emergency._id}\n\n` +
+            `Please contact or assist immediately.`;
+
+
+        const recipients = contacts
+            .map(function(contact) {
+
+                return String(
+                    contact.phone || ""
+                ).trim();
+
+            })
+            .filter(Boolean);
+
+
+        if (!recipients.length) {
+
+            return {
+                success: false,
+
+                message:
+                    "No valid emergency contact phone numbers found.",
+
+                recipients: []
+            };
+
+        }
+
+
+        const response =
+            await sms.send({
+
+                to: recipients,
+
+                message: message
+
+            });
+
+
+        return {
+
+            success:
+                response &&
+                response.SMSMessageData &&
+                Number(
+                    response
+                        .SMSMessageData
+                        .Recipients
+                        ?.filter(
+                            recipient =>
+                                recipient.status === "Success"
+                        )
+                        .length || 0
+                ) > 0,
+
+            message:
+                "SOS SMS notification processed.",
+
+            recipients:
+                response &&
+                response.SMSMessageData &&
+                Array.isArray(
+                    response.SMSMessageData.Recipients
+                )
+                    ? response.SMSMessageData.Recipients
+                    : []
+
+        };
+
+
+    } catch (error) {
+
+        console.error(
+            "SOS SMS error:",
+            error
+        );
+
+        return {
+
+            success: false,
+
+            message:
+                error.message ||
+                "Unable to send SOS SMS.",
+
+            recipients: []
+
+        };
+
+    }
+
+}
 /*
 ------------------------------------------------------------
 SEND SOS SMS
@@ -2490,18 +2667,29 @@ app.post(
 
             });
 
-        } catch (error) {
+                } catch (error) {
 
             console.error(
-                "FCM token error:",
+                "🔥 FCM TOKEN ERROR:",
                 error
             );
 
-            res.status(500).json({
+            console.error(
+                "🔥 FCM TOKEN ERROR MESSAGE:",
+                error?.message
+            );
+
+            console.error(
+                "🔥 FCM TOKEN ERROR STACK:",
+                error?.stack
+            );
+
+            return res.status(500).json({
 
                 success: false,
 
                 message:
+                    error?.message ||
                     "Unable to save FCM token."
 
             });
