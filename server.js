@@ -295,6 +295,32 @@ const chatUpload =
         }
     });
 
+
+    const profileUpload =
+    multer({
+        storage: multer.memoryStorage(),
+
+        limits: {
+            fileSize: 5 * 1024 * 1024
+        },
+
+        fileFilter: (req, file, cb) => {
+
+            if (
+                file.mimetype.startsWith("image/")
+            ) {
+                cb(null, true);
+            } else {
+                cb(
+                    new Error(
+                        "Only image files are allowed."
+                    )
+                );
+            }
+
+        }
+    });
+
 /*
 ------------------------------------------------------------
 EMERGENCY CONTACT SCHEMA
@@ -1955,17 +1981,19 @@ POST /api/auth/register
 
 app.post(
     "/api/auth/register",
-    upload.single("profileImage"),
+    profileUpload.single("profileImage"),
     async (req, res) => {
 
         try {
 
-            const {
-                name,
-                email,
-                phone,
-                password
-            } = req.body;
+    await connectMongoDB();
+
+    const {
+        name,
+        email,
+        phone,
+        password
+    } = req.body;
 
 
             if (
