@@ -3623,12 +3623,22 @@ align-items: flex-start;
 
                 <div class="card profile-card">
 
-                    <div
-                        id="profileAvatar"
-                        class="profile-avatar"
-                    >
-                        U
-                    </div>
+                    <div 
+    id="profileAvatar" 
+    class="profile-avatar" 
+    onclick="changeProfilePicture()"
+    style="cursor: pointer;"
+>
+    U 
+</div>
+
+<input
+    type="file"
+    id="profilePictureInput"
+    accept="image/*"
+    style="display: none;"
+    onchange="uploadProfilePicture(this)"
+>
 
                     <div class="profile-row">
 
@@ -4175,7 +4185,13 @@ function handleIncomingChatMessage(message) {
 }
 
 
+function changeProfilePicture() {
+    const input = document.getElementById("profilePictureInput");
 
+    if (input) {
+        input.click();
+    }
+}
 
 /* ============================================================
    WHATSAPP DATE LABEL
