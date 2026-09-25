@@ -8085,23 +8085,34 @@ async function sendSOS(
         await loadHistory();
 
 
-    } catch (error) {
+   } catch (error) {
 
-        console.error(error);
+    console.error(
+        "🔥 SOS ERROR:",
+        error
+    );
 
-        setStatus(
-            error.message ||
-            "Unable to activate SOS.",
-            "#ff4444"
-        );
+    console.error(
+        "🔥 SOS ERROR MESSAGE:",
+        error?.message
+    );
 
+    console.error(
+        "🔥 SOS ERROR STACK:",
+        error?.stack
+    );
 
-        showToast(
-            error.message ||
+    res.status(500).json({
+
+        success: false,
+
+        message:
+            error?.message ||
             "Unable to activate SOS."
-        );
 
-    }
+    });
+
+}
 
 }
 
