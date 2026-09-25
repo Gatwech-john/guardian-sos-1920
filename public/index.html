@@ -10661,6 +10661,121 @@ document.addEventListener("touchstart", function(event) {
 
 }, { passive: true });
 
+
+
+
+
+/* ============================================================
+   SAVE SOS SENDER AS EMERGENCY CONTACT
+============================================================ */
+
+async function saveSOSContact(
+    button
+) {
+
+    if (!button) {
+        return;
+    }
+
+    const name =
+        button.dataset.contactName ||
+        "";
+
+    const phone =
+        button.dataset.contactPhone ||
+        "";
+
+    if (!name || !phone) {
+
+        alert(
+            "The emergency contact information is incomplete."
+        );
+
+        return;
+
+    }
+
+    const originalText =
+        button.textContent;
+
+    button.disabled =
+        true;
+
+    button.textContent =
+        "SAVING...";
+
+    try {
+
+        const response =
+            await api(
+                "/api/contacts",
+                {
+                    method:
+                        "POST",
+
+                    body: {
+
+                        name:
+                            name,
+
+                        phone:
+                            phone,
+
+                        relationship:
+                            "SOS Contact",
+
+                        priority:
+                            1
+
+                    }
+                }
+            );
+
+        if (
+            response &&
+            response.success === false
+        ) {
+
+            throw new Error(
+                response.message ||
+                "Unable to save contact."
+            );
+
+        }
+
+        button.textContent =
+            "✓ SAVED AS EMERGENCY CONTACT";
+
+        button.style.background =
+            "#00a86b";
+
+        button.style.color =
+            "#ffffff";
+
+        button.disabled =
+            true;
+
+    } catch (error) {
+
+        console.error(
+            "Save SOS contact error:",
+            error
+        );
+
+        button.disabled =
+            false;
+
+        button.textContent =
+            originalText;
+
+        alert(
+            error.message ||
+            "Unable to save this emergency contact."
+        );
+
+    }
+
+}
 /* ============================================================
    OVERRIDE MESSAGE RENDERER
 ============================================================ */
@@ -11011,6 +11126,329 @@ if (message.replyTo) {
 
 </div>
 `;
+
+}
+
+else if (
+    message.type === "system"
+) {
+
+    const contactName =
+        message.contactData &&
+        message.contactData.name
+            ? message.contactData.name
+            : (
+                message.senderId &&
+                message.senderId.name
+                    ? message.senderId.name
+                    : "Emergency Contact"
+            );
+
+    const contactPhone =
+        message.contactData &&
+        message.contactData.phone
+            ? message.contactData.phone
+            : (
+                message.senderId &&
+                message.senderId.phone
+                    ? message.senderId.phone
+                    : ""
+            );
+
+    const latitude =
+        message.latitude !== null &&
+        message.latitude !== undefined
+            ? message.latitude
+            : null;
+
+    const longitude =
+        message.longitude !== null &&
+        message.longitude !== undefined
+            ? message.longitude
+            : null;
+
+    let statusText =
+        "ACTIVE";
+
+    let accuracyText =
+        "Unavailable";
+
+    let emergencyId =
+        "Unavailable";
+
+    let activatedText =
+        message.createdAt
+            ? new Date(
+                message.createdAt
+            ).toLocaleString()
+            : "Unavailable";
+
+    const sosText =
+        message.text ||
+        "";
+
+    const statusMatch =
+        sosText.match(
+            /Status:\s*([^\n]+)/i
+        );
+
+    if (statusMatch) {
+
+        statusText =
+            statusMatch[1].trim();
+
+    }
+
+    const accuracyMatch =
+        sosText.match(
+            /Accuracy:\s*([^\n]+)/i
+        );
+
+    if (accuracyMatch) {
+
+        accuracyText =
+            accuracyMatch[1].trim();
+
+    }
+
+    const emergencyIdMatch =
+        sosText.match(
+            /Emergency ID:\s*([^\n]+)/i
+        );
+
+    if (emergencyIdMatch) {
+
+        emergencyId =
+            emergencyIdMatch[1].trim();
+
+    }
+
+    const activatedMatch =
+        sosText.match(
+            /Activated:\s*([^\n]+)/i
+        );
+
+    if (activatedMatch) {
+
+        activatedText =
+            activatedMatch[1].trim();
+
+    }
+
+    const locationUrl =
+        latitude !== null &&
+        longitude !== null
+            ? (
+                "https://www.google.com/maps?q=" +
+                encodeURIComponent(
+                    latitude + "," + longitude
+                )
+            )
+            : "";
+
+    content =
+        `
+        <div
+            class="guardian-sos-card"
+            style="
+                width:100%;
+                box-sizing:border-box;
+                padding:14px;
+                border-radius:14px;
+                background:linear-gradient(
+                    145deg,
+                    #25000f,
+                    #120b10
+                );
+                border:1px solid #ff1493;
+                color:white;
+            "
+        >
+
+            <div
+                style="
+                    font-size:18px;
+                    font-weight:700;
+                    color:#ff4da6;
+                    margin-bottom:12px;
+                "
+            >
+                🚨 GUARDIAN SOS ALERT
+            </div>
+
+            <div
+                style="
+                    margin-bottom:8px;
+                    font-size:15px;
+                "
+            >
+                <strong>👤 Person:</strong>
+                ${escapeHTML(contactName)}
+            </div>
+
+            <div
+                style="
+                    margin-bottom:8px;
+                    font-size:15px;
+                "
+            >
+                <strong>📞 Phone:</strong>
+                ${escapeHTML(contactPhone || "Not provided")}
+            </div>
+
+            <div
+                style="
+                    margin-bottom:8px;
+                    font-size:15px;
+                "
+            >
+                <strong>🚨 Status:</strong>
+                ${escapeHTML(statusText)}
+            </div>
+
+            <div
+                style="
+                    margin-bottom:8px;
+                    font-size:15px;
+                "
+            >
+                <strong>📍 Latitude:</strong>
+                ${escapeHTML(
+                    latitude !== null
+                        ? String(latitude)
+                        : "Unavailable"
+                )}
+            </div>
+
+            <div
+                style="
+                    margin-bottom:8px;
+                    font-size:15px;
+                "
+            >
+                <strong>📍 Longitude:</strong>
+                ${escapeHTML(
+                    longitude !== null
+                        ? String(longitude)
+                        : "Unavailable"
+                )}
+            </div>
+
+            <div
+                style="
+                    margin-bottom:8px;
+                    font-size:15px;
+                "
+            >
+                <strong>🎯 Accuracy:</strong>
+                ${escapeHTML(accuracyText)}
+            </div>
+
+            <div
+                style="
+                    margin-bottom:8px;
+                    font-size:15px;
+                    word-break:break-word;
+                "
+            >
+                <strong>🆔 Emergency ID:</strong>
+                ${escapeHTML(emergencyId)}
+            </div>
+
+            <div
+                style="
+                    margin-bottom:14px;
+                    font-size:15px;
+                "
+            >
+                <strong>🕒 Activated:</strong>
+                ${escapeHTML(activatedText)}
+            </div>
+
+            ${
+                locationUrl
+                    ? `
+                    <a
+                        href="${locationUrl}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style="
+                            display:block;
+                            width:100%;
+                            box-sizing:border-box;
+                            text-align:center;
+                            padding:11px;
+                            margin-bottom:9px;
+                            border-radius:10px;
+                            background:#ff1493;
+                            color:white;
+                            text-decoration:none;
+                            font-weight:700;
+                        "
+                    >
+                        📍 OPEN LOCATION
+                    </a>
+                    `
+                    : `
+                    <div
+                        style="
+                            padding:10px;
+                            margin-bottom:9px;
+                            border-radius:10px;
+                            background:#333;
+                            color:#bbb;
+                            text-align:center;
+                        "
+                    >
+                        📍 LOCATION UNAVAILABLE
+                    </div>
+                    `
+            }
+
+            ${
+                contactPhone
+                    ? `
+                    <button
+                        type="button"
+                        data-contact-name="${escapeHTML(contactName)}"
+                        data-contact-phone="${escapeHTML(contactPhone)}"
+                        onclick="
+                            event.stopPropagation();
+                            saveSOSContact(this);
+                        "
+                        style="
+                            display:block;
+                            width:100%;
+                            box-sizing:border-box;
+                            padding:11px;
+                            border:none;
+                            border-radius:10px;
+                            background:#00a86b;
+                            color:white;
+                            font-weight:700;
+                            cursor:pointer;
+                        "
+                    >
+                        💾 SAVE AS EMERGENCY CONTACT
+                    </button>
+                    `
+                    : `
+                    <div
+                        style="
+                            padding:10px;
+                            border-radius:10px;
+                            background:#333;
+                            color:#bbb;
+                            text-align:center;
+                        "
+                    >
+                        📞 PHONE NUMBER UNAVAILABLE
+                    </div>
+                    `
+            }
+
+        </div>
+        `;
 
 }
     else if (
@@ -12257,7 +12695,9 @@ pendingIceCandidates = [];
             }
         );
 
-        
+        setCallStatus(
+            "Connected"
+        );
 
         pendingIncomingOffer =
             null;

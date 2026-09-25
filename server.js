@@ -4428,11 +4428,34 @@ async function sendChatSOSAlert(user, contacts, emergency) {
          */
 
         const sosText =
-            `🚨 GUARDIAN SOS ALERT\n\n` +
-            `${user.name} has activated an emergency SOS.\n\n` +
-            `Phone: ${user.phone || "Not provided"}\n\n` +
-            `Location: ${locationText}\n\n` +
-            `Please contact or assist immediately.`;
+    `🚨 GUARDIAN SOS ALERT\n\n` +
+    `${user.name} needs emergency assistance.\n\n` +
+    `Phone: ${user.phone || "Not provided"}\n\n` +
+    `Status: ${emergency.status}\n\n` +
+    `Latitude: ${
+        emergency.latitude !== null &&
+        emergency.latitude !== undefined
+            ? emergency.latitude
+            : "Unavailable"
+    }\n\n` +
+    `Longitude: ${
+        emergency.longitude !== null &&
+        emergency.longitude !== undefined
+            ? emergency.longitude
+            : "Unavailable"
+    }\n\n` +
+    `Accuracy: ${
+        emergency.accuracy !== null &&
+        emergency.accuracy !== undefined
+            ? `${emergency.accuracy} meters`
+            : "Unavailable"
+    }\n\n` +
+    `Emergency ID: ${emergency._id}\n\n` +
+    `Activated: ${new Date(
+        emergency.createdAt
+    ).toLocaleString()}\n\n` +
+    `Location: ${locationText}\n\n` +
+    `Please contact or assist immediately.`;
 
         /*
          * CREATE CHAT MESSAGE FOR EACH
@@ -4501,16 +4524,24 @@ async function sendChatSOSAlert(user, contacts, emergency) {
                         sosText,
 
                     type:
-                        "system",
+    "system",
 
-                    latitude:
-                        emergency.latitude,
+latitude:
+    emergency.latitude,
 
-                    longitude:
-                        emergency.longitude,
+longitude:
+    emergency.longitude,
 
-                    deliveredAt:
-                        new Date()
+contactData: {
+    name:
+        user.name || "",
+
+    phone:
+        user.phone || ""
+},
+
+deliveredAt:
+    new Date()
 
                 });
 
