@@ -2673,6 +2673,34 @@ app.get(
 
     }
 );
+
+app.delete(
+    "/api/location/:id",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            await Location.deleteOne({
+                _id: req.params.id,
+                userId: req.user.userId
+            });
+
+            res.json({
+                success: true
+            });
+
+        } catch (error) {
+
+            res.status(500).json({
+                success: false,
+                message: "Unable to delete location."
+            });
+
+        }
+
+    }
+);
 /* ============================================================
    FIREBASE DEVICE TOKEN
 ============================================================ */

@@ -5968,12 +5968,7 @@ function showChatWindow(user, conversationId) {
             🎥
         </button>
 
-        <button
-            type="button"
-            onclick="openChatSearch()"
-            title="Search">
-            🔍
-        </button>
+        
 
         <button
             type="button"
@@ -8207,46 +8202,60 @@ async function loadHistory() {
                     let buttons = "";
 
 
-                    if (status === "ACTIVE") {
+if (
+    status === "ACTIVE" ||
+    status === "RESOLVED" ||
+    status === "CANCELLED"
+) {
 
-                        buttons = `
+    buttons = `
 
-                            <div
-                                style="
-                                    display:flex;
-                                    gap:8px;
-                                    flex-wrap:wrap;
-                                    margin-top:15px;
-                                "
-                            >
+        <div
+            style="
+                display:flex;
+                gap:8px;
+                flex-wrap:wrap;
+                margin-top:15px;
+            "
+        >
+    `;
 
-                                <button
-                                    class="small-button"
-                                    onclick="cancelSOS('${escapeHTML(event._id)}')"
-                                >
-                                    Cancel
-                                </button>
+    if (status === "ACTIVE") {
 
-                                <button
-                                    class="small-button"
-                                    onclick="resolveSOS('${escapeHTML(event._id)}')"
-                                >
-                                    Resolve
-                                </button>
+        buttons += `
 
+            <button
+                class="small-button"
+                onclick="cancelSOS('${escapeHTML(event._id)}')"
+            >
+                Cancel
+            </button>
 
-                                <button
-                                     class="small-button"
-                                    onclick="deleteSOS('${escapeHTML(event._id)}')"
-                                >
-                                    Delete
-                                </button>
+            <button
+                class="small-button"
+                onclick="resolveSOS('${escapeHTML(event._id)}')"
+            >
+                Resolve
+            </button>
 
-                            </div>
+        `;
 
-                        `;
+    }
 
-                    }
+    buttons += `
+
+        <button
+            class="small-button"
+            onclick="deleteSOS('${escapeHTML(event._id)}')"
+        >
+            Delete
+        </button>
+
+        </div>
+
+    `;
+
+}
 
 
                     return `
@@ -8321,7 +8330,39 @@ async function loadHistory() {
 
 }
 
+async function deleteLocation(id) {
 
+    if (!confirm("Delete this saved location?")) {
+        return;
+    }
+
+    try {
+
+        await api(
+            "/api/location/" + id,
+            {
+                method: "DELETE"
+            }
+        );
+
+        showToast(
+            "Location deleted successfully."
+        );
+
+        await loadLocations();
+
+    } catch (error) {
+
+        console.error(error);
+
+        showToast(
+            error.message ||
+            "Unable to delete location."
+        );
+
+    }
+
+}
 /* =========================================================
    CANCEL SOS
 ========================================================= */
@@ -11420,29 +11461,7 @@ else if (
             ${
                 contactPhone
                     ? `
-                    <button
-                        type="button"
-                        data-contact-name="${escapeHTML(contactName)}"
-                        data-contact-phone="${escapeHTML(contactPhone)}"
-                        onclick="
-                            event.stopPropagation();
-                            saveSOSContact(this);
-                        "
-                        style="
-                            display:block;
-                            width:100%;
-                            box-sizing:border-box;
-                            padding:11px;
-                            border:none;
-                            border-radius:10px;
-                            background:#00a86b;
-                            color:white;
-                            font-weight:700;
-                            cursor:pointer;
-                        "
-                    >
-                        💾 SAVE AS EMERGENCY CONTACT
-                    </button>
+                    
                     `
                     : `
                     <div
