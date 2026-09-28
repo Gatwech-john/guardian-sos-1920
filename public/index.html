@@ -9508,69 +9508,10 @@ function formatFileSize(bytes) {
 ============================================================ */
 
 
-async function uploadChatFile(file) {
-
-    const token =
-        localStorage.getItem(
-            TOKEN_KEY
-        );
-
-    if (!token) {
-        throw new Error(
-            "Authentication token is missing. Please login again."
-        );
-    }
-
-    const formData =
-        new FormData();
-
-    formData.append(
-        "file",
-        file
-    );
-
-    const response =
-        await fetch(
-            "/api/chat/upload",
-            {
-                method: "POST",
-
-                headers: {
-                    "Authorization":
-                        "Bearer " +
-                        String(token).trim()
-                },
-
-                body:
-                    formData
-            }
-        );
-
-    let data = {};
-
-    try {
-        data =
-            await response.json();
-    } catch (error) {
-        data = {};
-    }
-
-    if (
-        !response.ok ||
-        !data.success
-    ) {
-        throw new Error(
-            data.message ||
-            "File upload failed."
-        );
-    }
-
-    return data.file;
-}
-
-
-
-async function downloadChatFile(url, filename) {
+async function downloadChatFile(
+    url,
+    filename
+) {
 
     if (!url) {
 
@@ -9582,58 +9523,92 @@ async function downloadChatFile(url, filename) {
     }
 
 
-    /*
-     * ANDROID APK DOWNLOAD
-     *
-     * Send the ORIGINAL HTTPS file URL
-     * directly to Android DownloadManager.
-     *
-     * Do NOT send a blob: URL.
-     */
+    try {
 
-    if (
-        window.AndroidDownloads &&
-        typeof window.AndroidDownloads.downloadFile ===
-            "function"
-    ) {
+        /*
+        ====================================================
+        ANDROID APK DOWNLOAD
+        ====================================================
+        */
 
-        try {
+        if (
+            window.AndroidDownloads &&
+            typeof window.AndroidDownloads.downloadFile ===
+                "function"
+        ) {
+
+            const token =
+                localStorage.getItem(
+                    TOKEN_KEY
+                );
+
+
+            if (!token) {
+
+                showToast(
+                    "Please login again."
+                );
+
+                return;
+            }
+
 
             window.AndroidDownloads.downloadFile(
                 String(url),
                 String(
                     filename ||
                     "GuardianSOS_download"
-                )
+                ),
+                String(token).trim()
+            );
+
+
+            return;
+        }
+
+
+        /*
+        ====================================================
+        NORMAL WEB BROWSER DOWNLOAD
+        ====================================================
+        */
+
+        const token =
+            localStorage.getItem(
+                TOKEN_KEY
+            );
+
+
+        if (!token) {
+
+            showToast(
+                "Please login again."
             );
 
             return;
-
-        } catch (error) {
-
-            console.error(
-                "Android download error:",
-                error
-            );
-
         }
-    }
 
-
-    /*
-     * NORMAL WEB BROWSER DOWNLOAD
-     */
-
-    try {
 
         const response =
-            await fetch(url);
+            await fetch(
+                url,
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Authorization":
+                            "Bearer " +
+                            String(token).trim()
+                    }
+                }
+            );
 
 
         if (!response.ok) {
 
             throw new Error(
-                "Download failed"
+                "Download failed: HTTP " +
+                response.status
             );
         }
 
@@ -9675,7 +9650,7 @@ async function downloadChatFile(url, filename) {
 
 
         setTimeout(
-            () => {
+            function() {
 
                 URL.revokeObjectURL(
                     blobUrl
@@ -9694,13 +9669,9 @@ async function downloadChatFile(url, filename) {
         );
 
 
-        /*
-         * Final browser fallback
-         */
-
-        window.open(
-            url,
-            "_blank"
+        showToast(
+            error.message ||
+            "Unable to download file."
         );
     }
 }
