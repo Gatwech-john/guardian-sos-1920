@@ -9571,6 +9571,18 @@ async function uploadChatFile(file) {
 
 
 async function downloadChatFile(url, filename) {
+if (
+    window.AndroidDownloads &&
+    window.AndroidDownloads.downloadFile
+) {
+
+    window.AndroidDownloads.downloadFile(
+        url,
+        filename || "GuardianSOS_download"
+    );
+
+    return;
+}
     if (!url) {
         showToast("File URL is missing");
         return;
