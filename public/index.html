@@ -12302,41 +12302,134 @@ async function createPeerConnection(
             remoteStream;
     }
 
-    peerConnection.ontrack =
-        function(event) {
+   peerConnection.ontrack =
+    function(event) {
 
-            if (
-                event.streams &&
-                event.streams[0]
-            ) {
+        console.log(
+            "REMOTE TRACK RECEIVED:",
+            event.track.kind
+        );
 
-                event.streams[0]
-                    .getTracks()
-                    .forEach(
-                        track => {
+        if (!remoteStream) {
 
-                            if (
-                                !remoteStream
-                                    .getTracks()
-                                    .some(
-                                        existing =>
-                                            existing.id ===
-                                            track.id
-                                    )
-                            ) {
+            remoteStream =
+                new MediaStream();
 
-                                remoteStream.addTrack(
-                                    track
-                                );
+        }
 
-                            }
 
-                        }
-                    );
+        if (
+            !remoteStream
+                .getTracks()
+                .some(
+                    track =>
+                        track.id ===
+                        event.track.id
+                )
+        ) {
 
-            }
+            remoteStream.addTrack(
+                event.track
+            );
 
-        };
+        }
+
+
+        const remoteAudio =
+            document.getElementById(
+                "remoteAudio"
+            );
+
+        const remoteVideo =
+            document.getElementById(
+                "remoteVideo"
+            );
+
+
+        /*
+         * VOICE CALL
+         */
+
+        if (remoteAudio) {
+
+            remoteAudio.srcObject =
+                remoteStream;
+
+            remoteAudio.autoplay =
+                true;
+
+            remoteAudio.muted =
+                false;
+
+            remoteAudio.volume =
+                1;
+
+            remoteAudio.play()
+                .then(
+                    function() {
+
+                        console.log(
+                            "REMOTE AUDIO PLAYING"
+                        );
+
+                    }
+                )
+                .catch(
+                    function(error) {
+
+                        console.error(
+                            "REMOTE AUDIO PLAY ERROR:",
+                            error
+                        );
+
+                    }
+                );
+
+        }
+
+
+        /*
+         * VIDEO CALL
+         */
+
+        if (remoteVideo) {
+
+            remoteVideo.srcObject =
+                remoteStream;
+
+            remoteVideo.autoplay =
+                true;
+
+            remoteVideo.playsInline =
+                true;
+
+            remoteVideo.muted =
+                false;
+
+            remoteVideo.play()
+                .then(
+                    function() {
+
+                        console.log(
+                            "REMOTE VIDEO PLAYING"
+                        );
+
+                    }
+                )
+                .catch(
+                    function(error) {
+
+                        console.error(
+                            "REMOTE VIDEO PLAY ERROR:",
+                            error
+                        );
+
+                    }
+                );
+
+        }
+
+    };
 
     peerConnection.onicecandidate =
         function(event) {
