@@ -1121,12 +1121,19 @@ socket.userEmail =
 const socketUser =
     await User.findById(
         decoded.userId
-    ).select("name");
+    ).select(
+        "name profileImage"
+    );
 
 socket.userName =
     socketUser
         ? socketUser.name
         : "User";
+
+socket.userProfileImage =
+    socketUser
+        ? socketUser.profileImage || ""
+        : "";
 
 next();
 
@@ -1493,12 +1500,15 @@ socket.on(
             data.userId
         ).emit(
             "incoming_call",
-           {
+          {
     callerId:
         socket.userId,
 
     callerName:
         socket.userName || "Guardian SOS User",
+
+    callerImage:
+        socket.userProfileImage || "",
 
     callType:
         data.callType || "voice",
