@@ -45,10 +45,10 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const express = require("express");
 
-
-
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -95,6 +95,37 @@ if (!process.env.JWT_SECRET) {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET;
+/* ============================================================
+   PASSWORD RESET EMAIL
+============================================================ */
+
+const passwordResetTransporter =
+    nodemailer.createTransport({
+
+        host:
+            process.env.SMTP_HOST,
+
+        port:
+            Number(
+                process.env.SMTP_PORT || 587
+            ),
+
+        secure:
+            Number(
+                process.env.SMTP_PORT || 587
+            ) === 465,
+
+        auth: {
+
+            user:
+                process.env.SMTP_USER,
+
+            pass:
+                process.env.SMTP_PASS
+
+        }
+
+    });
 
     const africasTalking =
     AfricasTalking({
@@ -267,6 +298,15 @@ const UserSchema = new mongoose.Schema(
         password: {
             type: String,
             required: true
+        },
+                resetCodeHash: {
+            type: String,
+            default: null
+        },
+
+        resetCodeExpiresAt: {
+            type: Date,
+            default: null
         },
 
         createdAt: {
@@ -2562,7 +2602,465 @@ app.post(
     }
 );
 
+/* ============================================================
+   FORGOT PASSWORD
+   REQUEST RESET CODE
+============================================================ */
 
+app.post(
+    "/api/auth/forgot-password",
+    async (req, res) => {
+
+        try {
+
+            await connectMongoDB();
+
+            const email =
+                String(
+                    req.body?.email || ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            if (!email || !isValidEmail(email)) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Please enter a valid email address."
+
+                });
+
+            }
+
+
+            const user =
+                await User.findOne({
+                    email: email
+                });
+
+
+            /*
+             * Always return the same message.
+             * This prevents revealing whether an
+             * email exists in the system.
+             */
+
+            if (!user) {
+
+                return res.json({
+
+                    success: true,
+
+                    message:
+                        "If an account exists for this email, a password reset code has been sent."
+
+                });
+
+            }
+
+
+            /*
+             * Generate a secure 6-digit code.
+             */
+
+            const resetCode =
+                String(
+                    crypto.randomInt(
+                        100000,
+                        1000000
+                    )
+                );
+
+
+            /*
+             * Store only the hash.
+             */
+
+            const resetCodeHash =
+                crypto
+                    .createHash("sha256")
+                    .update(resetCode)
+                    .digest("hex");
+
+
+            /*
+             * Code expires after 10 minutes.
+             */
+
+            user.resetCodeHash =
+                resetCodeHash;
+
+            user.resetCodeExpiresAt =
+                new Date(
+                    Date.now() +
+                    10 * 60 * 1000
+                );
+
+
+            await user.save();
+
+
+            /*
+             * Send email.
+             */
+
+            await passwordResetTransporter.sendMail({
+
+                from:
+                    process.env.SMTP_FROM ||
+                    process.env.SMTP_USER,
+
+                to:
+                    user.email,
+
+                subject:
+                    "Guardian SOS Password Reset Code",
+
+                text:
+`Guardian SOS Password Reset
+
+Your password reset code is:
+
+${resetCode}
+
+This code will expire in 10 minutes.
+
+If you did not request a password reset, you can safely ignore this email.`,
+
+                html:
+`
+<div style="
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: auto;
+    padding: 30px;
+    background: #111;
+    color: white;
+    border-radius: 12px;
+">
+
+    <h2 style="
+        color: #ff1493;
+        text-align: center;
+    ">
+        GUARDIAN SOS
+    </h2>
+
+    <p>
+        You requested to reset your Guardian SOS password.
+    </p>
+
+    <p>
+        Your password reset code is:
+    </p>
+
+    <div style="
+        text-align: center;
+        margin: 25px 0;
+    ">
+
+        <span style="
+            display: inline-block;
+            padding: 15px 25px;
+            border: 2px solid #ff1493;
+            border-radius: 10px;
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            color: #ff1493;
+            background: #000;
+        ">
+            ${resetCode}
+        </span>
+
+    </div>
+
+    <p>
+        This code expires in <strong>10 minutes</strong>.
+    </p>
+
+    <p>
+        If you did not request this password reset,
+        you can safely ignore this email.
+    </p>
+
+</div>
+`
+
+            });
+
+
+            console.log(
+                "Password reset email sent to:",
+                user.email
+            );
+
+
+            return res.json({
+
+                success: true,
+
+                message:
+                    "If an account exists for this email, a password reset code has been sent."
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Forgot password error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to process password reset."
+
+            });
+
+        }
+
+    }
+);
+
+/* ============================================================
+   RESET PASSWORD
+   VERIFY CODE + CHANGE PASSWORD
+============================================================ */
+
+app.post(
+    "/api/auth/reset-password",
+    async (req, res) => {
+
+        try {
+
+            await connectMongoDB();
+
+
+            const email =
+                String(
+                    req.body?.email || ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            const code =
+                String(
+                    req.body?.code || ""
+                )
+                .trim();
+
+
+            const newPassword =
+                String(
+                    req.body?.newPassword || ""
+                );
+
+
+            if (
+                !email ||
+                !code ||
+                !newPassword
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Email, reset code and new password are required."
+
+                });
+
+            }
+
+
+            if (!isValidEmail(email)) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid email address."
+
+                });
+
+            }
+
+
+            if (code.length !== 6) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid reset code."
+
+                });
+
+            }
+
+
+            if (newPassword.length < 8) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Password must contain at least 8 characters."
+
+                });
+
+            }
+
+
+            const user =
+                await User.findOne({
+                    email: email
+                });
+
+
+            if (!user) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid reset code or email."
+
+                });
+
+            }
+
+
+            /*
+             * Check expiration.
+             */
+
+            if (
+                !user.resetCodeExpiresAt ||
+                user.resetCodeExpiresAt.getTime()
+                    < Date.now()
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Reset code has expired. Please request a new code."
+
+                });
+
+            }
+
+
+            /*
+             * Hash supplied code.
+             */
+
+            const suppliedCodeHash =
+                crypto
+                    .createHash("sha256")
+                    .update(code)
+                    .digest("hex");
+
+
+            /*
+             * Compare hashes.
+             */
+
+            if (
+                suppliedCodeHash !==
+                user.resetCodeHash
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid reset code."
+
+                });
+
+            }
+
+
+            /*
+             * Hash the new password.
+             */
+
+            const hashedPassword =
+                await bcrypt.hash(
+                    newPassword,
+                    12
+                );
+
+
+            user.password =
+                hashedPassword;
+
+
+            /*
+             * Make the code unusable.
+             */
+
+            user.resetCodeHash =
+                null;
+
+            user.resetCodeExpiresAt =
+                null;
+
+
+            await user.save();
+
+
+            return res.json({
+
+                success: true,
+
+                message:
+                    "Password reset successfully. You can now login."
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Reset password error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to reset password."
+
+            });
+
+        }
+
+    }
+);
 /*
 ------------------------------------------------------------
 VERIFY CURRENT USER
