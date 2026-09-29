@@ -6216,6 +6216,97 @@ app.get(
 );
 
 
+/*
+------------------------------------------------------------
+DELETE ONE LOCATION HISTORY RECORD
+------------------------------------------------------------
+DELETE /api/location/history/:id
+------------------------------------------------------------
+*/
+
+app.delete(
+    "/api/location/history/:id",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const locationId =
+                req.params.id;
+
+
+            if (!mongoose.Types.ObjectId.isValid(locationId)) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid location ID."
+
+                });
+
+            }
+
+
+            const location =
+                await Location.findOneAndDelete({
+
+                    _id:
+                        locationId,
+
+                    userId:
+                        req.user.userId
+
+                });
+
+
+            if (!location) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        "Location not found."
+
+                });
+
+            }
+
+
+            res.json({
+
+                success: true,
+
+                message:
+                    "Location deleted successfully."
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Delete location error:",
+                error
+            );
+
+
+            res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to delete location."
+
+            });
+
+        }
+
+    }
+);
+
 /* ============================================================
    HEALTH CHECK
 ============================================================ */
