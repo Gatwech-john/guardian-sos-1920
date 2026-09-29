@@ -1924,7 +1924,7 @@ align-items: flex-start;
 .wa-call-actions button {
     border: none;
     background: transparent;
-    color: white;
+    color: #ff1493;
     font-size: 18px;
     width: 34px;
     height: 34px;
@@ -2186,7 +2186,7 @@ align-items: flex-start;
     min-height: 38px;
     border-radius: 50%;
     background: transparent;
-    color: white;
+    color: #ff1493;
     font-size: 18px;
     flex-shrink: 0;
     display: flex;
@@ -2260,7 +2260,11 @@ align-items: flex-start;
     gap: 12px;
     align-items: center;
 }
-
+.wa-attachment-menu button i {
+    color: #ff1493;
+    font-size: 20px;
+    min-width: 22px;
+}
 .wa-attachment-menu button:hover {
     background: #222;
 }
@@ -2412,7 +2416,7 @@ align-items: flex-start;
     border-radius: 50%;
     border: none;
     background: #333;
-    color: white;
+    color: #ff1493;
     font-size: 22px;
 }
 
@@ -6144,18 +6148,18 @@ function showChatWindow(user, conversationId) {
     <div class="wa-call-actions">
 
         <button
-            type="button"
-            onclick="startVoiceCall()"
-            title="Voice call">
-            📞
-        </button>
+    type="button"
+    onclick="startVoiceCall()"
+    title="Voice call">
+    <i class="bi bi-telephone-fill"></i>
+</button>
 
-        <button
-            type="button"
-            onclick="startVideoCall()"
-            title="Video call">
-            🎥
-        </button>
+<button
+    type="button"
+    onclick="startVideoCall()"
+    title="Video call">
+    <i class="bi bi-camera-video-fill"></i>
+</button>
 
         
 
@@ -6219,7 +6223,7 @@ function showChatWindow(user, conversationId) {
         class="wa-attach-button"
         type="button"
         onclick="openAttachmentMenu()">
-        📎
+        <i class="bi bi-paperclip"></i>
     </button>
 
     <textarea
@@ -6234,7 +6238,7 @@ function showChatWindow(user, conversationId) {
         class="wa-mic-button"
         type="button"
         onclick="toggleVoiceRecording()">
-        🎤
+       <i class="bi bi-mic-fill"></i>
     </button>
 
     <button
@@ -6277,32 +6281,32 @@ function showChatWindow(user, conversationId) {
     style="display:none;">
 
     <button onclick="selectChatFile('image/*')">
-        📷
+        <i class="bi bi-image-fill"></i>
         <span>Photos</span>
     </button>
 
     <button onclick="selectChatFile('video/*')">
-        🎥
+        <i class="bi bi-camera-video-fill"></i>
         <span>Videos</span>
     </button>
 
     <button onclick="selectChatFile('audio/*')">
-        🎵
+        <i class="bi bi-music-note-beamed"></i>
         <span>Audio</span>
     </button>
 
     <button onclick="selectChatFile('*/*')">
-        📄
+        <i class="bi bi-file-earmark-fill"></i>
         <span>Document</span>
     </button>
 
     <button onclick="shareCurrentLocation()">
-        📍
+        <i class="bi bi-geo-alt-fill"></i>
         <span>Location</span>
     </button>
 
     <button onclick="shareContact()">
-        👤
+        <i class="bi bi-person-fill"></i>
         <span>Contact</span>
     </button>
 
@@ -14851,20 +14855,25 @@ window.addEventListener(
     <div class="wa-call-controls">
 
         <button
-            onclick="toggleCallMute()">
-            🎤
-        </button>
+    type="button"
+    onclick="toggleCallMute()"
+    title="Mute microphone">
+    <i class="bi bi-mic-fill"></i>
+</button>
 
-        <button
-            onclick="toggleCallCamera()">
-            🎥
-        </button>
+<button
+    type="button"
+    onclick="toggleCallCamera()"
+    title="Camera">
+    <i class="bi bi-camera-video-fill"></i>
+</button>
 
-        <button
+<button
     type="button"
     onclick="endCurrentCall()"
-    class="wa-end-call">
-    ☎ 
+    class="wa-end-call"
+    title="End call">
+    <i class="bi bi-telephone-x-fill"></i>
 </button>
 
     </div>
