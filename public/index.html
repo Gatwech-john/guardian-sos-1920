@@ -14883,6 +14883,44 @@ function toggleCallMute() {
         );
 
 }
+function toggleCallSpeaker() {
+
+    speakerEnabled =
+        !speakerEnabled;
+
+    const icon =
+        document.getElementById(
+            "speakerIcon"
+        );
+
+    if (icon) {
+
+        icon.className =
+            speakerEnabled
+                ? "bi bi-volume-up-fill"
+                : "bi bi-volume-mute-fill";
+    }
+
+    const remoteAudio =
+        document.getElementById(
+            "remoteAudio"
+        );
+
+    if (remoteAudio) {
+
+        remoteAudio.volume =
+            speakerEnabled ? 1 : 0.2;
+    }
+}
+let speakerEnabled = true;
+function addCallParticipant() {
+
+    showToast(
+        "Select a contact to add."
+    );
+
+    openContactsPage();
+}
 
 
 function toggleCallCamera() {
@@ -15788,29 +15826,44 @@ setInterval(
 
     <div class="wa-call-controls">
 
-        <button
-    type="button"
-    onclick="toggleCallMute()"
-    title="Mute microphone">
-    <i class="bi bi-mic-fill"></i>
-</button>
+    <button
+        type="button"
+        onclick="toggleCallMute()"
+        title="Mute">
+        <i class="bi bi-mic-fill"></i>
+    </button>
 
-<button
-    type="button"
-    onclick="toggleCallCamera()"
-    title="Camera">
-    <i class="bi bi-camera-video-fill"></i>
-</button>
+    <button
+        type="button"
+        onclick="toggleCallSpeaker()"
+        title="Speaker">
+        <i id="speakerIcon"
+           class="bi bi-volume-up-fill"></i>
+    </button>
 
-<button
-    type="button"
-    onclick="endCurrentCall()"
-    class="wa-end-call"
-    title="End call">
-    <i class="bi bi-telephone-x-fill"></i>
-</button>
+    <button
+        type="button"
+        onclick="addCallParticipant()"
+        title="Add participant">
+        <i class="bi bi-person-plus-fill"></i>
+    </button>
 
-    </div>
+    <button
+        type="button"
+        onclick="toggleCallCamera()"
+        title="Camera">
+        <i class="bi bi-camera-video-fill"></i>
+    </button>
+
+    <button
+        type="button"
+        onclick="endCurrentCall()"
+        class="wa-end-call"
+        title="End call">
+        <i class="bi bi-telephone-x-fill"></i>
+    </button>
+
+</div>
 
 </div>
 
