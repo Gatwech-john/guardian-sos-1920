@@ -10215,111 +10215,48 @@ let pendingIncomingOffer = null;
    CALL RINGTONE
 ============================================================ */
 
-let ringtoneContext = null;
-let ringtoneTimer = null;
-let ringtoneOscillator = null;
+/* ============================================================
+   GUARDIAN SOS CALL RINGTONE
+============================================================ */
+
+let ringtoneAudio = null;
 
 
 function startCallRingtone() {
 
     stopCallRingtone();
 
-
     try {
 
-        ringtoneContext =
-            new (
-                window.AudioContext ||
-                window.webkitAudioContext
-            )();
+        ringtoneAudio =
+            new Audio("/ringtone.mp3");
 
+        ringtoneAudio.loop = true;
+        ringtoneAudio.volume = 1.0;
+        ringtoneAudio.preload = "auto";
 
-        if (
-            ringtoneContext.state ===
-            "suspended"
-        ) {
+        const playPromise =
+            ringtoneAudio.play();
 
-            ringtoneContext.resume();
+        if (playPromise) {
 
-        }
+            playPromise.catch(
+                function(error) {
 
+                    console.warn(
+                        "Guardian SOS ringtone could not start:",
+                        error
+                    );
 
-        function ringOnce() {
-
-            if (!ringtoneContext) {
-                return;
-            }
-
-
-            ringtoneOscillator =
-                ringtoneContext.createOscillator();
-
-            const gain =
-                ringtoneContext.createGain();
-
-
-            ringtoneOscillator.type =
-                "sine";
-
-            ringtoneOscillator.frequency.setValueAtTime(
-                880,
-                ringtoneContext.currentTime
-            );
-
-
-            gain.gain.setValueAtTime(
-                0.0001,
-                ringtoneContext.currentTime
-            );
-
-            gain.gain.exponentialRampToValueAtTime(
-                0.20,
-                ringtoneContext.currentTime + 0.05
-            );
-
-            gain.gain.exponentialRampToValueAtTime(
-                0.0001,
-                ringtoneContext.currentTime + 0.45
-            );
-
-
-            ringtoneOscillator.connect(
-                gain
-            );
-
-            gain.connect(
-                ringtoneContext.destination
-            );
-
-
-            ringtoneOscillator.start();
-
-            ringtoneOscillator.stop(
-                ringtoneContext.currentTime +
-                0.5
+                }
             );
 
         }
-
-
-        ringOnce();
-
-
-        ringtoneTimer =
-            setInterval(
-                function() {
-
-                    ringOnce();
-
-                },
-                1200
-            );
-
 
     } catch (error) {
 
-        console.warn(
-            "Ringtone unavailable:",
+        console.error(
+            "Guardian SOS ringtone error:",
             error
         );
 
@@ -10330,51 +10267,33 @@ function startCallRingtone() {
 
 function stopCallRingtone() {
 
-    if (ringtoneTimer) {
-
-        clearInterval(
-            ringtoneTimer
-        );
-
-        ringtoneTimer = null;
-
-    }
-
-
-    if (ringtoneOscillator) {
+    if (ringtoneAudio) {
 
         try {
 
-            ringtoneOscillator.stop();
+            ringtoneAudio.pause();
+
+            ringtoneAudio.currentTime = 0;
+
+            ringtoneAudio.src = "";
 
         } catch (error) {
 
-            // Already stopped.
+            console.warn(
+                "Unable to stop ringtone:",
+                error
+            );
 
         }
 
-        ringtoneOscillator = null;
-
-    }
-
-
-    if (ringtoneContext) {
-
-        try {
-
-            ringtoneContext.close();
-
-        } catch (error) {
-
-            // Already closed.
-
-        }
-
-        ringtoneContext = null;
+        ringtoneAudio = null;
 
     }
 
 }
+
+
+
 
 const rtcConfiguration = {
 
@@ -15108,8 +15027,20 @@ function showCallScreen() {
 
     }
 
-}
+    if (
+        window.AndroidPip &&
+        typeof window.AndroidPip.setCallState ===
+        "function"
+    ) {
 
+        window.AndroidPip.setCallState(
+            true,
+            activeCallType === "video"
+        );
+
+    }
+
+}
 
 function setCallStatus(
     status
@@ -15393,7 +15324,18 @@ async function toggleCallCamera() {
 
         activeCallType =
             "video";
+if (
+    window.AndroidPip &&
+    typeof window.AndroidPip.setCallState ===
+    "function"
+) {
 
+    window.AndroidPip.setCallState(
+        true,
+        true
+    );
+
+}
         setCallStatus(
             "Switching to video..."
         );
@@ -15460,7 +15402,18 @@ function endCurrentCall() {
 
     const userToEnd =
         activeCallUserId;
+    if (
+        window.AndroidPip &&
+        typeof window.AndroidPip.setCallState ===
+        "function"
+    ) {
 
+        window.AndroidPip.setCallState(
+            false,
+            false
+        );
+
+    }
 
     /*
      * Tell the other user that
