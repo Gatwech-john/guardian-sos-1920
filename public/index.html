@@ -2642,16 +2642,34 @@ align-items: flex-start;
     color: #ff1493 !important;
 }
 /* HOME PAGE BIG BUTTON ICONS */
-.home-actions .sos-main-button i,
-.home-actions .secondary-button i {
+.home-actions .sos-main-button i {
     font-size: 105px !important;
     line-height: 1 !important;
+}
 
 .home-actions .secondary-button i {
     color: #ff1493 !important;
     font-size: 105px !important;
     line-height: 1 !important;
 }
+
+
+/* ACTIVE WATCH — OPEN DASHBOARD */
+.home-actions .secondary-button .active-watch-icon {
+    display: inline-block !important;
+    color: #ff1493 !important;
+    animation: dashboardWatchActive 1.5s linear infinite !important;
+    transform-origin: center center;
+}
+
+@keyframes dashboardWatchActive {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 .icon-nav:hover {
     background: #ff1493 !important;
