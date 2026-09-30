@@ -2349,16 +2349,39 @@ align-items: flex-start;
     font-size: 12px;
 }
 
+
 .wa-message-actions {
-    position: absolute;
-    top: -35px;
-    right: 0;
+    position: fixed;
     background: #171717;
     border: 1px solid #ff1493;
     border-radius: 10px;
     display: flex;
-    z-index: 50;
+    z-index: 999999;
+    max-width: calc(100vw - 20px);
+    box-sizing: border-box;
+    overflow: visible;
 }
+
+.wa-message-actions button {
+    border: none;
+    background: transparent;
+    color: white;
+    padding: 8px;
+    min-width: 42px;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.wa-message-actions button:hover {
+    background: #ff1493;
+    border-radius: 8px;
+}
+
+
 
 .wa-message-actions button {
     border: none;
@@ -11963,12 +11986,89 @@ if (isMine) {
         copy
     );
 
-    element.appendChild(
-        menu
-    );
-    menu.appendChild(
+  
+menu.appendChild(
     forward
 );
+
+/*
+   Put the menu directly on the page
+   instead of inside the message bubble.
+   This prevents the chat/message container
+   from cutting off the menu.
+*/
+document.body.appendChild(
+    menu
+);
+
+/*
+   Position the menu around the selected
+   message while keeping the entire menu
+   inside the screen.
+*/
+const rect =
+    element.getBoundingClientRect();
+
+const menuWidth =
+    menu.offsetWidth;
+
+const menuHeight =
+    menu.offsetHeight;
+
+let left =
+    rect.left;
+
+let top =
+    rect.top - menuHeight - 8;
+
+/* Keep menu inside the left side */
+if (left < 10) {
+    left = 10;
+}
+
+/* Keep menu inside the right side */
+if (
+    left + menuWidth >
+    window.innerWidth - 10
+) {
+    left =
+        window.innerWidth -
+        menuWidth -
+        10;
+}
+
+/*
+   If there isn't enough space above
+   the message, put it below instead.
+*/
+if (top < 10) {
+
+    top =
+        rect.bottom + 8;
+
+}
+
+/*
+   Final vertical protection
+*/
+if (
+    top + menuHeight >
+    window.innerHeight - 10
+) {
+
+    top =
+        window.innerHeight -
+        menuHeight -
+        10;
+
+}
+
+menu.style.left =
+    `${left}px`;
+
+menu.style.top =
+    `${top}px`;
+
 
 }
 /* =========================================================
