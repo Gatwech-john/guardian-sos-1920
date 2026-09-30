@@ -2390,14 +2390,84 @@ align-items: flex-start;
     padding: 8px;
 }
 
+
 .wa-call-screen {
     position: fixed;
     inset: 0;
-    background: #050505;
+    background: #000 !important;
     z-index: 999999;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+}
+
+.wa-call-screen video,
+.wa-call-screen audio {
+    background: #000;
+}
+
+.wa-remote-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+}
+
+.wa-local-video {
+    position: absolute;
+    top: 20px;
+    right: 15px;
+    width: 120px;
+    height: 170px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid #ff1493;
+    background: #000;
+    z-index: 3;
+}
+
+.wa-call-info {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: white;
+    z-index: 4;
+}
+
+.wa-call-controls {
+    position: absolute;
+    bottom: 35px;
+    display: flex;
+    gap: 20px;
+    z-index: 10;
+}
+
+.wa-call-controls button {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 1px solid #444;
+    background: #202020;
+    color: white;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wa-call-controls button.active {
+    background: #ff1493;
+    border-color: #ff1493;
+    color: white;
+}
+
+.wa-call-controls .wa-end-call {
+    background: #ff1493;
+    border: 1px solid #ff1493;
+    color: white;
 }
 
 .wa-remote-video {
@@ -14826,6 +14896,197 @@ function setupCallSocketEvents() {
         }
     );
 
+    /*
+ * CALL RENEGOTIATION OFFER
+ */
+chatSocket.off(
+    "call_renegotiate_offer"
+);
+
+chatSocket.on(
+    "call_renegotiate_offer",
+    async function(data) {
+
+        try {
+
+            if (
+                !peerConnection ||
+                !data ||
+                !data.offer
+            ) {
+                return;
+            }
+
+            /*
+             * If the other person is turning
+             * the call into video, request our
+             * camera too.
+             */
+            if (
+                !localStream
+                    .getVideoTracks()
+                    .length
+            ) {
+
+                const cameraStream =
+                    await navigator.mediaDevices.getUserMedia({
+                        video: true
+                    });
+
+                const videoTrack =
+                    cameraStream.getVideoTracks()[0];
+
+                if (videoTrack) {
+
+                    localStream.addTrack(
+                        videoTrack
+                    );
+
+                    peerConnection.addTrack(
+                        videoTrack,
+                        localStream
+                    );
+                }
+            }
+
+            await peerConnection.setRemoteDescription(
+                new RTCSessionDescription(
+                    data.offer
+                )
+            );
+
+            const answer =
+                await peerConnection.createAnswer();
+
+            await peerConnection.setLocalDescription(
+                answer
+            );
+
+            chatSocket.emit(
+                "call_renegotiate_answer",
+                {
+                    userId:
+                        activeCallUserId,
+
+                    answer:
+                        answer
+                }
+            );
+
+            activeCallType =
+                "video";
+
+            const localVideo =
+                document.getElementById(
+                    "localVideo"
+                );
+
+            const remoteVideo =
+                document.getElementById(
+                    "remoteVideo"
+                );
+
+            if (localVideo) {
+
+                localVideo.srcObject =
+                    localStream;
+
+                localVideo.style.display =
+                    "block";
+
+                localVideo.play()
+                    .catch(
+                        function() {}
+                    );
+            }
+
+            if (remoteVideo) {
+
+                remoteVideo.style.display =
+                    "block";
+            }
+
+            const cameraButton =
+                document.querySelector(
+                    '.wa-call-controls button[title="Camera"]'
+                );
+
+            if (cameraButton) {
+
+                cameraButton.classList.add(
+                    "active"
+                );
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Renegotiation offer error:",
+                error
+            );
+
+        }
+
+    }
+);
+
+
+/*
+ * CALL RENEGOTIATION ANSWER
+ */
+chatSocket.off(
+    "call_renegotiate_answer"
+);
+
+chatSocket.on(
+    "call_renegotiate_answer",
+    async function(data) {
+
+        try {
+
+            if (
+                !peerConnection ||
+                !data ||
+                !data.answer
+            ) {
+                return;
+            }
+
+            await peerConnection.setRemoteDescription(
+                new RTCSessionDescription(
+                    data.answer
+                )
+            );
+
+            activeCallType =
+                "video";
+
+            const remoteVideo =
+                document.getElementById(
+                    "remoteVideo"
+                );
+
+            if (remoteVideo) {
+
+                remoteVideo.style.display =
+                    "block";
+            }
+
+            setCallStatus(
+                "Connected"
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Renegotiation answer error:",
+                error
+            );
+
+        }
+
+    }
+);
 
     window.setupCallSocketEvents =
         setupCallSocketEvents;
@@ -14871,18 +15132,69 @@ function setCallStatus(
 
 function toggleCallMute() {
 
-    if (!localStream) return;
+    if (!localStream) {
+        showToast("Call microphone is not ready.");
+        return;
+    }
 
-    localStream
-        .getAudioTracks()
-        .forEach(
-            track => {
-                track.enabled =
-                    !track.enabled;
+    const audioTracks =
+        localStream.getAudioTracks();
+
+    if (!audioTracks.length) {
+        showToast("No microphone found.");
+        return;
+    }
+
+    const currentlyEnabled =
+        audioTracks.some(
+            function(track) {
+                return track.enabled;
             }
         );
 
+    const newState =
+        !currentlyEnabled;
+
+    audioTracks.forEach(
+        function(track) {
+            track.enabled = newState;
+        }
+    );
+
+    const button =
+        document.querySelector(
+            '.wa-call-controls button[title="Mute"]'
+        );
+
+    const icon =
+        button
+            ? button.querySelector("i")
+            : null;
+
+    if (button) {
+
+        button.classList.toggle(
+            "active",
+            !newState
+        );
+
+        button.title =
+            newState
+                ? "Mute"
+                : "Unmute";
+    }
+
+    if (icon) {
+
+        icon.className =
+            newState
+                ? "bi bi-mic-fill"
+                : "bi bi-mic-mute-fill";
+    }
+
 }
+let speakerEnabled = false;
+
 function toggleCallSpeaker() {
 
     speakerEnabled =
@@ -14893,26 +15205,54 @@ function toggleCallSpeaker() {
             "speakerIcon"
         );
 
-    if (icon) {
-
-        icon.className =
-            speakerEnabled
-                ? "bi bi-volume-up-fill"
-                : "bi bi-volume-mute-fill";
-    }
-
-    const remoteAudio =
-        document.getElementById(
-            "remoteAudio"
+    const button =
+        document.querySelector(
+            '.wa-call-controls button[title="Speaker"]'
         );
 
-    if (remoteAudio) {
+    if (window.AndroidCallAudio &&
+        typeof window.AndroidCallAudio.setSpeaker === "function") {
 
-        remoteAudio.volume =
-            speakerEnabled ? 1 : 0.2;
+        window.AndroidCallAudio.setSpeaker(
+            speakerEnabled
+        );
+    }
+
+    if (speakerEnabled) {
+
+        if (icon) {
+            icon.className =
+                "bi bi-volume-up-fill";
+        }
+
+        if (button) {
+
+            button.classList.add(
+                "active"
+            );
+
+            button.title =
+                "Turn off speaker";
+        }
+
+    } else {
+
+        if (icon) {
+            icon.className =
+                "bi bi-volume-down-fill";
+        }
+
+        if (button) {
+
+            button.classList.remove(
+                "active"
+            );
+
+            button.title =
+                "Speaker";
+        }
     }
 }
-let speakerEnabled = true;
 function addCallParticipant() {
 
     showToast(
@@ -14923,18 +15263,195 @@ function addCallParticipant() {
 }
 
 
-function toggleCallCamera() {
+async function toggleCallCamera() {
 
-    if (!localStream) return;
+    if (!peerConnection || !localStream) {
 
-    localStream
-        .getVideoTracks()
-        .forEach(
-            track => {
+        showToast(
+            "Call is not connected."
+        );
+
+        return;
+    }
+
+    const existingVideoTracks =
+        localStream.getVideoTracks();
+
+    /*
+     * CAMERA ALREADY EXISTS
+     * Simply turn it on/off.
+     */
+    if (existingVideoTracks.length > 0) {
+
+        const currentlyEnabled =
+            existingVideoTracks.some(
+                function(track) {
+                    return track.enabled;
+                }
+            );
+
+        const newState =
+            !currentlyEnabled;
+
+        existingVideoTracks.forEach(
+            function(track) {
                 track.enabled =
-                    !track.enabled;
+                    newState;
             }
         );
+
+        const button =
+            document.querySelector(
+                '.wa-call-controls button[title="Camera"]'
+            );
+
+        if (button) {
+
+            button.classList.toggle(
+                "active",
+                newState
+            );
+        }
+
+        return;
+    }
+
+    /*
+     * NO CAMERA TRACK YET.
+     *
+     * Upgrade voice call to video.
+     */
+    try {
+
+        const cameraStream =
+            await navigator.mediaDevices.getUserMedia({
+                video: true
+            });
+
+        const videoTrack =
+            cameraStream.getVideoTracks()[0];
+
+        if (!videoTrack) {
+
+            throw new Error(
+                "Camera track was not created."
+            );
+        }
+
+        localStream.addTrack(
+            videoTrack
+        );
+
+        peerConnection.addTrack(
+            videoTrack,
+            localStream
+        );
+
+        const localVideo =
+            document.getElementById(
+                "localVideo"
+            );
+
+        if (localVideo) {
+
+            localVideo.srcObject =
+                localStream;
+
+            localVideo.style.display =
+                "block";
+
+            localVideo.muted =
+                true;
+
+            localVideo.autoplay =
+                true;
+
+            localVideo.playsInline =
+                true;
+
+            localVideo.play()
+                .catch(
+                    function(error) {
+                        console.log(
+                            "Local camera playback:",
+                            error
+                        );
+                    }
+                );
+        }
+
+        const remoteVideo =
+            document.getElementById(
+                "remoteVideo"
+            );
+
+        if (remoteVideo) {
+
+            remoteVideo.style.display =
+                "block";
+        }
+
+        activeCallType =
+            "video";
+
+        setCallStatus(
+            "Switching to video..."
+        );
+
+        const offer =
+            await peerConnection.createOffer();
+
+        await peerConnection.setLocalDescription(
+            offer
+        );
+
+        if (
+            chatSocket &&
+            chatSocket.connected &&
+            activeCallUserId
+        ) {
+
+            chatSocket.emit(
+                "call_renegotiate_offer",
+                {
+                    userId:
+                        activeCallUserId,
+
+                    offer:
+                        offer
+                }
+            );
+
+        }
+
+        const button =
+            document.querySelector(
+                '.wa-call-controls button[title="Camera"]'
+            );
+
+        if (button) {
+
+            button.classList.add(
+                "active"
+            );
+        }
+
+        setCallStatus(
+            "Connecting video..."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Camera upgrade error:",
+            error
+        );
+
+        showToast(
+            "Unable to turn on camera."
+        );
+
+    }
 
 }
 

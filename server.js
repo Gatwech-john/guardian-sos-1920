@@ -1644,6 +1644,69 @@ socket.on(
 
     }
 );
+
+/* ============================================================
+   WEBRTC CALL RENEGOTIATION
+============================================================ */
+
+socket.on(
+    "call_renegotiate_offer",
+    function(data) {
+
+        if (
+            !data ||
+            !data.userId ||
+            !data.offer
+        ) {
+            return;
+        }
+
+        io.to(
+            "user:" +
+            data.userId
+        ).emit(
+            "call_renegotiate_offer",
+            {
+                userId:
+                    socket.userId,
+
+                offer:
+                    data.offer
+            }
+        );
+
+    }
+);
+
+
+socket.on(
+    "call_renegotiate_answer",
+    function(data) {
+
+        if (
+            !data ||
+            !data.userId ||
+            !data.answer
+        ) {
+            return;
+        }
+
+        io.to(
+            "user:" +
+            data.userId
+        ).emit(
+            "call_renegotiate_answer",
+            {
+                userId:
+                    socket.userId,
+
+                answer:
+                    data.answer
+            }
+        );
+
+    }
+);
     /*
      * DISCONNECT
      */
