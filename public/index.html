@@ -4273,6 +4273,7 @@ chatSocket.on(
 
 
 
+    chatSocket.off("new_message");
 
     chatSocket.on(
         "new_message",
@@ -4405,31 +4406,131 @@ function changeProfilePicture() {
 
 async function uploadProfilePicture(input) {
 
-    const file = input.files[0];
+    const file =
+        input.files &&
+        input.files[0];
 
     if (!file) {
         return;
     }
 
+
     if (!file.type.startsWith("image/")) {
-        alert("Please select an image.");
+
+        showToast(
+            "Please select an image."
+        );
+
+        input.value = "";
+
         return;
     }
 
-    const reader = new FileReader();
 
-    reader.onload = async function () {
+    if (file.size > 5 * 1024 * 1024) {
 
-        const profileImage = reader.result;
+        showToast(
+            "Profile image must be 5 MB or smaller."
+        );
+
+        input.value = "";
+
+        return;
+    }
+
+
+    try {
+
+        showToast(
+            "Uploading profile picture..."
+        );
+
+
+        const formData =
+            new FormData();
+
+        formData.append(
+            "profileImage",
+            file
+        );
+
+
+        const token =
+            getToken();
+
+
+        if (!token) {
+
+            showToast(
+                "Please login again."
+            );
+
+            return;
+        }
+
+
+        const response =
+            await fetch(
+                "/api/auth/profile-picture",
+                {
+                    method: "POST",
+
+                    headers: {
+                        Authorization:
+                            "Bearer " +
+                            token
+                    },
+
+                    body:
+                        formData
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                "Unable to upload profile picture."
+            );
+
+        }
+
+
+        if (data.user) {
+
+            localStorage.setItem(
+                USER_KEY,
+                JSON.stringify(
+                    data.user
+                )
+            );
+
+        }
+
 
         const avatar =
-            document.getElementById("profileAvatar");
+            document.getElementById(
+                "profileAvatar"
+            );
 
-        if (avatar) {
+
+        if (
+            avatar &&
+            data.user &&
+            data.user.profileImage
+        ) {
 
             avatar.innerHTML = `
                 <img
-                    src="${profileImage}"
+                    src="${data.user.profileImage}"
                     alt="Profile Picture"
                     style="
                         width: 100%;
@@ -4443,10 +4544,26 @@ async function uploadProfilePicture(input) {
 
         }
 
-        console.log("New profile picture selected.");
-    };
 
-    reader.readAsDataURL(file);
+        showToast(
+            "Profile picture updated successfully."
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Profile picture upload error:",
+            error
+        );
+
+        showToast(
+            error.message ||
+            "Unable to upload profile picture."
+        );
+
+    }
+
 }
 
 /* ============================================================
@@ -4559,15 +4676,6 @@ function addChatDateSeparator(
 
 
 function appendChatMessage(message) {
-
-    const messagesList =
-        document.getElementById("messagesList");
-
-    if (!messagesList) {
-        return;
-    }
-
-const messageDateLabel =
     getChatDateLabel(
         message.createdAt ||
         new Date()
@@ -7766,21 +7874,40 @@ async function loadProfile() {
 
     try {
 
+        /*
+         * ALWAYS GET THE CURRENT USER
+         * DIRECTLY FROM MONGODB
+         */
         const data =
             await api("/api/auth/me");
 
 
-        const user =
-            data.user || getStoredUser();
+        if (
+            !data ||
+            !data.success ||
+            !data.user
+        ) {
 
-
-        if (!user) {
+            console.error(
+                "Unable to load current user."
+            );
 
             return;
 
         }
 
 
+        /*
+         * THIS IS THE USER STORED IN MONGODB
+         */
+        const user =
+            data.user;
+
+
+        /*
+         * UPDATE LOCAL CACHE WITH
+         * THE LATEST MONGODB DATA
+         */
         localStorage.setItem(
             USER_KEY,
             JSON.stringify(user)
@@ -7789,71 +7916,125 @@ async function loadProfile() {
 
         const name =
             user.name ||
-            user.fullName ||
             "User";
+
 
         const email =
             user.email ||
             "";
 
+
         const phone =
-    user.phone ||
-    user.phoneNumber ||
-    user.mobile ||
-    "";
+            user.phone ||
+            "";
 
 
-        document.getElementById(
-            "profileName"
-        ).textContent = name;
+        /*
+         * PROFILE NAME
+         */
+        const profileName =
+            document.getElementById(
+                "profileName"
+            );
+
+        if (profileName) {
+
+            profileName.textContent =
+                name;
+
+        }
 
 
-        document.getElementById(
-            "profileEmail"
-        ).textContent = email;
+        /*
+         * PROFILE EMAIL
+         */
+        const profileEmail =
+            document.getElementById(
+                "profileEmail"
+            );
+
+        if (profileEmail) {
+
+            profileEmail.textContent =
+                email;
+
+        }
 
 
-        document.getElementById(
-            "profilePhone"
-        ).textContent = phone || "Not provided";
+        /*
+         * PROFILE PHONE
+         */
+        const profilePhone =
+            document.getElementById(
+                "profilePhone"
+            );
+
+        if (profilePhone) {
+
+            profilePhone.textContent =
+                phone ||
+                "Not provided";
+
+        }
 
 
+        /*
+         * PROFILE PHOTO
+         */
         const avatar =
-    document.getElementById(
-        "profileAvatar"
-    );
-
-const profileImage =
-    data.user.profileImage ||
-    "";
-
-if (profileImage) {
-
-    avatar.innerHTML = `
-        <img
-            src="${profileImage}"
-            alt="Profile Picture"
-            style="
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                border-radius: 50%;
-                display: block;
-            "
-        >
-    `;
-
-} else {
-
-    avatar.textContent =
-        name.charAt(0).toUpperCase();
-
-}
+            document.getElementById(
+                "profileAvatar"
+            );
 
 
-        document.getElementById(
-            "dashboardUserName"
-        ).textContent = name;
+        if (avatar) {
+
+            const profileImage =
+                user.profileImage || "";
+
+
+            if (profileImage) {
+
+                avatar.innerHTML = `
+                    <img
+                        src="${profileImage}"
+                        alt="Profile Picture"
+                        style="
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                            border-radius: 50%;
+                            display: block;
+                        "
+                    >
+                `;
+
+            } else {
+
+                avatar.textContent =
+                    name
+                        .charAt(0)
+                        .toUpperCase();
+
+            }
+
+        }
+
+
+        /*
+         * DASHBOARD USER NAME
+         */
+        const dashboardUserName =
+            document.getElementById(
+                "dashboardUserName"
+            );
+
+        if (dashboardUserName) {
+
+            dashboardUserName.textContent =
+                name;
+
+        }
 
 
     } catch (error) {

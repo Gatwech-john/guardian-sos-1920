@@ -3182,6 +3182,119 @@ app.get(
     }
 );
 
+/* ============================================================
+   UPDATE PROFILE PICTURE
+   POST /api/auth/profile-picture
+============================================================ */
+
+app.post(
+    "/api/auth/profile-picture",
+    authenticateToken,
+    profileUpload.single("profileImage"),
+    async (req, res) => {
+
+        try {
+
+            await connectMongoDB();
+
+
+            if (!req.file) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Please select a profile picture."
+
+                });
+
+            }
+
+
+            const user =
+                await User.findById(
+                    req.user.userId
+                );
+
+
+            if (!user) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        "User not found."
+
+                });
+
+            }
+
+
+            /*
+             * STORE THE IMAGE PERMANENTLY
+             * INSIDE MONGODB
+             */
+
+            user.profileImage =
+                `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+
+
+            await user.save();
+
+
+            return res.status(200).json({
+
+                success: true,
+
+                message:
+                    "Profile picture updated successfully.",
+
+                user: {
+
+                    id:
+                        user._id,
+
+                    name:
+                        user.name,
+
+                    email:
+                        user.email,
+
+                    phone:
+                        user.phone,
+
+                    profileImage:
+                        user.profileImage
+
+                }
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Profile picture upload error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to update profile picture."
+
+            });
+
+        }
+
+    }
+);
+
 app.delete(
     "/api/location/:id",
     authenticateToken,
