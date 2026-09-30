@@ -2745,6 +2745,25 @@ align-items: flex-start;
     letter-spacing: 1px;
 }
 
+/* =====================================================
+   ACTIVE WATCH ICON — OPEN DASHBOARD
+===================================================== */
+
+.active-watch-icon {
+    display: inline-block;
+    animation: activeWatchSpin 2s linear infinite;
+    transform-origin: center;
+}
+
+@keyframes activeWatchSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
 </style>
 </head>
 
@@ -3124,7 +3143,7 @@ align-items: flex-start;
     </button>
 
     <button class="nav-link icon-nav" data-page="dashboard" title="Dashboard">
-        <i class="bi bi-speedometer2"></i>
+        <i class="bi bi-clock active-watch-icon"></i>
     </button>
 
     <button class="nav-link icon-nav" data-page="sos" title="SOS">
