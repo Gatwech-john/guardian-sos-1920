@@ -4749,17 +4749,52 @@ if (
 }
 
 
-function handleIncomingChatMessage(message) {
+async function handleIncomingChatMessage(message) {
 
+    /*
+     * Refresh the conversation list first.
+     *
+     * This makes the conversation that just received
+     * a message move to the TOP of the chat list,
+     * like WhatsApp.
+     */
+    if (typeof loadChats === "function") {
+
+        try {
+
+            await loadChats();
+
+        } catch (error) {
+
+            console.error(
+                "Unable to refresh chat list:",
+                error
+            );
+
+        }
+    }
+
+
+    /*
+     * If this conversation is currently open,
+     * display the new message normally.
+     */
     if (
         currentConversationId &&
         String(message.conversationId) ===
         String(currentConversationId)
     ) {
+
         appendChatMessage(message);
+
         return;
     }
 
+
+    /*
+     * If the conversation is not currently open,
+     * notify the user.
+     */
     showToast(
         "💬 New message from " +
         (message.senderName || "User")
@@ -12984,15 +13019,13 @@ else if (
 
 
     const ticks =
-        mine
-            ? (
-                message.read
-                    ? "✓✓"
-                    : message.deliveredAt
-                        ? "✓✓"
-                        : "✓"
-            )
-            : "";
+    mine
+        ? (
+            message.read
+                ? "✓✓"
+                : "✓"
+        )
+        : "";
 
 
     wrapper.innerHTML =
