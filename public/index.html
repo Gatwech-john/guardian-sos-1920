@@ -13019,13 +13019,15 @@ else if (
 
 
     const ticks =
-    mine
-        ? (
-            message.read
-                ? "✓✓"
-                : "✓"
-        )
-        : "";
+        mine
+            ? (
+                message.read
+                    ? "✓✓"
+                    : message.deliveredAt
+                        ? "✓✓"
+                        : "✓"
+            )
+            : "";
 
 
     wrapper.innerHTML =
