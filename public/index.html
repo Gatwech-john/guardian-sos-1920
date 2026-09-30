@@ -2654,22 +2654,304 @@ align-items: flex-start;
 }
 
 
-/* ACTIVE WATCH — OPEN DASHBOARD */
-.home-actions .secondary-button .active-watch-icon {
-    display: inline-block !important;
-    color: #ff1493 !important;
-    animation: dashboardWatchActive 1.5s linear infinite !important;
-    transform-origin: center center;
+/* ============================================================
+   LIVE RAINBOW WATCH — OPEN DASHBOARD
+============================================================ */
+
+.home-actions .secondary-button {
+    position: relative !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    width: 150px !important;
+    height: 150px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #000 !important;
+    border: 1px solid #ff1493 !important;
 }
 
-@keyframes dashboardWatchActive {
-    from {
-        transform: rotate(0deg);
+/* WATCH OUTER RAINBOW RING */
+
+.live-watch {
+    width: 138px;
+    height: 138px;
+    border-radius: 50%;
+    padding: 7px;
+
+    background:
+        conic-gradient(
+            #ff0000,
+            #ff7a00,
+            #ffff00,
+            #00ff00,
+            #00ffff,
+            #008cff,
+            #4b00ff,
+            #ff00ff,
+            #ff0000
+        );
+
+    box-shadow:
+        0 0 8px #ff1493,
+        0 0 18px rgba(255, 20, 147, .65),
+        0 0 30px rgba(0, 255, 255, .35);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    animation: watchGlow 2s ease-in-out infinite;
+}
+
+/* BLACK WATCH FACE */
+
+.watch-face {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+
+    background: #000;
+
+    border: 2px solid #111;
+
+    box-shadow:
+        inset 0 0 12px #000,
+        inset 0 0 25px rgba(255,255,255,.04);
+}
+
+/* WATCH NUMBERS */
+
+.watch-number {
+    position: absolute;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 900;
+    font-size: 17px;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+}
+
+/* NUMBER POSITIONS */
+
+.n12 {
+    top: 13%;
+    left: 50%;
+    color: #ff1744;
+}
+
+.n1 {
+    top: 20%;
+    left: 71%;
+    color: #ff7a00;
+}
+
+.n2 {
+    top: 34%;
+    left: 84%;
+    color: #ffb300;
+}
+
+.n3 {
+    top: 50%;
+    left: 88%;
+    color: #ffff00;
+}
+
+.n4 {
+    top: 66%;
+    left: 84%;
+    color: #00ffff;
+}
+
+.n5 {
+    top: 80%;
+    left: 71%;
+    color: #4d7cff;
+}
+
+.n6 {
+    top: 87%;
+    left: 50%;
+    color: #8c4dff;
+}
+
+.n7 {
+    top: 80%;
+    left: 29%;
+    color: #ff00d4;
+}
+
+.n8 {
+    top: 66%;
+    left: 16%;
+    color: #ff4d00;
+}
+
+.n9 {
+    top: 50%;
+    left: 12%;
+    color: #ffff00;
+}
+
+.n10 {
+    top: 34%;
+    left: 16%;
+    color: #a6ff00;
+}
+
+.n11 {
+    top: 20%;
+    left: 29%;
+    color: #c8ff00;
+}
+
+/* CLOCK HANDS */
+
+.watch-hand {
+    position: absolute;
+    left: 50%;
+    bottom: 50%;
+    transform-origin: 50% 100%;
+    border-radius: 999px;
+    z-index: 5;
+}
+
+/* HOUR HAND */
+
+.watch-hour {
+    width: 7px;
+    height: 38px;
+    background: linear-gradient(
+        to top,
+        #00ff00,
+        #b6ff00
+    );
+    transform: translateX(-50%) rotate(310deg);
+}
+
+/* MINUTE HAND */
+
+.watch-minute {
+    width: 5px;
+    height: 52px;
+    background: linear-gradient(
+        to top,
+        #ff7a00,
+        #ffff00
+    );
+    transform: translateX(-50%) rotate(60deg);
+}
+
+/* SECOND HAND */
+
+.watch-second {
+    width: 2px;
+    height: 58px;
+    background: #ff00d4;
+    transform: translateX(-50%) rotate(180deg);
+}
+
+/* CENTER OF WATCH */
+
+.watch-center {
+    position: absolute;
+    width: 13px;
+    height: 13px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    border-radius: 50%;
+
+    background: #000;
+
+    border: 2px solid #00ffff;
+
+    box-shadow:
+        0 0 5px #00ffff,
+        0 0 8px #ff00d4;
+
+    z-index: 10;
+}
+
+/* DIGITAL TIME */
+
+.watch-digital {
+    position: absolute;
+
+    left: 50%;
+    top: 58%;
+
+    transform: translateX(-50%);
+
+    width: 88px;
+
+    padding: 5px 4px;
+
+    border: 1px solid #222;
+
+    border-radius: 20px;
+
+    background: rgba(0,0,0,.85);
+
+    text-align: center;
+
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: 900;
+
+    color: #00ffff;
+
+    white-space: nowrap;
+
+    box-shadow:
+        0 0 5px rgba(255,20,147,.25);
+}
+
+/* DATE */
+
+.watch-date {
+    position: absolute;
+
+    left: 50%;
+    top: 70%;
+
+    transform: translateX(-50%);
+
+    width: 100%;
+
+    text-align: center;
+
+    font-family: Arial, Helvetica, sans-serif;
+
+    font-size: 7px;
+
+    font-weight: bold;
+
+    color: white;
+
+    white-space: nowrap;
+}
+
+/* CONTINUOUS GLOW */
+
+@keyframes watchGlow {
+
+    0% {
+        filter: brightness(1);
     }
 
-    to {
-        transform: rotate(360deg);
+    50% {
+        filter: brightness(1.25);
     }
+
+    100% {
+        filter: brightness(1);
+    }
+
 }
 .icon-nav:hover {
     background: #ff1493 !important;
@@ -3284,12 +3566,43 @@ align-items: flex-start;
     </button>
 
     <button 
-        class="secondary-button"
-        onclick="navigateTo('dashboard')"
-        title="Open Dashboard"
-    >
-        <i class="bi bi-clock active-watch-icon"></i>
-    </button>
+    class="secondary-button"
+    onclick="navigateTo('dashboard')"
+    title="Open Dashboard"
+>
+    <div class="live-watch">
+        <div class="watch-face">
+
+            <div class="watch-number n12">12</div>
+            <div class="watch-number n1">1</div>
+            <div class="watch-number n2">2</div>
+            <div class="watch-number n3">3</div>
+            <div class="watch-number n4">4</div>
+            <div class="watch-number n5">5</div>
+            <div class="watch-number n6">6</div>
+            <div class="watch-number n7">7</div>
+            <div class="watch-number n8">8</div>
+            <div class="watch-number n9">9</div>
+            <div class="watch-number n10">10</div>
+            <div class="watch-number n11">11</div>
+
+            <div class="watch-hand watch-hour" id="watchHour"></div>
+            <div class="watch-hand watch-minute" id="watchMinute"></div>
+            <div class="watch-hand watch-second" id="watchSecond"></div>
+
+            <div class="watch-center"></div>
+
+            <div class="watch-digital" id="watchDigital">
+                00:00:00
+            </div>
+
+            <div class="watch-date" id="watchDate">
+                Loading...
+            </div>
+
+        </div>
+    </div>
+</button>
 
 </div>
 
@@ -15114,6 +15427,184 @@ window.addEventListener(
 
     }
 );
+
+
+/* ============================================================
+   LIVE RAINBOW WATCH — REAL TIME CLOCK
+============================================================ */
+
+function updateLiveWatch() {
+
+    const hourHand =
+        document.getElementById("watchHour");
+
+    const minuteHand =
+        document.getElementById("watchMinute");
+
+    const secondHand =
+        document.getElementById("watchSecond");
+
+    const digitalTime =
+        document.getElementById("watchDigital");
+
+    const dateDisplay =
+        document.getElementById("watchDate");
+
+
+    /*
+     * Make sure the watch elements exist.
+     */
+
+    if (
+        !hourHand ||
+        !minuteHand ||
+        !secondHand ||
+        !digitalTime ||
+        !dateDisplay
+    ) {
+        return;
+    }
+
+
+    /*
+     * Get the user's current local time.
+     */
+
+    const now =
+        new Date();
+
+
+    const hours =
+        now.getHours();
+
+    const minutes =
+        now.getMinutes();
+
+    const seconds =
+        now.getSeconds();
+
+    const milliseconds =
+        now.getMilliseconds();
+
+
+    /*
+     * Calculate smooth clock-hand positions.
+     *
+     * SECOND:
+     * 60 seconds = 360 degrees
+     *
+     * MINUTE:
+     * 60 minutes = 360 degrees
+     *
+     * HOUR:
+     * 12 hours = 360 degrees
+     */
+
+
+    const secondDegrees =
+        (
+            (seconds + milliseconds / 1000) *
+            6
+        );
+
+
+    const minuteDegrees =
+        (
+            (minutes + seconds / 60) *
+            6
+        );
+
+
+    const hourDegrees =
+        (
+            (
+                (hours % 12) +
+                minutes / 60 +
+                seconds / 3600
+            ) *
+            30
+        );
+
+
+    /*
+     * Move SECOND HAND.
+     */
+
+    secondHand.style.transform =
+        `translateX(-50%) rotate(${secondDegrees}deg)`;
+
+
+    /*
+     * Move MINUTE HAND.
+     */
+
+    minuteHand.style.transform =
+        `translateX(-50%) rotate(${minuteDegrees}deg)`;
+
+
+    /*
+     * Move HOUR HAND.
+     */
+
+    hourHand.style.transform =
+        `translateX(-50%) rotate(${hourDegrees}deg)`;
+
+
+    /*
+     * DIGITAL TIME
+     */
+
+    const hoursText =
+        String(hours).padStart(2, "0");
+
+    const minutesText =
+        String(minutes).padStart(2, "0");
+
+    const secondsText =
+        String(seconds).padStart(2, "0");
+
+
+    digitalTime.textContent =
+        `${hoursText}:${minutesText}:${secondsText}`;
+
+
+    /*
+     * DATE
+     */
+
+    dateDisplay.textContent =
+        now.toLocaleDateString(
+            undefined,
+            {
+                weekday: "short",
+                day: "2-digit",
+                month: "short",
+                year: "numeric"
+            }
+        );
+}
+
+
+/*
+ * Start the watch immediately.
+ */
+
+updateLiveWatch();
+
+
+/*
+ * Keep the watch continuously updated.
+ *
+ * 1000ms = 1 second.
+ */
+
+setInterval(
+    updateLiveWatch,
+    1000
+);
+
+
+
 </script>
 <div
     id="callScreen"
