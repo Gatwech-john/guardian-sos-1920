@@ -1751,6 +1751,51 @@ socket.on(
     }
 );
 
+
+
+
+
+
+
+socket.on(
+    "check_user_status",
+    function(data) {
+
+        if (!data || !data.userId) {
+            return;
+        }
+
+
+        const roomName =
+            "user:" +
+            String(data.userId);
+
+
+        const room =
+            io.sockets.adapter.rooms.get(
+                roomName
+            );
+
+
+        const online =
+            !!room &&
+            room.size > 0;
+
+
+        socket.emit(
+            "user_status",
+            {
+                userId:
+                    String(data.userId),
+
+                online:
+                    online
+            }
+        );
+
+    }
+);
+
 });
 
 /*
@@ -4316,21 +4361,24 @@ app.get(
 
         try {
 
+            await connectMongoDB();
+
+            const conversationId =
+                req.params.conversationId;
+
+
             /*
-             * MAKE SURE USER BELONGS
-             * TO THIS CHAT
+             * VERIFY USER BELONGS TO CONVERSATION
              */
-
             const conversation =
-                await ChatConversation.findOne({
-
-                    _id:
-                        req.params.conversationId,
-
-                    participants:
-                        req.user.userId
-
-                });
+                await ChatConversation
+                    .findOne({
+                        _id: conversationId,
+                        participants:
+                            req.user.userId
+                    })
+                    .select("_id participants")
+                    .lean();
 
 
             if (!conversation) {
@@ -4348,22 +4396,20 @@ app.get(
 
 
             /*
-             * LOAD CHAT MESSAGES
+             * LOAD MESSAGES
+             *
+             * Newest 500 messages only.
              */
-
             const messages =
-    await ChatMessage
-        .find({
-
-            conversationId:
-                conversation._id,
-
-            deletedFor: {
-                $ne:
-                    req.user.userId
-            }
-
-        })
+                await ChatMessage
+                    .find({
+                        conversationId:
+                            conversationId
+                    })
+                    .sort({
+                        createdAt: -1
+                    })
+                    .limit(500)
                     .populate(
                         "senderId",
                         "_id name email phone profileImage"
@@ -4374,12 +4420,15 @@ app.get(
                     )
                     .populate(
                         "replyTo",
-                        "_id senderId text type attachment createdAt"
-)
-                    .sort({
-                        createdAt: 1
-                    })
-                    .limit(500);
+                        "_id senderId text type createdAt"
+                    )
+                    .lean();
+
+
+            /*
+             * RETURN IN CHRONOLOGICAL ORDER
+             */
+            messages.reverse();
 
 
             return res.json({
@@ -4397,6 +4446,7 @@ app.get(
                 "Get chat messages error:",
                 error
             );
+
 
             return res.status(500).json({
 

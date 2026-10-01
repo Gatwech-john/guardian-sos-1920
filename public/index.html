@@ -4837,10 +4837,24 @@ function connectChatSocket() {
 
   
 chatSocket = io({
-    transports: ["websocket"],
     auth: {
         token: token
-    }
+    },
+
+    transports: [
+        "polling",
+        "websocket"
+    ],
+
+    reconnection: true,
+
+    reconnectionAttempts: Infinity,
+
+    reconnectionDelay: 500,
+
+    reconnectionDelayMax: 5000,
+
+    timeout: 10000
 });
 
 
@@ -5008,7 +5022,26 @@ chatSocket.on(
     );
 }
 
+function requestUserStatus(userId) {
 
+    if (
+        !chatSocket ||
+        !chatSocket.connected ||
+        !userId
+    ) {
+        return;
+    }
+
+
+    chatSocket.emit(
+        "check_user_status",
+        {
+            userId:
+                String(userId)
+        }
+    );
+
+}
 
 
 
@@ -5073,35 +5106,11 @@ if (
 }
 
 
-async function handleIncomingChatMessage(message) {
+function handleIncomingChatMessage(message) {
 
     /*
-     * Refresh the conversation list first.
-     *
-     * This makes the conversation that just received
-     * a message move to the TOP of the chat list,
-     * like WhatsApp.
-     */
-    if (typeof loadChats === "function") {
-
-        try {
-
-            await loadChats();
-
-        } catch (error) {
-
-            console.error(
-                "Unable to refresh chat list:",
-                error
-            );
-
-        }
-    }
-
-
-    /*
-     * If this conversation is currently open,
-     * display the new message normally.
+     * DISPLAY THE MESSAGE IMMEDIATELY
+     * IF THIS CONVERSATION IS OPEN.
      */
     if (
         currentConversationId &&
@@ -5111,18 +5120,51 @@ async function handleIncomingChatMessage(message) {
 
         appendChatMessage(message);
 
+        /*
+         * Keep the conversation list updated,
+         * but do NOT wait for it before showing
+         * the message.
+         */
+        if (typeof loadChats === "function") {
+
+            loadChats().catch(function(error) {
+
+                console.error(
+                    "Unable to refresh chat list:",
+                    error
+                );
+
+            });
+
+        }
+
         return;
     }
 
 
     /*
-     * If the conversation is not currently open,
-     * notify the user.
+     * Conversation is not currently open.
+     * Refresh the list in the background.
      */
+    if (typeof loadChats === "function") {
+
+        loadChats().catch(function(error) {
+
+            console.error(
+                "Unable to refresh chat list:",
+                error
+            );
+
+        });
+
+    }
+
+
     showToast(
         "💬 New message from " +
         (message.senderName || "User")
     );
+
 }
 
 
