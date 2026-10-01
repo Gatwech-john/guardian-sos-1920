@@ -5118,40 +5118,6 @@ function handleIncomingChatMessage(message) {
         String(currentConversationId)
     ) {
 
-
-        if (
-    message &&
-    message.conversationId
-) {
-
-    const conversationId =
-        String(
-            message.conversationId
-        );
-
-
-    if (
-        !Array.isArray(
-            chatMessagesCache[
-                conversationId
-            ]
-        )
-    ) {
-
-        chatMessagesCache[
-            conversationId
-        ] = [];
-
-    }
-
-
-    chatMessagesCache[
-        conversationId
-    ].push(
-        message
-    );
-
-}
         appendChatMessage(message);
 
         /*
@@ -6607,7 +6573,6 @@ async function processSelectedPhoneContact(name, phone, email) {
 let currentChatUserId = null;
 let currentConversationId = null;
 
-let chatMessagesCache = {};
 
 
 /* =========================================================
@@ -6762,46 +6727,6 @@ async function loadChats() {
             }).join("");
 
 
-            chatList.innerHTML =
-    conversations.map(function(conversation) {
-
-        /* your existing conversation code */
-
-    }).join("");
-
-
-/*
- * PRELOAD CHAT MESSAGES IN THE BACKGROUND.
- *
- * This means messages are retrieved before
- * the user presses the person's name.
- */
-conversations.forEach(
-    function(conversation) {
-
-        if (!conversation || !conversation._id) {
-            return;
-        }
-
-
-        if (
-            Array.isArray(
-                chatMessagesCache[
-                    conversation._id
-                ]
-            )
-        ) {
-            return;
-        }
-
-
-        loadChatMessages(
-            conversation._id
-        );
-
-    }
-);
-
     } catch (error) {
 
         console.error(
@@ -6945,15 +6870,13 @@ async function openChatWithUser(user) {
         );
 
 
-       /*
- * Load previous messages in the background.
- *
- * Do NOT wait for the server before
- * keeping the chat window open.
- */
-loadChatMessages(
-    conversation._id
-);
+        /*
+         * Load previous messages.
+         */
+
+        await loadChatMessages(
+            conversation._id
+        );
 
 
         /*
@@ -7012,9 +6935,9 @@ async function openExistingChat(
         );
 
 
-       loadChatMessages(
-    conversationId
-);
+        await loadChatMessages(
+            conversationId
+        );
 
 
         connectChatSocket();
@@ -7421,80 +7344,26 @@ async function loadChatMessages(
 
 
     if (!messagesList) {
-        return;
-    }
-
-
-    if (!conversationId) {
-        return;
-    }
-
-
-    /*
-     * IF MESSAGES ARE ALREADY CACHED,
-     * DISPLAY THEM IMMEDIATELY.
-     */
-    if (
-        Array.isArray(
-            chatMessagesCache[conversationId]
-        )
-    ) {
-
-        messagesList.innerHTML = "";
-
-
-        const cachedMessages =
-            chatMessagesCache[
-                conversationId
-            ];
-
-
-        if (!cachedMessages.length) {
-
-            messagesList.innerHTML = `
-                <div
-                    style="
-                        text-align:center;
-                        padding:30px 15px;
-                        opacity:.6;
-                    "
-                >
-                    No messages yet.<br>
-                    Send a message to start the conversation.
-                </div>
-            `;
-
-            return;
-
-        }
-
-
-        cachedMessages.forEach(
-            function(message) {
-
-                appendChatMessage(
-                    message
-                );
-
-            }
-        );
-
-
-        messagesList.scrollTop =
-            messagesList.scrollHeight;
-
 
         return;
 
     }
 
 
-    /*
-     * FIRST LOAD FROM SERVER.
-     *
-     * Do NOT show "Loading messages..."
-     * and do NOT block the chat window.
-     */
+    messagesList.innerHTML =
+        `
+            <div
+                style="
+                    text-align:center;
+                    padding:20px;
+                    opacity:.7;
+                "
+            >
+                Loading messages...
+            </div>
+        `;
+
+
     try {
 
         const data =
@@ -7512,33 +7381,8 @@ async function loadChatMessages(
                 : [];
 
 
-        /*
-         * SAVE MESSAGES IN CACHE.
-         */
-        chatMessagesCache[
-            conversationId
-        ] = messages;
-
-
-        /*
-         * ONLY DISPLAY THEM IF
-         * THIS CHAT IS STILL OPEN.
-         */
-        if (
-            String(
-                currentConversationId
-            ) !==
-            String(
-                conversationId
-            )
-        ) {
-
-            return;
-
-        }
-
-
-        messagesList.innerHTML = "";
+        messagesList.innerHTML =
+            "";
 
 
         if (!messages.length) {
@@ -7561,15 +7405,13 @@ async function loadChatMessages(
         }
 
 
-        messages.forEach(
-            function(message) {
+        messages.forEach(function(message) {
 
-                appendChatMessage(
-                    message
-                );
+            appendChatMessage(
+                message
+            );
 
-            }
-        );
+        });
 
 
         messagesList.scrollTop =
@@ -7584,32 +7426,20 @@ async function loadChatMessages(
         );
 
 
-        /*
-         * Only show an error if the
-         * currently opened chat failed.
-         */
-        if (
-            String(
-                currentConversationId
-            ) ===
-            String(
-                conversationId
-            )
-        ) {
-
-            messagesList.innerHTML = `
-                <div
-                    style="
-                        text-align:center;
-                        padding:20px;
-                        color:#ff4444;
-                    "
-                >
-                    Unable to load messages.
-                </div>
-            `;
-
-        }
+        messagesList.innerHTML = `
+            <div
+                style="
+                    text-align:center;
+                    padding:20px;
+                    color:#ff4444;
+                "
+            >
+                ${escapeHTML(
+                    error.message ||
+                    "Unable to load messages."
+                )}
+            </div>
+        `;
 
     }
 
@@ -9196,9 +9026,6 @@ async function loadContacts() {
                 `;
 
             }).join("");
-
-
-
 
 
     } catch (error) {
@@ -11430,47 +11257,7 @@ async function sendAdvancedMessage(
             }
         );
 
-
-    const message =
-        data.message;
-
-
-    if (
-        message &&
-        message.conversationId
-    ) {
-
-        const conversationId =
-            String(
-                message.conversationId
-            );
-
-
-        if (
-            !Array.isArray(
-                chatMessagesCache[
-                    conversationId
-                ]
-            )
-        ) {
-
-            chatMessagesCache[
-                conversationId
-            ] = [];
-
-        }
-
-
-        chatMessagesCache[
-            conversationId
-        ].push(
-            message
-        );
-
-    }
-
-
-    return message;
+    return data.message;
 
 }
 
