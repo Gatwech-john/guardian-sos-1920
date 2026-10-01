@@ -1780,6 +1780,25 @@ align-items: flex-start;
             bottom: 85px;
             max-width: none;
         }
+
+@media (max-width: 380px) {
+
+    .icon-nav {
+        width: 34px !important;
+        height: 34px !important;
+        min-width: 34px !important;
+        margin: 0 1px !important;
+    }
+
+    .icon-nav i {
+        font-size: 16px !important;
+    }
+
+}
+
+
+
+        
     }
 /* CENTER SOS PAGE */
 #sosPage .page-content {
@@ -2706,12 +2725,12 @@ align-items: flex-start;
 ===================================================== */
 
 .icon-nav {
-    width: 44px !important;
-    height: 44px !important;
-    min-width: 44px !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
 
     padding: 0 !important;
-    margin: 0 3px !important;
+    margin: 0 1px !important;
 
     border-radius: 50% !important;
 
@@ -2745,7 +2764,20 @@ align-items: flex-start;
     font-size: 105px !important;
     line-height: 1 !important;
 }
+@media (max-width: 380px) {
 
+    .sos-main-button {
+    width: 120px !important;
+    height: 120px !important;
+    min-height: 120px !important;
+}
+
+    .home-actions .sos-main-button i,
+    .home-actions .secondary-button i {
+        font-size: 78px !important;
+    }
+
+}
 
 /* ============================================================
    LIVE RAINBOW WATCH — OPEN DASHBOARD
@@ -3166,581 +3198,6 @@ align-items: flex-start;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ============================================================
-   GUARDIAN SOS — RESPONSIVE MOBILE FIX
-   Makes the layout adapt to ALL PHONE WIDTHS
-============================================================ */
-
-@media screen and (max-width: 760px) {
-
-    /* --------------------------------
-       BASIC MOBILE PAGE
-    -------------------------------- */
-
-    html,
-    body {
-        width: 100%;
-        max-width: 100%;
-        min-height: 100%;
-        height: auto;
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
-    }
-
-    body {
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-
-    /* --------------------------------
-       TOP PINK NAVIGATION
-    -------------------------------- */
-
-    .top-nav {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-
-        width: 100% !important;
-        height: 70px !important;
-
-        padding: 0 4px !important;
-
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-
-        overflow: hidden !important;
-        z-index: 1000 !important;
-    }
-
-
-    /* Hide logo on small phones so
-       all navigation icons can fit */
-    .top-nav .logo {
-        display: none !important;
-    }
-
-
-    .nav-links {
-        width: 100% !important;
-        max-width: 100% !important;
-
-        height: 70px !important;
-
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-
-        gap: 0 !important;
-
-        padding: 0 !important;
-        margin: 0 !important;
-
-        overflow: hidden !important;
-        white-space: nowrap !important;
-    }
-
-
-    /*
-       There are 8 top navigation icons.
-
-       Each icon automatically becomes smaller
-       on narrower phones instead of being cut off.
-    */
-
-    .nav-link.icon-nav {
-        width: calc((100vw - 16px) / 8) !important;
-        min-width: 34px !important;
-        max-width: 44px !important;
-
-        height: calc((100vw - 16px) / 8) !important;
-        min-height: 34px !important;
-        max-height: 44px !important;
-
-        margin: 0 !important;
-        padding: 0 !important;
-
-        flex: 0 1 auto !important;
-        flex-shrink: 1 !important;
-
-        border-radius: 50% !important;
-
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-
-        box-sizing: border-box !important;
-    }
-
-
-    .nav-link.icon-nav i {
-        font-size: clamp(16px, 5vw, 21px) !important;
-        line-height: 1 !important;
-    }
-
-
-    /* --------------------------------
-       PAGE CONTENT
-    -------------------------------- */
-
-    .page-content {
-        width: 100% !important;
-        max-width: 100% !important;
-
-        box-sizing: border-box !important;
-
-        padding-left: 12px !important;
-        padding-right: 12px !important;
-
-        padding-top: 82px !important;
-        padding-bottom: 95px !important;
-    }
-
-
-    #homePage .page-content {
-        padding-top: 70px !important;
-        padding-left: 8px !important;
-        padding-right: 8px !important;
-        padding-bottom: 80px !important;
-    }
-
-
-    /* --------------------------------
-       HOME HERO
-    -------------------------------- */
-
-    .home-hero {
-        width: 100% !important;
-        max-width: 100% !important;
-
-        min-height: auto !important;
-        height: auto !important;
-
-        display: flex !important;
-        align-items: flex-start !important;
-        justify-content: center !important;
-
-        box-sizing: border-box !important;
-
-        padding: 0 !important;
-        margin: 0 !important;
-
-        overflow: visible !important;
-    }
-
-
-    .home-inner {
-        width: 100% !important;
-        max-width: 700px !important;
-
-        padding: 18px 8px 30px !important;
-        margin: 0 auto !important;
-
-        box-sizing: border-box !important;
-
-        overflow: visible !important;
-    }
-
-
-    /* --------------------------------
-       SAFETY BADGE
-    -------------------------------- */
-
-    .home-badge {
-        max-width: 90% !important;
-
-        padding: 7px 13px !important;
-        margin-bottom: 18px !important;
-
-        font-size: clamp(11px, 3.4vw, 13px) !important;
-
-        line-height: 1.3 !important;
-
-        white-space: nowrap !important;
-
-        box-sizing: border-box !important;
-    }
-
-
-    /* --------------------------------
-       MAIN HOME TITLE
-    -------------------------------- */
-
-    .home-title {
-        width: 100% !important;
-
-        font-size: clamp(38px, 11vw, 58px) !important;
-
-        line-height: 0.98 !important;
-
-        margin-bottom: 20px !important;
-
-        letter-spacing: -1px !important;
-
-        box-sizing: border-box !important;
-
-        word-break: normal !important;
-    }
-
-
-    .home-title span {
-        white-space: nowrap !important;
-    }
-
-
-    /* --------------------------------
-       DESCRIPTION
-    -------------------------------- */
-
-    .home-description {
-        width: 100% !important;
-        max-width: 620px !important;
-
-        margin-left: auto !important;
-        margin-right: auto !important;
-
-        padding: 0 6px !important;
-
-        font-size: clamp(14px, 4.1vw, 17px) !important;
-
-        line-height: 1.65 !important;
-
-        box-sizing: border-box !important;
-    }
-
-
-    /* --------------------------------
-       HOME BIG BUTTONS
-    -------------------------------- */
-
-    .home-actions {
-        width: 100% !important;
-
-        display: flex !important;
-
-        flex-direction: row !important;
-
-        align-items: center !important;
-        justify-content: center !important;
-
-        gap: clamp(10px, 4vw, 22px) !important;
-
-        flex-wrap: nowrap !important;
-
-        margin-top: 28px !important;
-
-        padding: 0 4px !important;
-
-        box-sizing: border-box !important;
-    }
-
-
-    /*
-       Both buttons automatically shrink on
-       narrow phones but remain side-by-side.
-    */
-
-    .home-actions .sos-main-button,
-    .home-actions .secondary-button {
-        width: clamp(105px, 40vw, 150px) !important;
-        height: clamp(105px, 40vw, 150px) !important;
-
-        min-width: 0 !important;
-        min-height: 0 !important;
-
-        flex: 0 1 150px !important;
-
-        padding: 8px !important;
-
-        box-sizing: border-box !important;
-    }
-
-
-    .home-actions .sos-main-button i,
-    .home-actions .secondary-button i {
-        font-size: clamp(65px, 24vw, 105px) !important;
-
-        line-height: 1 !important;
-    }
-
-
-    /* --------------------------------
-       HOME STAT CARDS
-    -------------------------------- */
-
-    .home-stats {
-        width: 100% !important;
-
-        display: grid !important;
-
-        grid-template-columns: 1fr !important;
-
-        gap: 14px !important;
-
-        margin-top: 28px !important;
-
-        padding: 0 5px !important;
-
-        box-sizing: border-box !important;
-    }
-
-
-    .home-stats .stat {
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-
-    /* --------------------------------
-       GENERAL CONTAINERS
-    -------------------------------- */
-
-    .container,
-    .card,
-    .form-card,
-    .dashboard-grid,
-    .about-grid {
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-
-    /* --------------------------------
-       DASHBOARD
-    -------------------------------- */
-
-    .dashboard-grid {
-        grid-template-columns: 1fr !important;
-        gap: 15px !important;
-    }
-
-
-    /* --------------------------------
-       SECTION TITLES
-    -------------------------------- */
-
-    .section-title {
-        font-size: clamp(22px, 7vw, 28px) !important;
-        line-height: 1.15 !important;
-    }
-
-
-    /* --------------------------------
-       BOTTOM MOBILE NAVIGATION
-    -------------------------------- */
-
-    .mobile-nav {
-        position: fixed !important;
-
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-
-        width: 100% !important;
-        height: 78px !important;
-
-        padding: 3px 2px 4px !important;
-
-        display: flex !important;
-
-        align-items: flex-start !important;
-        justify-content: space-between !important;
-
-        overflow: hidden !important;
-
-        box-sizing: border-box !important;
-
-        z-index: 10000 !important;
-    }
-
-
-    .mobile-nav button {
-        width: 16.666% !important;
-        min-width: 0 !important;
-
-        height: 72px !important;
-
-        margin: 0 !important;
-        padding: 2px 0 !important;
-
-        display: flex !important;
-
-        flex-direction: column !important;
-
-        align-items: center !important;
-        justify-content: flex-start !important;
-
-        font-size: clamp(9px, 2.8vw, 11px) !important;
-
-        line-height: 1.15 !important;
-
-        box-sizing: border-box !important;
-
-        overflow: hidden !important;
-    }
-
-
-    .mobile-nav-icon {
-        width: clamp(36px, 11vw, 44px) !important;
-        height: clamp(36px, 11vw, 44px) !important;
-
-        min-width: 36px !important;
-        min-height: 36px !important;
-
-        margin: 0 auto 2px !important;
-
-        flex-shrink: 0 !important;
-
-        box-sizing: border-box !important;
-    }
-
-
-    .mobile-nav-icon i {
-        font-size: clamp(18px, 5.5vw, 21px) !important;
-    }
-
-
-    /* --------------------------------
-       PREVENT BUTTONS / CARDS
-       FROM GOING OUTSIDE SCREEN
-    -------------------------------- */
-
-    button,
-    input,
-    select,
-    textarea {
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-
-
-    img,
-    video,
-    canvas {
-        max-width: 100% !important;
-        height: auto;
-    }
-
-
-    /* --------------------------------
-       SMALL PHONES
-       360px AND BELOW
-    -------------------------------- */
-
-    @media screen and (max-width: 380px) {
-
-        .top-nav {
-            height: 64px !important;
-        }
-
-        .nav-links {
-            height: 64px !important;
-        }
-
-        .nav-link.icon-nav {
-            width: calc((100vw - 8px) / 8) !important;
-            height: calc((100vw - 8px) / 8) !important;
-
-            min-width: 31px !important;
-            min-height: 31px !important;
-        }
-
-        .nav-link.icon-nav i {
-            font-size: 15px !important;
-        }
-
-
-        #homePage .page-content {
-            padding-top: 64px !important;
-        }
-
-
-        .home-inner {
-            padding-left: 4px !important;
-            padding-right: 4px !important;
-        }
-
-
-        .home-badge {
-            font-size: 10px !important;
-            padding: 6px 10px !important;
-        }
-
-
-        .home-title {
-            font-size: 35px !important;
-        }
-
-
-        .home-description {
-            font-size: 13.5px !important;
-            line-height: 1.55 !important;
-        }
-
-
-        .home-actions {
-            gap: 8px !important;
-            margin-top: 22px !important;
-        }
-
-
-        .home-actions .sos-main-button,
-        .home-actions .secondary-button {
-            width: 43vw !important;
-            height: 43vw !important;
-
-            max-width: 140px !important;
-            max-height: 140px !important;
-        }
-
-
-        .home-actions .sos-main-button i,
-        .home-actions .secondary-button i {
-            font-size: 21vw !important;
-        }
-
-
-        .mobile-nav {
-            height: 74px !important;
-        }
-
-
-        .mobile-nav button {
-            height: 70px !important;
-            font-size: 8.5px !important;
-        }
-
-
-        .mobile-nav-icon {
-            width: 34px !important;
-            height: 34px !important;
-        }
-
-
-        .mobile-nav-icon i {
-            font-size: 17px !important;
-        }
-    }
-}
 </style>
 </head>
 
