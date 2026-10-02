@@ -4403,9 +4403,14 @@ app.get(
             const messages =
                 await ChatMessage
                     .find({
-                        conversationId:
-                            conversationId
-                    })
+    conversationId:
+        conversationId,
+
+    deletedFor: {
+        $ne:
+            req.user.userId
+    }
+})
                     .sort({
                         createdAt: -1
                     })
@@ -4926,12 +4931,18 @@ app.post(
    DELETE MESSAGE FOR ME
 ============================================================ */
 
+/* ============================================================
+   DELETE MESSAGE FOR ME
+============================================================ */
+
 app.delete(
     "/api/chat/messages/:id/delete-for-me",
     authenticateToken,
     async (req, res) => {
 
         try {
+
+            await connectMongoDB();
 
             const message =
                 await ChatMessage.findById(
@@ -4948,13 +4959,19 @@ app.delete(
 
             }
 
-            const isParticipant =
-                String(message.senderId) ===
-                    String(req.user.userId) ||
-                String(message.recipientId) ===
-                    String(req.user.userId);
+            const currentUserId =
+                String(req.user.userId);
 
-            if (!isParticipant) {
+            const senderId =
+                String(message.senderId);
+
+            const recipientId =
+                String(message.recipientId);
+
+            if (
+                senderId !== currentUserId &&
+                recipientId !== currentUserId
+            ) {
 
                 return res.status(403).json({
                     success: false,
@@ -4964,26 +4981,26 @@ app.delete(
 
             }
 
-            if (
-                !message.deletedFor.some(
-                    userId =>
-                        String(userId) ===
-                        String(req.user.userId)
-                )
-            ) {
-
-                message.deletedFor.push(
-                    req.user.userId
-                );
-
-                await message.save();
-
-            }
+            await ChatMessage.updateOne(
+                {
+                    _id:
+                        message._id
+                },
+                {
+                    $addToSet: {
+                        deletedFor:
+                            req.user.userId
+                    }
+                }
+            );
 
             return res.json({
+
                 success: true,
+
                 message:
                     "Message deleted for you."
+
             });
 
         } catch (error) {
@@ -4994,9 +5011,13 @@ app.delete(
             );
 
             return res.status(500).json({
+
                 success: false,
+
                 message:
+                    error.message ||
                     "Unable to delete message."
+
             });
 
         }
@@ -5009,12 +5030,18 @@ app.delete(
    DELETE MESSAGE FOR EVERYONE
 ============================================================ */
 
+/* ============================================================
+   DELETE MESSAGE FOR EVERYONE
+============================================================ */
+
 app.delete(
     "/api/chat/messages/:id/delete-for-everyone",
     authenticateToken,
     async (req, res) => {
 
         try {
+
+            await connectMongoDB();
 
             const message =
                 await ChatMessage.findById(
@@ -5052,18 +5079,22 @@ app.delete(
 
             await message.save();
 
+            const deleteData = {
+
+                messageId:
+                    String(message._id),
+
+                deletedForEveryone:
+                    true
+
+            };
+
             io.to(
                 "user:" +
                 String(message.senderId)
             ).emit(
                 "message_deleted",
-                {
-                    messageId:
-                        String(message._id),
-
-                    deletedForEveryone:
-                        true
-                }
+                deleteData
             );
 
             io.to(
@@ -5071,19 +5102,16 @@ app.delete(
                 String(message.recipientId)
             ).emit(
                 "message_deleted",
-                {
-                    messageId:
-                        String(message._id),
-
-                    deletedForEveryone:
-                        true
-                }
+                deleteData
             );
 
             return res.json({
+
                 success: true,
+
                 message:
                     "Message deleted for everyone."
+
             });
 
         } catch (error) {
@@ -5094,9 +5122,13 @@ app.delete(
             );
 
             return res.status(500).json({
+
                 success: false,
+
                 message:
+                    error.message ||
                     "Unable to delete message."
+
             });
 
         }

@@ -6045,36 +6045,68 @@ async function deleteMessageForMe(
 ) {
 
     const messageId =
-        message._id ||
-        message.id;
+        message &&
+        (
+            message._id ||
+            message.id
+        );
 
     if (!messageId) {
 
         console.error(
-            "Message ID is missing"
+            "Message ID is missing:",
+            message
+        );
+
+        showToast(
+            "Unable to delete message."
         );
 
         return;
-    }
 
+    }
 
     try {
 
-        await api(
-            `/api/chat/messages/${messageId}/delete-for-me`,
-            {
-                method: "DELETE"
-            }
-        );
+        const data =
+            await api(
+                "/api/chat/messages/" +
+                encodeURIComponent(
+                    String(messageId)
+                ) +
+                "/delete-for-me",
+                {
+                    method: "DELETE"
+                }
+            );
 
+        if (
+            !data ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data &&
+                data.message
+                    ? data.message
+                    : "Unable to delete message."
+            );
+
+        }
 
         /*
          * Remove immediately from
-         * this user's screen.
+         * the current screen.
          */
+        if (messageElement) {
 
-        messageElement.remove();
+            messageElement.remove();
 
+        }
+
+        showToast(
+            "Message deleted."
+        );
 
     } catch (error) {
 
@@ -6084,10 +6116,12 @@ async function deleteMessageForMe(
         );
 
         showToast(
-            "Unable to delete message"
+            error.message ||
+            "Unable to delete message."
         );
 
     }
+
 }
 
 async function deleteMessageForEveryone(
@@ -6096,18 +6130,26 @@ async function deleteMessageForEveryone(
 ) {
 
     const messageId =
-        message._id ||
-        message.id;
+        message &&
+        (
+            message._id ||
+            message.id
+        );
 
     if (!messageId) {
 
         console.error(
-            "Message ID is missing"
+            "Message ID is missing:",
+            message
+        );
+
+        showToast(
+            "Unable to delete message."
         );
 
         return;
-    }
 
+    }
 
     const confirmed =
         confirm(
@@ -6115,41 +6157,81 @@ async function deleteMessageForEveryone(
         );
 
     if (!confirmed) {
-        return;
-    }
 
+        return;
+
+    }
 
     try {
 
-        await api(
-            `/api/chat/messages/${messageId}/delete-for-everyone`,
-            {
-                method: "DELETE"
-            }
-        );
-
-
-        /*
-         * Change the message locally.
-         */
-
-        const text =
-            messageElement.querySelector(
-                ".chat-message-text"
+        const data =
+            await api(
+                "/api/chat/messages/" +
+                encodeURIComponent(
+                    String(messageId)
+                ) +
+                "/delete-for-everyone",
+                {
+                    method: "DELETE"
+                }
             );
 
-        if (text) {
+        if (
+            !data ||
+            !data.success
+        ) {
 
-            text.textContent =
-                "This message was deleted";
+            throw new Error(
+                data &&
+                data.message
+                    ? data.message
+                    : "Unable to delete message."
+            );
 
         }
 
+        /*
+         * Immediately change the
+         * message on this screen.
+         */
+        if (messageElement) {
 
-        messageElement.classList.add(
-            "deleted-message"
+            const text =
+                messageElement.querySelector(
+                    ".chat-message-text"
+                );
+
+            if (text) {
+
+                text.textContent =
+                    "This message was deleted";
+
+            }
+
+            /*
+             * Hide attachment/media content
+             * if the deleted message contains one.
+             */
+            const attachment =
+                messageElement.querySelector(
+                    ".wa-attachment"
+                );
+
+            if (attachment) {
+
+                attachment.remove();
+
+            }
+
+            messageElement.classList.add(
+                "deleted-message"
+            );
+
+        }
+
+        showToast(
+            "Message deleted for everyone."
         );
-
 
     } catch (error) {
 
@@ -6159,10 +6241,12 @@ async function deleteMessageForEveryone(
         );
 
         showToast(
-            "Unable to delete message"
+            error.message ||
+            "Unable to delete message."
         );
 
     }
+
 }
 
 const menu = document.createElement("div");
