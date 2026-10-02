@@ -790,6 +790,16 @@ const ChatMessageSchema = new mongoose.Schema(
     }
 );
 
+ChatMessageSchema.index({
+    conversationId: 1,
+    createdAt: -1
+});
+
+ChatConversationSchema.index({
+    participants: 1,
+    lastMessageAt: -1
+});
+
 
 
 /* ============================================================
@@ -3964,14 +3974,17 @@ app.post(
                 userId
             } = req.body;
 
+
             if (!userId) {
 
                 return res.status(400).json({
                     success: false,
-                    message: "User ID is required."
+                    message:
+                        "User ID is required."
                 });
 
             }
+
 
             if (
                 String(userId) ===
@@ -3980,26 +3993,8 @@ app.post(
 
                 return res.status(400).json({
                     success: false,
-                    message: "You cannot chat with yourself."
-                });
-
-            }
-
-            /*
-             * ONLY REGISTERED GUARDIAN SOS USERS
-             */
-
-            const targetUser =
-                await User.findById(userId)
-                    .select(
-                       "_id name email phone profileImage");
-
-            if (!targetUser) {
-
-                return res.status(404).json({
-                    success: false,
                     message:
-                        "This user is not registered on Guardian SOS."
+                        "You cannot chat with yourself."
                 });
 
             }
@@ -4008,26 +4003,22 @@ app.post(
             /*
              * FIND EXISTING DIRECT CHAT
              */
-
             let conversation =
                 await ChatConversation.findOne({
-
                     participants: {
                         $all: [
                             req.user.userId,
                             userId
                         ],
-
                         $size: 2
                     }
-
-                });
+                })
+                .lean();
 
 
             /*
              * CREATE CHAT IF IT DOES NOT EXIST
              */
-
             if (!conversation) {
 
                 conversation =
@@ -4045,22 +4036,10 @@ app.post(
 
                     });
 
+                conversation =
+                    conversation.toObject();
+
             }
-
-
-            /*
-             * LOAD PARTICIPANTS
-             */
-
-            conversation =
-                await ChatConversation
-                    .findById(
-                        conversation._id
-                    )
-                    .populate(
-                     "participants",
-                      "_id name email phone profileImage"
-);
 
 
             return res.status(200).json({
@@ -4368,16 +4347,18 @@ app.get(
 
 
             /*
-             * VERIFY USER BELONGS TO CONVERSATION
+             * VERIFY USER BELONGS TO CHAT
              */
             const conversation =
                 await ChatConversation
                     .findOne({
-                        _id: conversationId,
+                        _id:
+                            conversationId,
+
                         participants:
                             req.user.userId
                     })
-                    .select("_id participants")
+                    .select("_id")
                     .lean();
 
 
@@ -4396,32 +4377,26 @@ app.get(
 
 
             /*
-             * LOAD MESSAGES
-             *
-             * Newest 500 messages only.
+             * LOAD RECENT MESSAGES QUICKLY
              */
             const messages =
                 await ChatMessage
                     .find({
-    conversationId:
-        conversationId,
+                        conversationId:
+                            conversationId,
 
-    deletedFor: {
-        $ne:
-            req.user.userId
-    }
-})
+                        deletedFor: {
+                            $ne:
+                                req.user.userId
+                        }
+                    })
                     .sort({
                         createdAt: -1
                     })
-                    .limit(500)
+                    .limit(100)
                     .populate(
                         "senderId",
-                        "_id name email phone profileImage"
-                    )
-                    .populate(
-                        "recipientId",
-                        "_id name email phone profileImage"
+                        "_id name profileImage"
                     )
                     .populate(
                         "replyTo",
@@ -4431,7 +4406,7 @@ app.get(
 
 
             /*
-             * RETURN IN CHRONOLOGICAL ORDER
+             * RETURN CHRONOLOGICAL ORDER
              */
             messages.reverse();
 
