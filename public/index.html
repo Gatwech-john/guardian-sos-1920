@@ -6859,11 +6859,9 @@ async function openChatWithUser(user) {
 
         }
 
-
         const userId =
             user._id ||
             user.id;
-
 
         if (!userId) {
 
@@ -6873,10 +6871,8 @@ async function openChatWithUser(user) {
 
         }
 
-
         const currentUser =
             getStoredUser();
-
 
         const currentUserId =
             currentUser &&
@@ -6884,7 +6880,6 @@ async function openChatWithUser(user) {
                 currentUser._id ||
                 currentUser.id
             );
-
 
         if (
             String(userId) ===
@@ -6899,10 +6894,52 @@ async function openChatWithUser(user) {
 
 
         /*
-         * Create or retrieve the conversation
-         * on the server.
+         * OPEN THE CHAT WINDOW IMMEDIATELY.
+         *
+         * Do NOT wait for the server.
          */
+        currentChatUserId =
+            userId;
 
+        currentConversationId =
+            null;
+
+        showChatWindow(
+            user,
+            null
+        );
+
+
+        /*
+         * Show a loading message
+         * inside the already-open chat.
+         */
+        const messagesList =
+            document.getElementById(
+                "messagesList"
+            );
+
+        if (messagesList) {
+
+            messagesList.innerHTML = `
+                <div
+                    style="
+                        text-align:center;
+                        padding:30px 15px;
+                        opacity:.7;
+                    "
+                >
+                    Loading messages...
+                </div>
+            `;
+
+        }
+
+
+        /*
+         * Now create or retrieve
+         * the conversation.
+         */
         const data =
             await api(
                 "/api/chat/conversations",
@@ -6910,7 +6947,8 @@ async function openChatWithUser(user) {
                     method: "POST",
 
                     body: {
-                        userId: userId
+                        userId:
+                            userId
                     }
                 }
             );
@@ -6940,33 +6978,19 @@ async function openChatWithUser(user) {
             conversation._id;
 
 
-        currentChatUserId =
-            userId;
-
-
         /*
-         * Open the chat window.
+         * Load the messages now.
+         *
+         * The chat window is already open.
          */
-
-        showChatWindow(
-            user,
-            conversation._id
-        );
-
-
-        /*
-         * Load previous messages.
-         */
-
         await loadChatMessages(
             conversation._id
         );
 
 
         /*
-         * Make sure real-time chat is connected.
+         * Connect real-time chat.
          */
-
         connectChatSocket();
 
 
@@ -6977,14 +7001,10 @@ async function openChatWithUser(user) {
             error
         );
 
-
         showToast(
             error.message ||
             "Unable to open conversation."
         );
-
-
-        throw error;
 
     }
 
@@ -7019,9 +7039,16 @@ async function openExistingChat(
         );
 
 
-        await loadChatMessages(
-            conversationId
-        );
+        loadChatMessages(
+    conversationId
+).catch(function(error) {
+
+    console.error(
+        "Load existing chat messages error:",
+        error
+    );
+
+});
 
 
         connectChatSocket();
