@@ -1937,20 +1937,18 @@ align-items: flex-start;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-
     padding: 15px 10px;
-
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 3px;
-
-    position: relative;
-
-    background-image: url("chat-background.png");
-    background-repeat: repeat;
-    background-position: center top;
-    background-size: 420px auto;
+    background:
+    radial-gradient(
+    circle at center,
+            rgba(255,20,147,.04),
+            transparent 30%
+        ),
+        #080808;
 }
 
 /* ============================================================
