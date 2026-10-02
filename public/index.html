@@ -1942,13 +1942,151 @@ align-items: flex-start;
     flex-direction: column;
     align-items: flex-start;
     gap: 3px;
-    background:
-    radial-gradient(
-    circle at center,
-            rgba(255,20,147,.04),
-            transparent 60%
+
+    position: relative;
+    isolation: isolate;
+
+    background-color: #ff1493;
+}
+
+
+/* ============================================================
+   PINK CHAT BACKGROUND WITH WHITE + BLACK FLOWERS
+============================================================ */
+
+.wa-messages::before {
+    content: "";
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: -1;
+    pointer-events: none;
+
+    opacity: 0.22;
+
+    background-image:
+
+        /* WHITE FLOWER - TOP PETAL */
+        radial-gradient(
+            circle at 50% 35%,
+            rgba(255,255,255,0.95) 0 9px,
+            transparent 10px
         ),
-        #080808;
+
+        /* WHITE FLOWER - RIGHT PETAL */
+        radial-gradient(
+            circle at 65% 50%,
+            rgba(255,255,255,0.95) 0 9px,
+            transparent 10px
+        ),
+
+        /* WHITE FLOWER - BOTTOM PETAL */
+        radial-gradient(
+            circle at 50% 65%,
+            rgba(255,255,255,0.95) 0 9px,
+            transparent 10px
+        ),
+
+        /* WHITE FLOWER - LEFT PETAL */
+        radial-gradient(
+            circle at 35% 50%,
+            rgba(255,255,255,0.95) 0 9px,
+            transparent 10px
+        ),
+
+        /* WHITE FLOWER CENTER */
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(255,255,255,0.95) 0 5px,
+            transparent 6px
+        ),
+
+        /* BLACK FLOWER - TOP PETAL */
+        radial-gradient(
+            circle at 50% 35%,
+            rgba(0,0,0,0.9) 0 7px,
+            transparent 8px
+        ),
+
+        /* BLACK FLOWER - RIGHT PETAL */
+        radial-gradient(
+            circle at 65% 50%,
+            rgba(0,0,0,0.9) 0 7px,
+            transparent 8px
+        ),
+
+        /* BLACK FLOWER - BOTTOM PETAL */
+        radial-gradient(
+            circle at 50% 65%,
+            rgba(0,0,0,0.9) 0 7px,
+            transparent 8px
+        ),
+
+        /* BLACK FLOWER - LEFT PETAL */
+        radial-gradient(
+            circle at 35% 50%,
+            rgba(0,0,0,0.9) 0 7px,
+            transparent 8px
+        ),
+
+        /* BLACK FLOWER CENTER */
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(0,0,0,0.9) 0 4px,
+            transparent 5px
+        );
+
+    background-size:
+        125px 125px,
+        125px 125px,
+        125px 125px,
+        125px 125px,
+        125px 125px,
+
+        180px 180px,
+        180px 180px,
+        180px 180px,
+        180px 180px,
+        180px 180px;
+
+    background-position:
+        0 0,
+        0 0,
+        0 0,
+        0 0,
+        0 0,
+
+        70px 40px,
+        70px 40px,
+        70px 40px,
+        70px 40px,
+        70px 40px;
+
+    background-repeat:
+        repeat,
+        repeat,
+        repeat,
+        repeat,
+        repeat,
+        repeat,
+        repeat,
+        repeat,
+        repeat,
+        repeat;
+}
+
+
+/* ============================================================
+   KEEP CHAT CONTENT ABOVE THE FLOWER BACKGROUND
+============================================================ */
+
+.wa-messages > * {
+    position: relative;
+    z-index: 1;
 }
 
 /* ============================================================
