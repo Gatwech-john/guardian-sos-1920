@@ -11338,6 +11338,105 @@ async function downloadChatFile(
         );
     }
 }
+
+/* ============================================================
+   UPLOAD CHAT FILE
+============================================================ */
+
+async function uploadChatFile(file) {
+
+    if (!file) {
+
+        throw new Error(
+            "No file selected."
+        );
+
+    }
+
+    if (
+        file.size >
+        100 * 1024 * 1024
+    ) {
+
+        throw new Error(
+            "File is too large. Maximum size is 100 MB."
+        );
+
+    }
+
+    const token =
+        getToken();
+
+    if (!token) {
+
+        throw new Error(
+            "Please login again."
+        );
+
+    }
+
+    const formData =
+        new FormData();
+
+    formData.append(
+        "file",
+        file
+    );
+
+    const response =
+        await fetch(
+            "/api/chat/upload",
+            {
+                method: "POST",
+
+                headers: {
+                    Authorization:
+                        "Bearer " +
+                        token
+                },
+
+                body:
+                    formData
+            }
+        );
+
+    let data = {};
+
+    try {
+
+        data =
+            await response.json();
+
+    } catch (error) {
+
+        data = {};
+
+    }
+
+    if (!response.ok) {
+
+        throw new Error(
+            data.message ||
+            "Unable to upload file."
+        );
+
+    }
+
+    if (
+        !data.success ||
+        !data.file
+    ) {
+
+        throw new Error(
+            data.message ||
+            "File upload failed."
+        );
+
+    }
+
+    return data.file;
+
+}
 /* ============================================================
    SEND ADVANCED MESSAGE
 ============================================================ */
