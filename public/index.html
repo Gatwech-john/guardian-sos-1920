@@ -11367,6 +11367,8 @@ async function uploadChatFile(file) {
     const token =
         getToken();
 
+console.log("UPLOAD TOKEN:", token);
+
     if (!token) {
 
         throw new Error(
