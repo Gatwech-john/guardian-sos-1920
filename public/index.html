@@ -11367,8 +11367,6 @@ async function uploadChatFile(file) {
     const token =
         getToken();
 
-console.log("UPLOAD TOKEN:", token);
-
     if (!token) {
 
         throw new Error(
@@ -11392,10 +11390,10 @@ console.log("UPLOAD TOKEN:", token);
                 method: "POST",
 
                 headers: {
-                    Authorization:
-                        "Bearer " +
-                        token
-                },
+    Authorization:
+        "Bearer " +
+        localStorage.getItem("guardianToken")
+},
 
                 body:
                     formData
