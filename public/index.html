@@ -9626,13 +9626,13 @@ async function loadGuardianMapPage() {
 
 
         L.tileLayer(
-            "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             {
 
                 maxZoom: 19,
 
                 attribution:
-                    "&copy; OpenStreetMap contributors &copy; CARTO"
+                    "&copy; OpenStreetMap contributors"
 
             }
         ).addTo(
@@ -9951,7 +9951,7 @@ function renderGuardianJourneyMap(
             );
 
         L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    "https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
     {
         maxZoom: 19,
 
@@ -10022,7 +10022,7 @@ function renderGuardianJourneyMap(
          */
 
         L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    "https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
     {
         maxZoom: 19,
 
