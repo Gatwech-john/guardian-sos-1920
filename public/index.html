@@ -685,6 +685,57 @@ body {
         font-family: Arial, Helvetica, sans-serif;
     }
 
+
+  /* =========================================================
+   GUARDIAN LEAFLET LIVE MAP
+========================================================= */
+
+.guardian-google-map {
+    width: 100%;
+    height: 60vh;
+    min-height: 420px;
+    margin-top: 15px;
+    border: 2px solid #ff1493;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #111;
+    z-index: 1;
+}
+
+.guardian-map-info {
+    margin-top: 12px;
+    padding: 14px;
+    border: 1px solid #ff1493;
+    border-radius: 12px;
+    background: #111;
+    color: white;
+    line-height: 1.6;
+}
+
+.guardian-map-info strong {
+    color: #ff1493;
+}
+
+.leaflet-container {
+    width: 100%;
+    height: 100%;
+    background: #111;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.leaflet-control-zoom a {
+    color: #ff1493 !important;
+}
+
+@media screen and (max-width: 760px) {
+
+    .guardian-google-map {
+        height: 55vh;
+        min-height: 360px;
+    }
+
+}
+
     /* =========================
        DASHBOARD
     ========================== */
@@ -3443,6 +3494,11 @@ align-items: flex-start;
 .guardian-safety-nav,.guardian-safety-mobile{color:#ff1493!important}
 
 </style>
+<!-- LEAFLET MAP -->
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
 </head>
 
 <body>
@@ -3840,9 +3896,9 @@ align-items: flex-start;
         <i class="bi bi-clock-history"></i>
     </button>
 
-    <button class="nav-link icon-nav" data-page="profile" title="Profile">
-        <i class="bi bi-person-fill"></i>
-    </button>
+    <button class="nav-link icon-nav" data-page="maps" title="Live Map">
+    <i class="bi bi-map-fill"></i>
+</button>
 
     <button class="nav-link icon-nav guardian-safety-nav" data-page="safety" title="Safety Center">
         <i class="bi bi-shield-check"></i>
@@ -4387,7 +4443,7 @@ align-items: flex-start;
                             <input
                                 type="text"
                                 id="relationship"
-                                placeholder="e.g. Brother, Mother, Friend"
+                                placeholder="e.g.Guardian, Brother, Mother, Friend"
                             >
                         </div>
 
@@ -4513,6 +4569,66 @@ align-items: flex-start;
     </section>
 
 
+
+  <!-- =====================================================
+     LEAFLET / GUARDIAN LIVE JOURNEY PAGE
+====================================================== -->
+
+<section id="mapsPage" class="page protected-page">
+
+    <div class="page-content">
+
+        <div class="container">
+
+            <h1 class="section-title">
+                Live Journey Map
+            </h1>
+
+            <p class="section-subtitle">
+                Guardian-only live journey tracking.
+            </p>
+
+            <div class="card">
+
+                <div
+                    id="guardianMapStatus"
+                    class="status-box"
+                >
+                    Checking live journey access...
+                </div>
+
+                <div
+                    id="guardianMapInfo"
+                    class="guardian-map-info"
+                ></div>
+
+                <div
+                    id="guardianMap"
+                    class="guardian-google-map"
+                ></div>
+
+                <div
+                    class="panel-actions"
+                    style="margin-top:15px;"
+                >
+
+                    <button
+                        class="guardian-primary"
+                        onclick="loadGuardianMapPage()"
+                    >
+                        <i class="bi bi-arrow-clockwise"></i>
+                        Refresh Map
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
     <!-- =====================================================
          HISTORY PAGE
     ====================================================== -->
@@ -4958,6 +5074,11 @@ align-items: flex-start;
 
 </div>
 
+
+<!-- LEAFLET MAP -->
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
     
@@ -4978,10 +5099,11 @@ const protectedPages = [
     "home",
     "dashboard",
     "sos",
-     "chat",
+    "chat",
     "contacts",
     "location",
     "history",
+    "maps",
     "profile",
     "safety"
 ];
@@ -4997,6 +5119,7 @@ const allPages = [
     "contacts",
     "location",
     "history",
+    "maps",
     "profile",
     "safety",
     "about"
@@ -8052,6 +8175,11 @@ if (page === "chat") {
         loadLocations();
 
     }
+    if (page === "maps") {
+
+    loadGuardianMapPage();
+
+}
 
     if (page === "history") {
 
@@ -9425,7 +9553,612 @@ async function deleteContact(id) {
     }
 
 }
+/* =========================================================
+   GUARDIAN LEAFLET LIVE JOURNEY MAP
+========================================================= */
 
+let guardianMap =
+    null;
+
+let guardianMapPath =
+    null;
+
+let guardianMapCurrentCircle =
+    null;
+
+let guardianMapCurrentMarker =
+    null;
+
+let guardianMapPollTimer =
+    null;
+
+let currentGuardianJourney =
+    null;
+
+
+/* =========================================================
+   LOAD GUARDIAN LIVE JOURNEY
+========================================================= */
+
+async function loadGuardianMapPage() {
+
+    const status =
+        document.getElementById(
+            "guardianMapStatus"
+        );
+
+    const info =
+        document.getElementById(
+            "guardianMapInfo"
+        );
+
+
+    if (status) {
+
+        status.textContent =
+            "Checking Guardian access...";
+
+        status.style.color =
+            "#ff1493";
+
+    }
+
+
+    try {
+
+        /*
+         * SERVER-SIDE SECURITY:
+         * Only the designated Guardian can
+         * receive this journey.
+         */
+
+        const response =
+            await api(
+                "/api/journey/guardian-active"
+            );
+
+
+        if (
+            !response ||
+            !response.journey
+        ) {
+
+            currentGuardianJourney =
+                null;
+
+
+            if (status) {
+
+                status.textContent =
+                    "No active Guardian journey is currently being shared.";
+
+                status.style.color =
+                    "#aaa";
+
+            }
+
+
+            if (info) {
+
+                info.innerHTML =
+                    "When your protected person starts a journey, their live movement will appear here.";
+
+            }
+
+
+            clearGuardianMap();
+
+            stopGuardianMapPolling();
+
+            return;
+
+        }
+
+
+        currentGuardianJourney =
+            response.journey;
+
+
+        renderGuardianJourneyMap(
+            currentGuardianJourney
+        );
+
+
+        if (status) {
+
+            status.textContent =
+                "LIVE JOURNEY — Guardian access granted.";
+
+            status.style.color =
+                "#00ff88";
+
+        }
+
+
+        if (info) {
+
+            const owner =
+                currentGuardianJourney.ownerUserId;
+
+            const ownerName =
+                typeof owner === "object"
+                    ? owner.name
+                    : "Guardian SOS user";
+
+
+            info.innerHTML =
+
+                "<strong>" +
+                escapeHTML(
+                    ownerName
+                ) +
+                "</strong><br>" +
+
+                "Destination: " +
+                escapeHTML(
+                    currentGuardianJourney.destination
+                ) +
+                "<br>" +
+
+                "Expected arrival: " +
+                escapeHTML(
+                    new Date(
+                        currentGuardianJourney.arrival
+                    ).toLocaleString()
+                );
+
+        }
+
+
+        startGuardianMapPolling();
+
+
+    } catch (error) {
+
+        console.error(
+            "Guardian map error:",
+            error
+        );
+
+
+        clearGuardianMap();
+
+
+        if (status) {
+
+            status.textContent =
+                error.message ||
+                "You are not authorized to view this journey.";
+
+            status.style.color =
+                "#ff4444";
+
+        }
+
+
+        if (info) {
+
+            info.innerHTML =
+                "Live movement is private. Only the designated Guardian account can view it.";
+
+        }
+
+
+        stopGuardianMapPolling();
+
+    }
+
+}
+
+
+/* =========================================================
+   DRAW LEAFLET MAP
+========================================================= */
+
+function renderGuardianJourneyMap(
+    journey
+) {
+
+    const mapElement =
+        document.getElementById(
+            "guardianMap"
+        );
+
+
+    if (!mapElement) {
+
+        return;
+
+    }
+
+
+    const path =
+        Array.isArray(
+            journey.path
+        )
+            ? journey.path
+            : [];
+
+
+    if (!path.length) {
+
+        mapElement.innerHTML =
+            "<div style='padding:30px;text-align:center;color:#aaa;'>" +
+            "Waiting for the first GPS location..." +
+            "</div>";
+
+        return;
+
+    }
+
+
+    const latest =
+        path[
+            path.length - 1
+        ];
+
+
+    const latitude =
+        Number(
+            latest.latitude
+        );
+
+    const longitude =
+        Number(
+            latest.longitude
+        );
+
+
+    if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude)
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+     * CREATE LEAFLET MAP ON FIRST LOAD
+     */
+
+    if (!guardianMap) {
+
+        guardianMap =
+            L.map(
+                mapElement
+            ).setView(
+                [
+                    latitude,
+                    longitude
+                ],
+                16
+            );
+
+
+        /*
+         * OPENSTREETMAP FREE TILES
+         */
+
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+
+                maxZoom: 19,
+
+                attribution:
+                    "&copy; OpenStreetMap contributors"
+
+            }
+        ).addTo(
+            guardianMap
+        );
+
+    } else {
+
+        guardianMap.setView(
+            [
+                latitude,
+                longitude
+            ],
+            guardianMap.getZoom()
+        );
+
+    }
+
+
+    /*
+     * CONVERT GPS PATH
+     * INTO LEAFLET LAT/LNG ARRAY
+     */
+
+    const mapPath =
+        path
+            .map(
+                function(point) {
+
+                    return [
+                        Number(
+                            point.latitude
+                        ),
+
+                        Number(
+                            point.longitude
+                        )
+                    ];
+
+                }
+            )
+            .filter(
+                function(point) {
+
+                    return (
+                        Number.isFinite(point[0]) &&
+                        Number.isFinite(point[1])
+                    );
+
+                }
+            );
+
+
+    /*
+     * REMOVE OLD ROUTE
+     */
+
+    if (
+        guardianMapPath
+    ) {
+
+        guardianMap.removeLayer(
+            guardianMapPath
+        );
+
+    }
+
+
+    /*
+     * DRAW TRAVELLED ROUTE
+     */
+
+    guardianMapPath =
+        L.polyline(
+            mapPath,
+            {
+
+                color:
+                    "#ff1493",
+
+                weight:
+                    5,
+
+                opacity:
+                    0.9
+
+            }
+        ).addTo(
+            guardianMap
+        );
+
+
+    /*
+     * REMOVE OLD CURRENT LOCATION
+     */
+
+    if (
+        guardianMapCurrentMarker
+    ) {
+
+        guardianMap.removeLayer(
+            guardianMapCurrentMarker
+        );
+
+    }
+
+
+    if (
+        guardianMapCurrentCircle
+    ) {
+
+        guardianMap.removeLayer(
+            guardianMapCurrentCircle
+        );
+
+    }
+
+
+    /*
+     * CURRENT LOCATION MARKER
+     */
+
+    guardianMapCurrentMarker =
+        L.marker(
+            [
+                latitude,
+                longitude
+            ]
+        )
+        .addTo(
+            guardianMap
+        )
+        .bindPopup(
+            "<strong>Live Location</strong><br>" +
+            "Latitude: " +
+            latitude +
+            "<br>" +
+            "Longitude: " +
+            longitude
+        );
+
+
+    /*
+     * GPS ACCURACY CIRCLE
+     */
+
+    const accuracy =
+        Math.max(
+            Number(
+                latest.accuracy
+            ) || 20,
+            10
+        );
+
+
+    guardianMapCurrentCircle =
+        L.circle(
+            [
+                latitude,
+                longitude
+            ],
+            {
+
+                radius:
+                    accuracy,
+
+                color:
+                    "#ff1493",
+
+                weight:
+                    2,
+
+                fillColor:
+                    "#ff1493",
+
+                fillOpacity:
+                    0.20
+
+            }
+        ).addTo(
+            guardianMap
+        );
+
+
+    /*
+     * KEEP CURRENT LOCATION VISIBLE
+     */
+
+    guardianMap.panTo(
+        [
+            latitude,
+            longitude
+        ]
+    );
+
+}
+
+
+/* =========================================================
+   CLEAR GUARDIAN MAP
+========================================================= */
+
+function clearGuardianMap() {
+
+    if (
+        guardianMap
+    ) {
+
+        guardianMap.remove();
+
+    }
+
+
+    guardianMap =
+        null;
+
+
+    guardianMapPath =
+        null;
+
+
+    guardianMapCurrentCircle =
+        null;
+
+
+    guardianMapCurrentMarker =
+        null;
+
+
+    currentGuardianJourney =
+        null;
+
+
+    const mapElement =
+        document.getElementById(
+            "guardianMap"
+        );
+
+
+    if (mapElement) {
+
+        mapElement.innerHTML =
+            "";
+
+    }
+
+}
+
+
+/* =========================================================
+   REFRESH GUARDIAN MAP EVERY 5 SECONDS
+========================================================= */
+
+function startGuardianMapPolling() {
+
+    stopGuardianMapPolling();
+
+
+    guardianMapPollTimer =
+        setInterval(
+
+            function() {
+
+                if (
+                    window.location.hash
+                        .replace(
+                            "#",
+                            ""
+                        ) !==
+                    "maps"
+                ) {
+
+                    stopGuardianMapPolling();
+
+                    return;
+
+                }
+
+
+                loadGuardianMapPage();
+
+            },
+
+            5000
+
+        );
+
+}
+
+
+/* =========================================================
+   STOP MAP POLLING
+========================================================= */
+
+function stopGuardianMapPolling() {
+
+    if (
+        guardianMapPollTimer
+    ) {
+
+        clearInterval(
+            guardianMapPollTimer
+        );
+
+        guardianMapPollTimer =
+            null;
+
+    }
+
+}
 
 /* =========================================================
    GET LOCATION
@@ -10606,12 +11339,514 @@ document.addEventListener(
     function updateCheckIn(){const el=$('checkInCountdown');if(!el)return;if(!GS.checkInUntil){el.textContent='No active check-in';return;}const left=Math.max(0,GS.checkInUntil-Date.now());if(left===0){el.innerHTML='⚠️ <strong>Check-in time reached.</strong> Are you safe?';return;}const m=Math.floor(left/60000),s=Math.floor(left/1000)%60;el.innerHTML='⏱️ Check-in in <strong>'+m+'m '+String(s).padStart(2,'0')+'s</strong>';} 
     setInterval(updateCheckIn,1000);
 
-    window.startJourney=function(){
-        const destination=$('journeyDestination')?.value.trim(); const arrival=$('journeyArrival')?.value; if(!destination||!arrival){showToast('Enter your destination and expected arrival time.');return;}
-        GS.journey={destination,arrival,note:$('journeyNote')?.value.trim()||'',startedAt:Date.now(),active:true};save('guardianJourney',GS.journey);renderJourney();showToast('Travel Safety Mode is active.');
-    };
-    window.arrivedSafely=function(){if(!GS.journey?.active){showToast('No active journey.');return;}GS.journey.active=false;GS.journey.arrivedAt=Date.now();save('guardianJourney',GS.journey);setStatus('safe',"I'm Safe");renderJourney();showToast('Journey completed. Glad you arrived safely.');};
-    window.endJourney=function(){GS.journey=null;localStorage.removeItem('guardianJourney');renderJourney();showToast('Travel Safety Mode ended.');};
+   let journeyWatchId = null;
+let journeyLastSentAt = 0;
+
+
+window.startJourney = async function() {
+
+    const destination =
+        $('journeyDestination')
+            ?.value
+            .trim();
+
+    const arrival =
+        $('journeyArrival')
+            ?.value;
+
+    const note =
+        $('journeyNote')
+            ?.value
+            .trim() || "";
+
+
+    if (
+        !destination ||
+        !arrival
+    ) {
+
+        showToast(
+            "Enter your destination and expected arrival time."
+        );
+
+        return;
+
+    }
+
+
+    if (!navigator.geolocation) {
+
+        showToast(
+            "Live location is not supported by this device."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        showToast(
+            "Starting your protected journey..."
+        );
+
+
+        const data =
+            await api(
+                "/api/journey/start",
+                {
+                    method: "POST",
+
+                    body: {
+
+                        destination:
+                            destination,
+
+                        arrival:
+                            arrival,
+
+                        note:
+                            note
+
+                    }
+
+                }
+            );
+
+
+        if (
+            !data ||
+            !data.journey
+        ) {
+
+            throw new Error(
+                "Journey could not be started."
+            );
+
+        }
+
+
+        GS.journey = {
+
+            id:
+                data.journey.id,
+
+            destination:
+                data.journey.destination,
+
+            arrival:
+                data.journey.arrival,
+
+            note:
+                data.journey.note || "",
+
+            startedAt:
+                data.journey.startedAt,
+
+            active:
+                true
+
+        };
+
+
+        save(
+            "guardianJourney",
+            GS.journey
+        );
+
+
+        renderJourney();
+
+
+        startJourneyLocationTracking();
+
+
+        showToast(
+            "Journey started. Your Guardian can now see your movement."
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Start journey error:",
+            error
+        );
+
+
+        showToast(
+            error.message ||
+            "Unable to start journey."
+        );
+
+    }
+
+};
+
+
+function startJourneyLocationTracking() {
+
+    if (
+        journeyWatchId !== null
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        !GS.journey ||
+        !GS.journey.id
+    ) {
+
+        return;
+
+    }
+
+
+    journeyWatchId =
+        navigator.geolocation.watchPosition(
+
+            async function(position) {
+
+                const now =
+                    Date.now();
+
+
+                /*
+                 * Send at most once every
+                 * 5 seconds.
+                 */
+
+                if (
+                    now -
+                    journeyLastSentAt <
+                    5000
+                ) {
+
+                    return;
+
+                }
+
+
+                journeyLastSentAt =
+                    now;
+
+
+                const latitude =
+                    position.coords.latitude;
+
+                const longitude =
+                    position.coords.longitude;
+
+                const accuracy =
+                    position.coords.accuracy;
+
+
+                try {
+
+                    await api(
+
+                        "/api/journey/" +
+                        encodeURIComponent(
+                            GS.journey.id
+                        ) +
+                        "/location",
+
+                        {
+
+                            method:
+                                "POST",
+
+                            body: {
+
+                                latitude:
+                                    latitude,
+
+                                longitude:
+                                    longitude,
+
+                                accuracy:
+                                    accuracy
+
+                            }
+
+                        }
+
+                    );
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Journey GPS upload error:",
+                        error
+                    );
+
+                }
+
+            },
+
+            function(error) {
+
+                console.error(
+                    "Journey GPS error:",
+                    error
+                );
+
+
+                showToast(
+                    "Live location error: " +
+                    error.message
+                );
+
+            },
+
+            {
+
+                enableHighAccuracy:
+                    true,
+
+                maximumAge:
+                    3000,
+
+                timeout:
+                    15000
+
+            }
+
+        );
+
+}
+
+
+function stopJourneyLocationTracking() {
+
+    if (
+        journeyWatchId !== null
+    ) {
+
+        navigator.geolocation.clearWatch(
+            journeyWatchId
+        );
+
+        journeyWatchId =
+            null;
+
+    }
+
+}
+
+
+async function restoreActiveJourney() {
+
+    try {
+
+        const data =
+            await api(
+                "/api/journey/my-active"
+            );
+
+
+        if (
+            data &&
+            data.journey
+        ) {
+
+            GS.journey = {
+
+                id:
+                    data.journey._id,
+
+                destination:
+                    data.journey.destination,
+
+                arrival:
+                    data.journey.arrival,
+
+                note:
+                    data.journey.note || "",
+
+                startedAt:
+                    data.journey.startedAt,
+
+                active:
+                    true
+
+            };
+
+
+            save(
+                "guardianJourney",
+                GS.journey
+            );
+
+
+            renderJourney();
+
+            startJourneyLocationTracking();
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Restore journey error:",
+            error
+        );
+
+    }
+
+}
+   window.arrivedSafely = async function() {
+
+    if (
+        !GS.journey ||
+        !GS.journey.id
+    ) {
+
+        showToast(
+            "No active journey."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        await api(
+
+            "/api/journey/" +
+            encodeURIComponent(
+                GS.journey.id
+            ) +
+            "/end",
+
+            {
+
+                method:
+                    "PATCH"
+
+            }
+
+        );
+
+
+        stopJourneyLocationTracking();
+
+
+        GS.journey.active =
+            false;
+
+        GS.journey.arrivedAt =
+            Date.now();
+
+
+        save(
+            "guardianJourney",
+            GS.journey
+        );
+
+
+        setStatus(
+            "safe",
+            "I'm Safe"
+        );
+
+
+        renderJourney();
+
+
+        showToast(
+            "Journey completed. Glad you arrived safely."
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Arrived safely error:",
+            error
+        );
+
+
+        showToast(
+            error.message ||
+            "Unable to complete journey."
+        );
+
+    }
+
+};
+    window.endJourney = async function() {
+
+    if (
+        !GS.journey ||
+        !GS.journey.id
+    ) {
+
+        showToast(
+            "No active journey."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        await api(
+
+            "/api/journey/" +
+            encodeURIComponent(
+                GS.journey.id
+            ) +
+            "/end",
+
+            {
+
+                method:
+                    "PATCH"
+
+            }
+
+        );
+
+    } catch (error) {
+
+        console.error(
+            "End journey server error:",
+            error
+        );
+
+    }
+
+
+    stopJourneyLocationTracking();
+
+
+    GS.journey =
+        null;
+
+
+    localStorage.removeItem(
+        "guardianJourney"
+    );
+
+
+    renderJourney();
+
+
+    showToast(
+        "Travel Safety Mode ended."
+    );
+
+};
     function renderJourney(){const el=$('journeyState');if(!el)return;if(!GS.journey){el.textContent='No journey is active.';return;}el.innerHTML=GS.journey.active?'🧭 <strong>Journey active:</strong> '+esc(GS.journey.destination)+' • expected '+new Date(GS.journey.arrival).toLocaleString():'✓ <strong>Journey completed.</strong> '+esc(GS.journey.destination);}
 
     function renderFamily(){const el=$('familyList');if(!el)return;if(!GS.family.length){el.innerHTML='<div class="info-box">No family members yet. Add the people you trust most.</div>';return;}el.innerHTML=GS.family.map((f,i)=>'<div class="family-item"><div class="family-avatar">👤</div><div><strong>'+esc(f.name)+'</strong><small>'+esc(f.relation)+' • '+esc(f.phone)+'</small></div><button class="family-remove" onclick="removeFamilyMember('+i+')">Remove</button></div>').join('');}
@@ -10654,7 +11889,7 @@ document.addEventListener(
     function applyLanguage(){const t=translations[GS.world.language]||translations.en;document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t[k])el.textContent=t[k];});}
 
     function initializeSafety(){
-        renderBattery();renderConnection();setStatus(GS.status.key,GS.status.label);renderSocialProfile();renderJourney();loadPrivacy();loadWorldwide();updateCheckIn();
+        renderBattery();renderConnection();setStatus(GS.status.key,GS.status.label);renderSocialProfile();renderJourney();loadPrivacy();loadWorldwide();updateCheckIn();restoreActiveJourney();
         window.addEventListener('online',renderConnection);window.addEventListener('offline',renderConnection);applyLanguage();
     }
     document.addEventListener('DOMContentLoaded',()=>setTimeout(initializeSafety,150));

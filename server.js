@@ -515,7 +515,126 @@ const LocationSchema = new mongoose.Schema(
 
 );
 
+/* ============================================================
+   LIVE JOURNEY SCHEMA
+   Stores a journey and its GPS movement path.
+============================================================ */
 
+const JourneyPointSchema = new mongoose.Schema(
+    {
+        latitude: {
+            type: Number,
+            required: true
+        },
+
+        longitude: {
+            type: Number,
+            required: true
+        },
+
+        accuracy: {
+            type: Number,
+            default: null
+        },
+
+        timestamp: {
+            type: Date,
+            default: Date.now
+        }
+    },
+    {
+        _id: false
+    }
+);
+
+
+const JourneySchema = new mongoose.Schema(
+    {
+        ownerUserId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
+
+        guardianUserId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
+
+        destination: {
+            type: String,
+            required: true,
+            trim: true,
+            maxlength: 500
+        },
+
+        arrival: {
+            type: Date,
+            required: true
+        },
+
+        note: {
+            type: String,
+            default: "",
+            maxlength: 2000
+        },
+
+        active: {
+            type: Boolean,
+            default: true
+        },
+
+        startedAt: {
+            type: Date,
+            default: Date.now
+        },
+
+        endedAt: {
+            type: Date,
+            default: null
+        },
+
+        currentLocation: {
+            latitude: {
+                type: Number,
+                default: null
+            },
+
+            longitude: {
+                type: Number,
+                default: null
+            },
+
+            accuracy: {
+                type: Number,
+                default: null
+            },
+
+            timestamp: {
+                type: Date,
+                default: null
+            }
+        },
+
+        path: {
+            type: [JourneyPointSchema],
+            default: []
+        }
+    }
+);
+
+
+JourneySchema.index({
+    guardianUserId: 1,
+    active: 1
+});
+
+
+JourneySchema.index({
+    ownerUserId: 1,
+    active: 1
+});
 
 function getPhoneVariants(phone) {
     const raw = String(phone || "")
@@ -656,6 +775,14 @@ const Location =
     mongoose.model(
         "Location",
         LocationSchema
+    );
+
+
+    const Journey =
+    mongoose.models.Journey ||
+    mongoose.model(
+        "Journey",
+        JourneySchema
     );
 
     const Conversation =
@@ -5825,7 +5952,670 @@ app.post(
 );
 
 
+/* ============================================================
+   LIVE JOURNEY TRACKING
+============================================================ */
 
+
+/*
+------------------------------------------------------------
+START JOURNEY
+------------------------------------------------------------
+POST /api/journey/start
+------------------------------------------------------------
+*/
+
+app.post(
+    "/api/journey/start",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const destination =
+                String(
+                    req.body?.destination || ""
+                ).trim();
+
+            const arrival =
+                req.body?.arrival;
+
+            const note =
+                String(
+                    req.body?.note || ""
+                ).trim();
+
+
+            if (!destination || !arrival) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Destination and expected arrival time are required."
+
+                });
+
+            }
+
+
+            /*
+             * FIND THE USER'S DESIGNATED GUARDIAN.
+             *
+             * The emergency contact relationship must
+             * contain the word "Guardian".
+             */
+
+            const guardianContact =
+                await EmergencyContact
+                    .findOne({
+
+                        userId:
+                            req.user.userId,
+
+                        relationship: {
+                            $regex: /guardian/i
+                        }
+
+                    })
+                    .sort({
+                        priority: 1,
+                        createdAt: 1
+                    });
+
+
+            if (!guardianContact) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "No Guardian is configured. Add an emergency contact with Relationship set to Guardian first."
+
+                });
+
+            }
+
+
+            /*
+             * FIND THE GUARDIAN'S GUARDIAN SOS ACCOUNT
+             * USING THE SAVED PHONE NUMBER.
+             */
+
+            const phoneVariants =
+                getPhoneVariants(
+                    guardianContact.phone
+                );
+
+
+            const guardian =
+                await User.findOne({
+
+                    _id: {
+                        $ne:
+                            req.user.userId
+                    },
+
+                    phone: {
+                        $in:
+                            phoneVariants
+                    }
+
+                }).select(
+                    "_id name email phone profileImage"
+                );
+
+
+            if (!guardian) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "The selected Guardian does not have a registered Guardian SOS account."
+
+                });
+
+            }
+
+
+            /*
+             * DO NOT ALLOW TWO ACTIVE JOURNEYS
+             * FOR THE SAME USER.
+             */
+
+            const existingJourney =
+                await Journey.findOne({
+
+                    ownerUserId:
+                        req.user.userId,
+
+                    active:
+                        true
+
+                });
+
+
+            if (existingJourney) {
+
+                return res.status(409).json({
+
+                    success: false,
+
+                    message:
+                        "You already have an active journey."
+
+                });
+
+            }
+
+
+            const journey =
+                await Journey.create({
+
+                    ownerUserId:
+                        req.user.userId,
+
+                    guardianUserId:
+                        guardian._id,
+
+                    destination:
+                        destination,
+
+                    arrival:
+                        new Date(arrival),
+
+                    note:
+                        note,
+
+                    active:
+                        true,
+
+                    startedAt:
+                        new Date(),
+
+                    path:
+                        []
+
+                });
+
+
+            return res.status(201).json({
+
+                success: true,
+
+                message:
+                    "Journey started. Your Guardian can now see your live movement.",
+
+                journey: {
+
+                    id:
+                        journey._id,
+
+                    destination:
+                        journey.destination,
+
+                    arrival:
+                        journey.arrival,
+
+                    note:
+                        journey.note,
+
+                    active:
+                        journey.active,
+
+                    startedAt:
+                        journey.startedAt,
+
+                    guardian: {
+
+                        id:
+                            guardian._id,
+
+                        name:
+                            guardian.name
+
+                    }
+
+                }
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Start journey error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to start journey."
+
+            });
+
+        }
+
+    }
+);
+
+
+/*
+------------------------------------------------------------
+SAVE LIVE JOURNEY LOCATION
+------------------------------------------------------------
+POST /api/journey/:id/location
+------------------------------------------------------------
+*/
+
+app.post(
+    "/api/journey/:id/location",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const latitude =
+                Number(
+                    req.body?.latitude
+                );
+
+            const longitude =
+                Number(
+                    req.body?.longitude
+                );
+
+            const accuracy =
+                req.body?.accuracy !== undefined
+                    ? Number(req.body.accuracy)
+                    : null;
+
+
+            if (
+                !validCoordinates(
+                    latitude,
+                    longitude
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid location coordinates."
+
+                });
+
+            }
+
+
+            /*
+             * ONLY THE JOURNEY OWNER CAN SEND
+             * THEIR OWN MOVEMENT.
+             */
+
+            const journey =
+                await Journey.findOne({
+
+                    _id:
+                        req.params.id,
+
+                    ownerUserId:
+                        req.user.userId,
+
+                    active:
+                        true
+
+                });
+
+
+            if (!journey) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        "Active journey not found."
+
+                });
+
+            }
+
+
+            const point = {
+
+                latitude:
+                    latitude,
+
+                longitude:
+                    longitude,
+
+                accuracy:
+                    Number.isFinite(accuracy)
+                        ? accuracy
+                        : null,
+
+                timestamp:
+                    new Date()
+
+            };
+
+
+            /*
+             * Keep the latest 2000 GPS points.
+             */
+
+            journey.path.push(
+                point
+            );
+
+
+            if (
+                journey.path.length >
+                2000
+            ) {
+
+                journey.path =
+                    journey.path.slice(
+                        -2000
+                    );
+
+            }
+
+
+            journey.currentLocation =
+                point;
+
+
+            await journey.save();
+
+
+            return res.json({
+
+                success: true,
+
+                location:
+                    point
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Journey location error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to save journey location."
+
+            });
+
+        }
+
+    }
+);
+
+
+/*
+------------------------------------------------------------
+GET MY ACTIVE JOURNEY
+------------------------------------------------------------
+GET /api/journey/my-active
+------------------------------------------------------------
+*/
+
+app.get(
+    "/api/journey/my-active",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const journey =
+                await Journey.findOne({
+
+                    ownerUserId:
+                        req.user.userId,
+
+                    active:
+                        true
+
+                });
+
+
+            return res.json({
+
+                success: true,
+
+                journey
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Get my active journey error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to retrieve active journey."
+
+            });
+
+        }
+
+    }
+);
+
+
+/*
+------------------------------------------------------------
+GET GUARDIAN'S ACTIVE JOURNEY
+------------------------------------------------------------
+GET /api/journey/guardian-active
+------------------------------------------------------------
+
+IMPORTANT:
+ONLY guardianUserId can access this endpoint.
+------------------------------------------------------------
+*/
+
+app.get(
+    "/api/journey/guardian-active",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const journey =
+                await Journey
+                    .findOne({
+
+                        guardianUserId:
+                            req.user.userId,
+
+                        active:
+                            true
+
+                    })
+                    .populate(
+                        "ownerUserId",
+                        "name email phone"
+                    );
+
+
+            /*
+             * No journey for this Guardian.
+             */
+
+            if (!journey) {
+
+                return res.json({
+
+                    success: true,
+
+                    journey:
+                        null
+
+                });
+
+            }
+
+
+            return res.json({
+
+                success: true,
+
+                journey
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Guardian journey access error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to retrieve Guardian journey."
+
+            });
+
+        }
+
+    }
+);
+
+
+/*
+------------------------------------------------------------
+END JOURNEY
+------------------------------------------------------------
+PATCH /api/journey/:id/end
+------------------------------------------------------------
+*/
+
+app.patch(
+    "/api/journey/:id/end",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const journey =
+                await Journey.findOneAndUpdate(
+
+                    {
+
+                        _id:
+                            req.params.id,
+
+                        ownerUserId:
+                            req.user.userId,
+
+                        active:
+                            true
+
+                    },
+
+                    {
+
+                        active:
+                            false,
+
+                        endedAt:
+                            new Date()
+
+                    },
+
+                    {
+
+                        new:
+                            true
+
+                    }
+
+                );
+
+
+            if (!journey) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        "Active journey not found."
+
+                });
+
+            }
+
+
+            return res.json({
+
+                success: true,
+
+                message:
+                    "Journey ended successfully.",
+
+                journey
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "End journey error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    "Unable to end journey."
+
+            });
+
+        }
+
+    }
+);
 /*
 ------------------------------------------------------------
 CREATE SOS EVENT
@@ -6539,6 +7329,8 @@ app.delete(
 
     }
 );
+
+
 
 /* ============================================================
    HEALTH CHECK
