@@ -9594,65 +9594,18 @@ async function loadGuardianMapPage() {
             "guardianMapInfo"
         );
 
-
-    if (status) {
-
-        status.textContent =
-            "Checking Guardian access...";
-
-        status.style.color =
-            "#ff1493";
-
-    }
-
-
-    try {
-
-        /*
-         * SERVER-SIDE SECURITY:
-         * Only the designated Guardian can
-         * receive this journey.
-         */
-
-        const response =
-            await api(
-                "/api/journey/guardian-active"
-            );
-
-
-        if (
-    !response ||
-    !response.journey
-) {
-
-    currentGuardianJourney =
-        null;
-
-
-    if (status) {
-
-        status.textContent =
-            "No active Guardian journey is currently being shared.";
-
-        status.style.color =
-            "#aaa";
-
-    }
-
-
-    if (info) {
-
-        info.innerHTML =
-            "When your protected person starts a journey, their live movement will appear here.";
-
-    }
-
-
     const mapElement =
         document.getElementById(
             "guardianMap"
         );
 
+
+    /*
+     * THE MAP MUST ALWAYS EXIST.
+     *
+     * Create the Leaflet map FIRST.
+     * Do NOT wait for a journey.
+     */
 
     if (!mapElement) {
 
@@ -9675,10 +9628,12 @@ async function loadGuardianMapPage() {
         L.tileLayer(
             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             {
+
                 maxZoom: 19,
 
                 attribution:
                     "&copy; OpenStreetMap contributors"
+
             }
         ).addTo(
             guardianMap
@@ -9691,40 +9646,155 @@ async function loadGuardianMapPage() {
     }
 
 
-    if (guardianMapCurrentMarker) {
+    /*
+     * Make sure Leaflet recalculates the
+     * map size after the page becomes visible.
+     */
 
-        guardianMap.removeLayer(
-            guardianMapCurrentMarker
-        );
+    setTimeout(
+        function() {
 
-        guardianMapCurrentMarker =
-            null;
+            if (guardianMap) {
+
+                guardianMap.invalidateSize();
+
+            }
+
+        },
+        100
+    );
+
+
+    /*
+     * DEFAULT MAP STATE
+     *
+     * The map remains available even when
+     * there is no active journey.
+     */
+
+    if (status) {
+
+        status.textContent =
+            "Map available. Waiting for a live journey...";
+
+        status.style.color =
+            "#ff1493";
 
     }
 
 
-    if (guardianMapCurrentCircle) {
+    if (info) {
 
-        guardianMap.removeLayer(
-            guardianMapCurrentCircle
-        );
-
-        guardianMapCurrentCircle =
-            null;
+        info.innerHTML =
+            "The map is active. Live movement will appear here when a traveler starts a journey.";
 
     }
 
 
-    guardianMapPath =
-        null;
+    /*
+     * NOW check whether a Guardian journey exists.
+     *
+     * The journey is OPTIONAL.
+     * The map itself is NOT optional.
+     */
+
+    try {
+
+        const response =
+            await api(
+                "/api/journey/guardian-active"
+            );
 
 
-    stopGuardianMapPolling();
+        /*
+         * NO ACTIVE JOURNEY
+         *
+         * KEEP THE MAP.
+         */
 
-    return;
+        if (
+            !response ||
+            !response.journey
+        ) {
 
-}
+            currentGuardianJourney =
+                null;
 
+
+            /*
+             * Remove only old journey graphics.
+             * NEVER remove the actual map.
+             */
+
+            if (guardianMapCurrentMarker) {
+
+                guardianMap.removeLayer(
+                    guardianMapCurrentMarker
+                );
+
+                guardianMapCurrentMarker =
+                    null;
+
+            }
+
+
+            if (guardianMapCurrentCircle) {
+
+                guardianMap.removeLayer(
+                    guardianMapCurrentCircle
+                );
+
+                guardianMapCurrentCircle =
+                    null;
+
+            }
+
+
+            if (guardianMapPath) {
+
+                guardianMap.removeLayer(
+                    guardianMapPath
+                );
+
+                guardianMapPath =
+                    null;
+
+            }
+
+
+            if (status) {
+
+                status.textContent =
+                    "MAP ACTIVE — No live journey is currently active.";
+
+                status.style.color =
+                    "#ff1493";
+
+            }
+
+
+            if (info) {
+
+                info.innerHTML =
+                    "The map is ready. When a traveler starts a journey, their live movement will appear here.";
+
+            }
+
+
+            /*
+             * IMPORTANT:
+             * Do NOT call clearGuardianMap().
+             * Do NOT stop/delete the map.
+             */
+
+            return;
+
+        }
+
+
+        /*
+         * ACTIVE JOURNEY FOUND
+         */
 
         currentGuardianJourney =
             response.journey;
@@ -9781,28 +9851,37 @@ async function loadGuardianMapPage() {
         }
 
 
+        /*
+         * Continue checking the live journey.
+         */
+
         startGuardianMapPolling();
 
 
     } catch (error) {
 
         console.error(
-            "Guardian map error:",
+            "Guardian map journey check error:",
             error
         );
 
 
-        clearGuardianMap();
-
+        /*
+         * IMPORTANT:
+         *
+         * The API can fail, but the MAP MUST
+         * remain visible.
+         *
+         * DO NOT call clearGuardianMap().
+         */
 
         if (status) {
 
             status.textContent =
-                error.message ||
-                "You are not authorized to view this journey.";
+                "MAP ACTIVE — Live journey information is temporarily unavailable.";
 
             status.style.color =
-                "#ff4444";
+                "#ff1493";
 
         }
 
@@ -9810,12 +9889,20 @@ async function loadGuardianMapPage() {
         if (info) {
 
             info.innerHTML =
-                "Live movement is private. Only the designated Guardian account can view it.";
+                "The map is still available. Live journey information will appear when available.";
 
         }
 
 
-        stopGuardianMapPolling();
+        /*
+         * Keep the Leaflet map alive.
+         */
+
+        if (guardianMap) {
+
+            guardianMap.invalidateSize();
+
+        }
 
     }
 
