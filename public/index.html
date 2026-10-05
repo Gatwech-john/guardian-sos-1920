@@ -9951,16 +9951,16 @@ function renderGuardianJourneyMap(
             );
 
         L.tileLayer(
-            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            {
-                maxZoom: 19,
+    "https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    {
+        maxZoom: 19,
 
-                attribution:
-                    "&copy; OpenStreetMap contributors"
-            }
-        ).addTo(
-            guardianMap
-        );
+        attribution:
+            "&copy; OpenStreetMap contributors &copy; CARTO"
+    }
+).addTo(
+    guardianMap
+);
 
     } else {
 
@@ -10022,15 +10022,13 @@ function renderGuardianJourneyMap(
          */
 
         L.tileLayer(
-            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            {
+    "https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    {
+        maxZoom: 19,
 
-                maxZoom: 19,
-
-                attribution:
-                    "&copy; OpenStreetMap contributors"
-
-            }
+        attribution:
+            "&copy; OpenStreetMap contributors &copy; CARTO"
+    }
         ).addTo(
             guardianMap
         );
