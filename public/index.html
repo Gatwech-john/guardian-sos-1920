@@ -3492,7 +3492,9 @@ align-items: flex-start;
 @media(max-width:900px){.guardian-status-grid{grid-template-columns:1fr 1fr}.status-main{grid-column:1/-1}.guardian-feature-grid{grid-template-columns:1fr 1fr}.location-live-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.guardian-safety-heading{align-items:flex-start;flex-direction:column}.guardian-status-grid,.guardian-feature-grid,.form-grid-two,.international-cards{grid-template-columns:1fr}.status-main{grid-column:auto}.social-profile-top{align-items:flex-start;flex-wrap:wrap}.social-profile-top .guardian-mini-button{margin-left:auto}.guardian-safety-shell{padding-bottom:140px}.guardian-panel{padding:17px}.guardian-safety-heading h1{font-size:34px}}
 .guardian-safety-nav,.guardian-safety-mobile{color:#ff1493!important}
+@media (max-width: 600px) {.guardian-google-map {height: 420px; min-height: 320px; }
 
+}
 </style>
 <!-- LEAFLET MAP -->
 <link
@@ -9619,40 +9621,109 @@ async function loadGuardianMapPage() {
 
 
         if (
-            !response ||
-            !response.journey
-        ) {
+    !response ||
+    !response.journey
+) {
 
-            currentGuardianJourney =
-                null;
+    currentGuardianJourney =
+        null;
 
 
-            if (status) {
+    if (status) {
 
-                status.textContent =
-                    "No active Guardian journey is currently being shared.";
+        status.textContent =
+            "No active Guardian journey is currently being shared.";
 
-                status.style.color =
-                    "#aaa";
+        status.style.color =
+            "#aaa";
 
+    }
+
+
+    if (info) {
+
+        info.innerHTML =
+            "When your protected person starts a journey, their live movement will appear here.";
+
+    }
+
+
+    const mapElement =
+        document.getElementById(
+            "guardianMap"
+        );
+
+
+    if (!mapElement) {
+
+        return;
+
+    }
+
+
+    if (!guardianMap) {
+
+        guardianMap =
+            L.map(
+                mapElement
+            ).setView(
+                [-0.3031, 36.0800],
+                7
+            );
+
+
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                maxZoom: 19,
+
+                attribution:
+                    "&copy; OpenStreetMap contributors"
             }
+        ).addTo(
+            guardianMap
+        );
+
+    } else {
+
+        guardianMap.invalidateSize();
+
+    }
 
 
-            if (info) {
+    if (guardianMapCurrentMarker) {
 
-                info.innerHTML =
-                    "When your protected person starts a journey, their live movement will appear here.";
+        guardianMap.removeLayer(
+            guardianMapCurrentMarker
+        );
 
-            }
+        guardianMapCurrentMarker =
+            null;
+
+    }
 
 
-            clearGuardianMap();
+    if (guardianMapCurrentCircle) {
 
-            stopGuardianMapPolling();
+        guardianMap.removeLayer(
+            guardianMapCurrentCircle
+        );
 
-            return;
+        guardianMapCurrentCircle =
+            null;
 
-        }
+    }
+
+
+    guardianMapPath =
+        null;
+
+
+    stopGuardianMapPolling();
+
+    return;
+
+}
 
 
         currentGuardianJourney =
@@ -9782,14 +9853,36 @@ function renderGuardianJourneyMap(
 
     if (!path.length) {
 
-        mapElement.innerHTML =
-            "<div style='padding:30px;text-align:center;color:#aaa;'>" +
-            "Waiting for the first GPS location..." +
-            "</div>";
+    if (!guardianMap) {
 
-        return;
+        guardianMap =
+            L.map(
+                mapElement
+            ).setView(
+                [-0.3031, 36.0800],
+                7
+            );
+
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                maxZoom: 19,
+
+                attribution:
+                    "&copy; OpenStreetMap contributors"
+            }
+        ).addTo(
+            guardianMap
+        );
+
+    } else {
+
+        guardianMap.invalidateSize();
 
     }
+
+    return;
+}
 
 
     const latest =
