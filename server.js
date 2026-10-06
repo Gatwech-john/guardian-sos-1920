@@ -3751,7 +3751,10 @@ app.post(
 
         try {
 
-            const { token } = req.body;
+            await connectMongoDB();
+
+            const { token } =
+                req.body;
 
             if (!token) {
 
@@ -6817,12 +6820,12 @@ app.post(
                 ).trim();
 
 
-            const allowedModes = [
-    "car",
-    "motorcycle",
-    "bicycle",
-    "walking",
-    "airplane"
+           const allowedModes = [
+    "CAR",
+    "MOTORCYCLE",
+    "BICYCLE",
+    "WALKING",
+    "AIRPLANE"
 ];
 
 
@@ -7432,7 +7435,7 @@ app.get(
     async (req, res) => {
 
         try {
-
+await connectMongoDB();
             const journey =
                 await Journey.findOne({
 
@@ -7495,7 +7498,7 @@ app.get(
     async (req, res) => {
 
         try {
-
+            await connectMongoDB();
             const journey =
                 await Journey
                     .findOne({
