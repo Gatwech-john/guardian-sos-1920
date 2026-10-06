@@ -4968,9 +4968,59 @@ align-items: flex-start;
                     <div id="journeyPanel" class="guardian-panel" hidden>
                         <div class="panel-head"><div><span class="small-label">TRAVEL SAFETY MODE</span><h2>Protect your journey</h2></div><button onclick="closeGuardianPanel('journeyPanel')">×</button></div>
                         <div class="form-grid-two">
-                            <label>Destination<input id="journeyDestination" placeholder="Where are you going?"></label>
-                            <label>Expected arrival<input id="journeyArrival" type="datetime-local"></label>
-                        </div>
+
+    <label>
+        Destination
+
+        <input
+            id="journeyDestination"
+            placeholder="Where are you going?"
+        >
+    </label>
+
+
+    <label>
+        Expected arrival
+
+        <input
+            id="journeyArrival"
+            type="datetime-local"
+        >
+    </label>
+
+
+    <label>
+        Transport mode
+
+        <select
+            id="journeyTravelMode"
+        >
+
+            <option value="CAR">
+                🚗 Car
+            </option>
+
+            <option value="MOTORCYCLE">
+                🏍️ Motorcycle
+            </option>
+
+            <option value="BICYCLE">
+                🚲 Bicycle
+            </option>
+
+            <option value="WALKING">
+                🚶 Walking
+            </option>
+
+            <option value="AIRPLANE">
+                ✈️ Airplane
+            </option>
+
+        </select>
+
+    </label>
+
+</div>
                         <label class="full-field">Journey note<textarea id="journeyNote" placeholder="Optional: bus, flight, hotel, route, meeting…"></textarea></label>
                         <div id="journeyState" class="info-box">No journey is active.</div>
                         <div class="panel-actions"><button class="guardian-primary" onclick="startJourney()">Start Journey</button><button class="guardian-secondary" onclick="arrivedSafely()">✓ I Arrived Safely</button><button class="guardian-ghost" onclick="endJourney()">End Journey</button></div>
@@ -9559,23 +9609,16 @@ async function deleteContact(id) {
    GUARDIAN LEAFLET LIVE JOURNEY MAP
 ========================================================= */
 
-let guardianMap =
-    null;
+let guardianMap = null;
+let guardianMapPath = null;
+let guardianMapCurrentCircle = null;
+let guardianMapCurrentMarker = null;
+let guardianMapPollTimer = null;
+let currentGuardianJourney = null;
 
-let guardianMapPath =
-    null;
-
-let guardianMapCurrentCircle =
-    null;
-
-let guardianMapCurrentMarker =
-    null;
-
-let guardianMapPollTimer =
-    null;
-
-let currentGuardianJourney =
-    null;
+// NEW: remaining route and destination
+let guardianMapRoute = null;
+let guardianMapDestinationMarker = null;
 
 /*
  * LANDLINK-STYLE MAP LAYERS
@@ -9938,26 +9981,128 @@ async function loadGuardianMapPage() {
                     : "Guardian SOS user";
 
 
-            info.innerHTML =
+          
 
-                "<strong>" +
-                escapeHTML(
-                    ownerName
-                ) +
-                "</strong><br>" +
 
-                "Destination: " +
-                escapeHTML(
-                    currentGuardianJourney.destination
-                ) +
-                "<br>" +
+const modeLabels = {
 
-                "Expected arrival: " +
-                escapeHTML(
-                    new Date(
-                        currentGuardianJourney.arrival
-                    ).toLocaleString()
-                );
+    CAR:
+        "🚗 Car",
+
+    MOTORCYCLE:
+        "🏍️ Motorcycle",
+
+    BICYCLE:
+        "🚲 Bicycle",
+
+    WALKING:
+        "🚶 Walking",
+
+    AIRPLANE:
+        "✈️ Airplane"
+
+};
+
+
+let distanceText =
+    "Calculating...";
+
+
+if (
+    Number.isFinite(
+        Number(
+            currentGuardianJourney
+                .routeDistanceMeters
+        )
+    )
+) {
+
+    const kilometres =
+        Number(
+            currentGuardianJourney
+                .routeDistanceMeters
+        ) / 1000;
+
+
+    distanceText =
+        kilometres < 1
+
+            ? Math.round(
+                kilometres * 1000
+              ) +
+              " m"
+
+            : kilometres.toFixed(1) +
+              " km";
+
+}
+
+
+let etaText =
+    "Calculating...";
+
+
+if (
+    currentGuardianJourney
+        .predictedArrival
+) {
+
+    etaText =
+        new Date(
+            currentGuardianJourney
+                .predictedArrival
+        ).toLocaleTimeString(
+            [],
+            {
+                hour:
+                    "2-digit",
+
+                minute:
+                    "2-digit"
+            }
+        );
+
+}
+
+
+info.innerHTML =
+
+    "<strong>" +
+    escapeHTML(
+        ownerName
+    ) +
+    "</strong><br>" +
+
+    "Destination: " +
+    escapeHTML(
+        currentGuardianJourney
+            .destination ||
+        "—"
+    ) +
+    "<br>" +
+
+    "Transport: " +
+    escapeHTML(
+        modeLabels[
+            currentGuardianJourney
+                .travelMode
+        ] ||
+        currentGuardianJourney
+            .travelMode ||
+        "—"
+    ) +
+    "<br>" +
+
+    "Distance remaining: " +
+    escapeHTML(
+        distanceText
+    ) +
+    "<br>" +
+
+    "Predicted arrival: " +
+    escapeHTML(
+        etaText
+    );
 
         }
 
@@ -10192,6 +10337,58 @@ function renderGuardianJourneyMap(
             guardianMap
         );
 
+        /* ============================================================
+   DRAW REMAINING ROUTE TO DESTINATION
+============================================================ */
+
+if (
+    guardianMapRoute &&
+    guardianMap
+) {
+
+    guardianMap.removeLayer(
+        guardianMapRoute
+    );
+
+    guardianMapRoute =
+        null;
+
+}
+let guardianMapRoute = null;
+
+if (
+    Array.isArray(
+        journey.routeShape
+    ) &&
+    journey.routeShape.length > 1
+) {
+
+    guardianMapRoute =
+        L.polyline(
+
+            journey.routeShape,
+
+            {
+
+                color:
+                    "#ffffff",
+
+                weight:
+                    5,
+
+                opacity:
+                    0.85,
+
+                dashArray:
+                    "10 8"
+
+            }
+
+        ).addTo(
+            guardianMap
+        );
+
+}
 
     /*
      * REMOVE OLD CURRENT LOCATION
@@ -10240,7 +10437,60 @@ function renderGuardianJourneyMap(
             longitude
         );
 
+if (
+    journey.destinationLatitude !== null &&
+    journey.destinationLongitude !== null &&
+    Number.isFinite(
+        Number(
+            journey.destinationLatitude
+        )
+    ) &&
+    Number.isFinite(
+        Number(
+            journey.destinationLongitude
+        )
+    )
+) {
 
+    if (
+        window.guardianMapDestinationMarker
+    ) {
+
+        guardianMap.removeLayer(
+            window.guardianMapDestinationMarker
+        );
+
+    }
+
+
+    window.guardianMapDestinationMarker =
+        L.marker(
+
+            [
+
+                Number(
+                    journey.destinationLatitude
+                ),
+
+                Number(
+                    journey.destinationLongitude
+                )
+
+            ]
+
+        )
+        .addTo(
+            guardianMap
+        )
+        .bindPopup(
+            "<strong>Destination</strong><br>" +
+            escapeHTML(
+                journey.destination ||
+                "Destination"
+            )
+        );
+
+}
     /*
      * GPS ACCURACY CIRCLE
      */
@@ -10346,6 +10596,13 @@ function clearGuardianMap() {
             "";
 
     }
+
+
+    guardianMapRoute =
+    null;
+
+guardianMapDestinationMarker =
+    null;
 
 }
 
@@ -11602,14 +11859,23 @@ window.startJourney = async function() {
             ?.value
             .trim();
 
+
     const arrival =
         $('journeyArrival')
             ?.value;
 
+
+    const travelMode =
+        $('journeyTravelMode')
+            ?.value ||
+        "CAR";
+
+
     const note =
         $('journeyNote')
             ?.value
-            .trim() || "";
+            .trim() ||
+        "";
 
 
     if (
@@ -11640,20 +11906,97 @@ window.startJourney = async function() {
     try {
 
         showToast(
+            "Finding your destination..."
+        );
+
+
+        /*
+         * FIND DESTINATION COORDINATES.
+         */
+
+        const geocode =
+            await api(
+
+                "/api/journey/geocode?q=" +
+                encodeURIComponent(
+                    destination
+                )
+
+            );
+
+
+        if (
+            !geocode ||
+            !geocode.destination
+        ) {
+
+            throw new Error(
+                "Destination could not be found."
+            );
+
+        }
+
+
+        const destinationLatitude =
+            Number(
+                geocode.destination.latitude
+            );
+
+
+        const destinationLongitude =
+            Number(
+                geocode.destination.longitude
+            );
+
+
+        if (
+            !Number.isFinite(
+                destinationLatitude
+            ) ||
+            !Number.isFinite(
+                destinationLongitude
+            )
+        ) {
+
+            throw new Error(
+                "Invalid destination coordinates."
+            );
+
+        }
+
+
+        showToast(
             "Starting your protected journey..."
         );
 
 
+        /*
+         * START JOURNEY.
+         */
+
         const data =
             await api(
+
                 "/api/journey/start",
+
                 {
-                    method: "POST",
+
+                    method:
+                        "POST",
 
                     body: {
 
                         destination:
                             destination,
+
+                        destinationLatitude:
+                            destinationLatitude,
+
+                        destinationLongitude:
+                            destinationLongitude,
+
+                        travelMode:
+                            travelMode,
 
                         arrival:
                             arrival,
@@ -11664,6 +12007,7 @@ window.startJourney = async function() {
                     }
 
                 }
+
             );
 
 
@@ -11687,8 +12031,26 @@ window.startJourney = async function() {
             destination:
                 data.journey.destination,
 
+            destinationLatitude:
+                data.journey.destinationLatitude,
+
+            destinationLongitude:
+                data.journey.destinationLongitude,
+
+            travelMode:
+                data.journey.travelMode,
+
             arrival:
                 data.journey.arrival,
+
+            predictedArrival:
+                data.journey.predictedArrival,
+
+            routeDistanceMeters:
+                data.journey.routeDistanceMeters,
+
+            estimatedDurationSeconds:
+                data.journey.estimatedDurationSeconds,
 
             note:
                 data.journey.note || "",
@@ -11710,6 +12072,10 @@ window.startJourney = async function() {
 
         renderJourney();
 
+
+        /*
+         * NOW START LIVE GPS.
+         */
 
         startJourneyLocationTracking();
 
@@ -11735,7 +12101,6 @@ window.startJourney = async function() {
     }
 
 };
-
 
 function startJourneyLocationTracking() {
 
@@ -11799,35 +12164,59 @@ function startJourneyLocationTracking() {
 
                 try {
 
-                    await api(
+                   const journeyData =
+    await api(
 
-                        "/api/journey/" +
-                        encodeURIComponent(
-                            GS.journey.id
-                        ) +
-                        "/location",
+        "/api/journey/" +
+        encodeURIComponent(
+            GS.journey.id
+        ) +
+        "/location",
 
-                        {
+        {
 
-                            method:
-                                "POST",
+            method:
+                "POST",
 
-                            body: {
+            body: {
 
-                                latitude:
-                                    latitude,
+                latitude:
+                    latitude,
 
-                                longitude:
-                                    longitude,
+                longitude:
+                    longitude,
 
-                                accuracy:
-                                    accuracy
+                accuracy:
+                    accuracy
 
-                            }
+            }
 
-                        }
+        }
 
-                    );
+    );
+
+
+if (
+    journeyData &&
+    journeyData.journey
+) {
+
+    GS.journey =
+        {
+
+            ...GS.journey,
+
+            ...journeyData.journey
+
+        };
+
+
+    save(
+        "guardianJourney",
+        GS.journey
+    );
+
+}
 
 
                 } catch (error) {
@@ -11909,25 +12298,44 @@ async function restoreActiveJourney() {
 
             GS.journey = {
 
-                id:
-                    data.journey._id,
+    id:
+        data.journey._id,
 
-                destination:
-                    data.journey.destination,
+    destination:
+        data.journey.destination,
 
-                arrival:
-                    data.journey.arrival,
+    destinationLatitude:
+        data.journey.destinationLatitude,
 
-                note:
-                    data.journey.note || "",
+    destinationLongitude:
+        data.journey.destinationLongitude,
 
-                startedAt:
-                    data.journey.startedAt,
+    travelMode:
+        data.journey.travelMode ||
+        "CAR",
 
-                active:
-                    true
+    arrival:
+        data.journey.arrival,
 
-            };
+    predictedArrival:
+        data.journey.predictedArrival,
+
+    routeDistanceMeters:
+        data.journey.routeDistanceMeters,
+
+    estimatedDurationSeconds:
+        data.journey.estimatedDurationSeconds,
+
+    note:
+        data.journey.note || "",
+
+    startedAt:
+        data.journey.startedAt,
+
+    active:
+        true
+
+};
 
 
             save(

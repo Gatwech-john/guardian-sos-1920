@@ -563,22 +563,71 @@ const JourneySchema = new mongoose.Schema(
         },
 
         destination: {
-            type: String,
-            required: true,
-            trim: true,
-            maxlength: 500
-        },
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 500
+},
 
-        arrival: {
-            type: Date,
-            required: true
-        },
+travelMode: {
+    type: String,
 
-        note: {
-            type: String,
-            default: "",
-            maxlength: 2000
-        },
+    enum: [
+        "CAR",
+        "MOTORCYCLE",
+        "BICYCLE",
+        "WALKING",
+        "AIRPLANE"
+    ],
+
+    default: "CAR"
+},
+
+arrival: {
+    type: Date,
+    required: true
+},
+
+predictedArrival: {
+    type: Date,
+    default: null
+},
+
+routeDistanceMeters: {
+    type: Number,
+    default: null
+},
+
+estimatedDurationSeconds: {
+    type: Number,
+    default: null
+},
+
+routePolyline: {
+    type: String,
+    default: ""
+},
+
+destinationLatitude: {
+    type: Number,
+    default: null
+},
+
+destinationLongitude: {
+    type: Number,
+    default: null
+},
+
+routeShape: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+},
+
+note: {
+    type: String,
+    default: "",
+    maxlength: 2000
+},
 
         active: {
             type: Boolean,
@@ -624,6 +673,122 @@ const JourneySchema = new mongoose.Schema(
     }
 );
 
+
+/* ============================================================
+   JOURNEY TRANSPORT MODES
+============================================================ */
+
+const JOURNEY_TRANSPORT = {
+
+    CAR: {
+        label: "Car",
+        googleMode: "DRIVE",
+        defaultSpeedKmh: 60
+    },
+
+    MOTORCYCLE: {
+        label: "Motorcycle",
+        googleMode: "TWO_WHEELER",
+        defaultSpeedKmh: 55
+    },
+
+    BICYCLE: {
+        label: "Bicycle",
+        googleMode: "BICYCLE",
+        defaultSpeedKmh: 18
+    },
+
+    WALKING: {
+        label: "Walking",
+        googleMode: "WALK",
+        defaultSpeedKmh: 5
+    },
+
+    AIRPLANE: {
+        label: "Airplane",
+        googleMode: null,
+        defaultSpeedKmh: 800
+    }
+
+};
+
+
+/* ============================================================
+   VALIDATE JOURNEY TRANSPORT
+============================================================ */
+
+function isValidJourneyTransport(mode) {
+
+    return Object.prototype.hasOwnProperty.call(
+        JOURNEY_TRANSPORT,
+        mode
+    );
+
+}
+
+/* ============================================================
+   CALCULATE DISTANCE BETWEEN TWO GPS POINTS
+   Returns metres.
+============================================================ */
+
+function calculateDistanceMeters(
+    latitude1,
+    longitude1,
+    latitude2,
+    longitude2
+) {
+
+    const earthRadius = 6371000;
+
+    const lat1 =
+        Number(latitude1) *
+        Math.PI /
+        180;
+
+    const lat2 =
+        Number(latitude2) *
+        Math.PI /
+        180;
+
+    const deltaLat =
+        (
+            Number(latitude2) -
+            Number(latitude1)
+        ) *
+        Math.PI /
+        180;
+
+    const deltaLon =
+        (
+            Number(longitude2) -
+            Number(longitude1)
+        ) *
+        Math.PI /
+        180;
+
+
+    const a =
+        Math.sin(deltaLat / 2) *
+        Math.sin(deltaLat / 2) +
+
+        Math.cos(lat1) *
+        Math.cos(lat2) *
+
+        Math.sin(deltaLon / 2) *
+        Math.sin(deltaLon / 2);
+
+
+    const c =
+        2 *
+        Math.atan2(
+            Math.sqrt(a),
+            Math.sqrt(1 - a)
+        );
+
+
+    return earthRadius * c;
+
+}
 
 JourneySchema.index({
     guardianUserId: 1,
@@ -3958,7 +4123,504 @@ function getPhoneVariants(phone) {
     return [...variants];
 
 }
+/* ============================================================
+   GUARDIAN SOS FREE ROUTING
+   OpenStreetMap + Valhalla
+   NO GOOGLE API KEY REQUIRED
+============================================================ */
 
+const VALHALLA_URL =
+    "https://valhalla.openstreetmap.de/route";
+
+
+/* ------------------------------------------------------------
+   VALIDATE LATITUDE / LONGITUDE
+------------------------------------------------------------ */
+
+function validJourneyCoordinates(latitude, longitude) {
+
+    return (
+        Number.isFinite(Number(latitude)) &&
+        Number.isFinite(Number(longitude)) &&
+        Number(latitude) >= -90 &&
+        Number(latitude) <= 90 &&
+        Number(longitude) >= -180 &&
+        Number(longitude) <= 180
+    );
+
+}
+
+
+/* ------------------------------------------------------------
+   AIRPLANE DISTANCE
+   Haversine distance in metres
+------------------------------------------------------------ */
+
+function haversineDistance(
+    lat1,
+    lon1,
+    lat2,
+    lon2
+) {
+
+    const earthRadius = 6371000;
+
+    const toRadians = value =>
+        value * Math.PI / 180;
+
+    const dLat =
+        toRadians(
+            Number(lat2) - Number(lat1)
+        );
+
+    const dLon =
+        toRadians(
+            Number(lon2) - Number(lon1)
+        );
+
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(
+            toRadians(Number(lat1))
+        ) *
+        Math.cos(
+            toRadians(Number(lat2))
+        ) *
+        Math.sin(dLon / 2) ** 2;
+
+    const c =
+        2 *
+        Math.atan2(
+            Math.sqrt(a),
+            Math.sqrt(1 - a)
+        );
+
+    return earthRadius * c;
+
+}
+
+function decodeValhallaPolyline(encoded) {
+
+    const coordinates = [];
+
+    if (!encoded) {
+        return coordinates;
+    }
+
+    let index = 0;
+    let latitude = 0;
+    let longitude = 0;
+
+    while (index < encoded.length) {
+
+        let shift = 0;
+        let result = 0;
+        let byte;
+
+        do {
+
+            byte =
+                encoded.charCodeAt(index++) -
+                63;
+
+            result |=
+                (byte & 0x1f) <<
+                shift;
+
+            shift += 5;
+
+        } while (byte >= 0x20);
+
+        const latitudeChange =
+            (result & 1)
+                ? ~(result >> 1)
+                : (result >> 1);
+
+        shift = 0;
+        result = 0;
+
+        do {
+
+            byte =
+                encoded.charCodeAt(index++) -
+                63;
+
+            result |=
+                (byte & 0x1f) <<
+                shift;
+
+            shift += 5;
+
+        } while (byte >= 0x20);
+
+        const longitudeChange =
+            (result & 1)
+                ? ~(result >> 1)
+                : (result >> 1);
+
+        latitude += latitudeChange;
+        longitude += longitudeChange;
+
+        coordinates.push([
+            latitude / 1000000,
+            longitude / 1000000
+        ]);
+
+    }
+
+    return coordinates;
+}
+/* ------------------------------------------------------------
+   AIRPLANE ETA
+
+   Approximate cruise speed.
+   This is NOT a real airline flight schedule.
+------------------------------------------------------------ */
+
+function calculateAirplaneRoute(
+    latitude,
+    longitude,
+    destinationLatitude,
+    destinationLongitude
+) {
+
+    const distance =
+        haversineDistance(
+            latitude,
+            longitude,
+            destinationLatitude,
+            destinationLongitude
+        );
+
+    // Approximate cruise speed: 800 km/h
+    const speedMetersPerSecond =
+        800000 / 3600;
+
+    // Add approximately 45 minutes for
+    // climb, descent and airport overhead.
+    const overheadSeconds =
+        45 * 60;
+
+    const travelSeconds =
+        distance / speedMetersPerSecond;
+
+    const totalSeconds =
+        Math.round(
+            travelSeconds +
+            overheadSeconds
+        );
+
+    return {
+        distanceMeters:
+            Math.round(distance),
+
+        durationSeconds:
+            totalSeconds,
+
+        predictedArrival:
+            new Date(
+                Date.now() +
+                totalSeconds * 1000
+            ),
+
+        routeShape: [
+            [
+                Number(latitude),
+                Number(longitude)
+            ],
+            [
+                Number(destinationLatitude),
+                Number(destinationLongitude)
+            ]
+        ]
+
+    };
+
+}
+
+
+/* ------------------------------------------------------------
+   ROAD / BIKE / WALKING ROUTE
+------------------------------------------------------------ */
+
+async function calculateValhallaRoute(
+    latitude,
+    longitude,
+    destinationLatitude,
+    destinationLongitude,
+    travelMode
+) {
+
+   let costing = "auto";
+
+if (travelMode === "BICYCLE") {
+    costing = "bicycle";
+}
+
+if (travelMode === "WALKING") {
+    costing = "pedestrian";
+}
+
+    /*
+     * Motorcycle uses the road network.
+     * Valhalla's standard public route profiles
+     * do not give us a dedicated motorcycle ETA here,
+     * so we use auto routing for the road path and
+     * apply a motorcycle adjustment below.
+     */
+
+    const requestBody = {
+
+        locations: [
+
+            {
+                lat:
+                    Number(latitude),
+
+                lon:
+                    Number(longitude)
+            },
+
+            {
+                lat:
+                    Number(destinationLatitude),
+
+                lon:
+                    Number(destinationLongitude)
+            }
+
+        ],
+
+        costing:
+            costing,
+
+        directions_options: {
+            units: "kilometers"
+        }
+
+    };
+
+
+    const response =
+        await fetch(
+            VALHALLA_URL,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json",
+
+                    "X-Client-Id":
+                        "guardian-sos"
+                },
+
+                body:
+                    JSON.stringify(
+                        requestBody
+                    )
+            }
+        );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            `Valhalla routing failed: ${response.status}`
+        );
+
+    }
+
+
+    const data =
+        await response.json();
+
+
+    if (
+        !data.trip ||
+        !data.trip.summary
+    ) {
+
+        throw new Error(
+            "Valhalla did not return a route."
+        );
+
+    }
+
+
+    let distanceMeters =
+        Number(
+            data.trip.summary.length
+        ) * 1000;
+
+
+    let durationSeconds =
+        Number(
+            data.trip.summary.time
+        );
+
+
+    /*
+     * Motorcycle:
+     *
+     * Use the same road route but make the ETA
+     * approximately 15% faster than normal car routing.
+     */
+
+    if (travelMode === "MOTORCYCLE") {
+
+        durationSeconds =
+            Math.round(
+                durationSeconds * 0.85
+            );
+
+    }
+
+
+    const predictedArrival =
+        new Date(
+            Date.now() +
+            durationSeconds * 1000
+        );
+
+
+    let routeShape = [];
+
+if (
+    data.trip.legs &&
+    data.trip.legs.length
+) {
+
+    for (
+        const leg of data.trip.legs
+    ) {
+
+        if (
+            leg.shape
+        ) {
+
+            const decoded =
+                decodeValhallaPolyline(
+                    leg.shape
+                );
+
+            routeShape =
+                routeShape.concat(
+                    decoded
+                );
+
+        }
+
+    }
+
+}
+
+
+    return {
+
+        distanceMeters:
+            Math.round(
+                distanceMeters
+            ),
+
+        durationSeconds:
+            Math.round(
+                durationSeconds
+            ),
+
+        predictedArrival:
+
+            predictedArrival,
+
+        routeShape:
+
+            routeShape
+
+    };
+
+}
+
+
+/* ------------------------------------------------------------
+   CALCULATE JOURNEY ROUTE
+------------------------------------------------------------ */
+
+async function calculateJourneyRoute({
+
+    latitude,
+
+    longitude,
+
+    destinationLatitude,
+
+    destinationLongitude,
+
+    travelMode
+
+}) {
+
+    if (
+        !validJourneyCoordinates(
+            latitude,
+            longitude
+        )
+    ) {
+
+        throw new Error(
+            "Invalid current location."
+        );
+
+    }
+
+
+    if (
+        !validJourneyCoordinates(
+            destinationLatitude,
+            destinationLongitude
+        )
+    ) {
+
+        throw new Error(
+            "Invalid destination coordinates."
+        );
+
+    }
+
+
+    if (
+        travelMode === "AIRPLANE"
+    ) {
+
+        return calculateAirplaneRoute(
+
+            latitude,
+
+            longitude,
+
+            destinationLatitude,
+
+            destinationLongitude
+
+        );
+
+    }
+
+
+    return calculateValhallaRoute(
+
+        latitude,
+
+        longitude,
+
+        destinationLatitude,
+
+        destinationLongitude,
+
+        travelMode
+
+    );
+
+}
 
 
 app.get(
@@ -5951,7 +6613,158 @@ app.post(
     }
 );
 
+/* ============================================================
+   GEOCODE JOURNEY DESTINATION
+   OpenStreetMap Nominatim
+============================================================ */
 
+app.get(
+    "/api/journey/geocode",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            const query =
+                String(
+                    req.query.q || ""
+                ).trim();
+
+
+            if (!query) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Destination search is required."
+
+                });
+
+            }
+
+
+            const url =
+                "https://nominatim.openstreetmap.org/search?" +
+                new URLSearchParams({
+
+                    q:
+                        query,
+
+                    format:
+                        "json",
+
+                    limit:
+                        "1",
+
+                    addressdetails:
+                        "1"
+
+                }).toString();
+
+
+            const response =
+                await fetch(
+                    url,
+                    {
+
+                        headers: {
+
+                            "User-Agent":
+                                "GuardianSOS/1.0 guardian-sos-1920.vercel.app",
+
+                            "Accept":
+                                "application/json"
+
+                        }
+
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    `Geocoding failed: ${response.status}`
+                );
+
+            }
+
+
+            const results =
+                await response.json();
+
+
+            if (
+                !Array.isArray(results) ||
+                !results.length
+            ) {
+
+                return res.status(404).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Destination could not be found."
+
+                });
+
+            }
+
+
+            const result =
+                results[0];
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                destination: {
+
+                    name:
+                        result.display_name,
+
+                    latitude:
+                        Number(
+                            result.lat
+                        ),
+
+                    longitude:
+                        Number(
+                            result.lon
+                        )
+
+                }
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Journey geocoding error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to find destination."
+
+            });
+
+        }
+
+    }
+);
 /*
 ------------------------------------------------------------
 START JOURNEY
@@ -5967,44 +6780,8 @@ app.post(
 
         try {
 
-            console.log("====================================");
-            console.log("START JOURNEY REQUEST");
-            console.log("User:", req.user?.userId);
-            console.log("Body:", req.body);
-            console.log("====================================");
-
-
-            /* ====================================================
-               MAKE SURE MONGODB IS CONNECTED
-            ==================================================== */
-
             await connectMongoDB();
 
-
-            /* ====================================================
-               MAKE SURE USER IS AUTHENTICATED
-            ==================================================== */
-
-            if (
-                !req.user ||
-                !req.user.userId
-            ) {
-
-                return res.status(401).json({
-
-                    success: false,
-
-                    message:
-                        "Invalid authentication token."
-
-                });
-
-            }
-
-
-            /* ====================================================
-               READ REQUEST DATA
-            ==================================================== */
 
             const destination =
                 String(
@@ -6012,10 +6789,26 @@ app.post(
                 ).trim();
 
 
+            const destinationLatitude =
+                Number(
+                    req.body?.destinationLatitude
+                );
+
+
+            const destinationLongitude =
+                Number(
+                    req.body?.destinationLongitude
+                );
+
+
+           const travelMode =
+    String(
+        req.body?.travelMode || "CAR"
+    ).toUpperCase();
+
+
             const arrival =
-                String(
-                    req.body?.arrival || ""
-                ).trim();
+                req.body?.arrival;
 
 
             const note =
@@ -6024,11 +6817,36 @@ app.post(
                 ).trim();
 
 
-            /* ====================================================
-               VALIDATE DESTINATION
-            ==================================================== */
+            const allowedModes = [
+    "car",
+    "motorcycle",
+    "bicycle",
+    "walking",
+    "airplane"
+];
 
-            if (!destination) {
+
+            if (
+                !allowedModes.includes(
+                    travelMode
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid travel mode."
+
+                });
+
+            }
+
+
+            if (
+                !destination
+            ) {
 
                 return res.status(400).json({
 
@@ -6042,45 +6860,10 @@ app.post(
             }
 
 
-            if (destination.length > 500) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Destination is too long."
-
-                });
-
-            }
-
-
-            /* ====================================================
-               VALIDATE ARRIVAL TIME
-            ==================================================== */
-
-            if (!arrival) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Expected arrival time is required."
-
-                });
-
-            }
-
-
-            const arrivalDate =
-                new Date(arrival);
-
-
             if (
-                Number.isNaN(
-                    arrivalDate.getTime()
+                !validJourneyCoordinates(
+                    destinationLatitude,
+                    destinationLongitude
                 )
             ) {
 
@@ -6089,70 +6872,40 @@ app.post(
                     success: false,
 
                     message:
-                        "Invalid expected arrival time."
+                        "Destination coordinates are required."
 
                 });
 
             }
 
 
-            /* ====================================================
-               ARRIVAL MUST BE IN THE FUTURE
-            ==================================================== */
-
-            if (
-                arrivalDate.getTime() <=
-                Date.now()
-            ) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Expected arrival time must be in the future."
-
-                });
-
-            }
-
-
-            /* ====================================================
-               FIND USER'S GUARDIAN CONTACT
-            ==================================================== */
+            /*
+             * FIND THE SELECTED EMERGENCY CONTACT.
+             *
+             * Your existing relationship handling
+             * remains in place.
+             */
 
             const guardianContact =
-    await EmergencyContact
-        .findOne({
+                await EmergencyContact
+                    .findOne({
 
-            userId:
-                req.user.userId,
+                        userId:
+                            req.user.userId,
 
-            relationship: {
-                $in: [
-                    "Mother",
-                    "Father",
-                    "Friend",
-                    "Sister",
-                    "Uncle",
-                    "Brother"
-                ].map(
-                    relationship =>
-                        new RegExp(
-                            `^${relationship}$`,
-                            "i"
-                        )
-                )
-            }
+                        relationship: {
+                            $regex:
+                                /^(mother|father|friend|sister|uncle|brother)$/i
+                        }
 
-        })
-        .sort({
+                    })
+                    .sort({
 
-            priority: 1,
+                        priority: 1,
 
-            createdAt: 1
+                        createdAt: 1
 
-        });
+                    });
 
 
             if (!guardianContact) {
@@ -6162,42 +6915,18 @@ app.post(
                     success: false,
 
                     message:
-                        "No Guardian is configured. Add an emergency contact with Relationship set to Guardian first."
+                        "No emergency Guardian contact is configured."
 
                 });
 
             }
 
-
-            /* ====================================================
-               NORMALIZE GUARDIAN PHONE NUMBER
-            ==================================================== */
 
             const phoneVariants =
                 getPhoneVariants(
                     guardianContact.phone
                 );
 
-
-            if (
-                !phoneVariants.length
-            ) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "The selected Guardian does not have a valid phone number."
-
-                });
-
-            }
-
-
-            /* ====================================================
-               FIND GUARDIAN GUARDIAN SOS ACCOUNT
-            ==================================================== */
 
             const guardian =
                 await User.findOne({
@@ -6212,7 +6941,8 @@ app.post(
                             phoneVariants
                     }
 
-                }).select(
+                })
+                .select(
                     "_id name email phone profileImage"
                 );
 
@@ -6224,16 +6954,16 @@ app.post(
                     success: false,
 
                     message:
-                        "The selected Guardian does not have a registered Guardian SOS account."
+                        "The selected emergency contact does not have a registered Guardian SOS account."
 
                 });
 
             }
 
 
-            /* ====================================================
-               PREVENT DUPLICATE ACTIVE JOURNEY
-            ==================================================== */
+            /*
+             * PREVENT DUPLICATE ACTIVE JOURNEYS.
+             */
 
             const existingJourney =
                 await Journey.findOne({
@@ -6261,9 +6991,13 @@ app.post(
             }
 
 
-            /* ====================================================
-               CREATE JOURNEY
-            ==================================================== */
+            /*
+             * CREATE JOURNEY.
+             *
+             * We do NOT require current GPS here.
+             * The first GPS update will calculate
+             * the actual route and ETA.
+             */
 
             const journey =
                 await Journey.create({
@@ -6277,8 +7011,19 @@ app.post(
                     destination:
                         destination,
 
+                    destinationLatitude:
+                        destinationLatitude,
+
+                    destinationLongitude:
+                        destinationLongitude,
+
+                    travelMode:
+                        travelMode,
+
                     arrival:
-                        arrivalDate,
+                        arrival
+                            ? new Date(arrival)
+                            : new Date(),
 
                     note:
                         note,
@@ -6289,24 +7034,17 @@ app.post(
                     startedAt:
                         new Date(),
 
-                    endedAt:
+                    routeDistanceMeters:
                         null,
 
-                    currentLocation: {
+                    estimatedDurationSeconds:
+                        null,
 
-                        latitude:
-                            null,
+                    predictedArrival:
+                        null,
 
-                        longitude:
-                            null,
-
-                        accuracy:
-                            null,
-
-                        timestamp:
-                            null
-
-                    },
+                    routeShape:
+                        null,
 
                     path:
                         []
@@ -6314,19 +7052,10 @@ app.post(
                 });
 
 
-            /* ====================================================
-               SUCCESS RESPONSE
-            ==================================================== */
-
-            console.log(
-                "Journey started successfully:",
-                journey._id.toString()
-            );
-
-
             return res.status(201).json({
 
-                success: true,
+                success:
+                    true,
 
                 message:
                     "Journey started. Your Guardian can now see your live movement.",
@@ -6334,16 +7063,31 @@ app.post(
                 journey: {
 
                     id:
-                        journey._id.toString(),
+                        journey._id,
 
                     destination:
                         journey.destination,
 
+                    destinationLatitude:
+                        journey.destinationLatitude,
+
+                    destinationLongitude:
+                        journey.destinationLongitude,
+
+                    travelMode:
+                        journey.travelMode,
+
                     arrival:
                         journey.arrival,
 
-                    note:
-                        journey.note,
+                    predictedArrival:
+                        journey.predictedArrival,
+
+                    routeDistanceMeters:
+                        journey.routeDistanceMeters,
+
+                    estimatedDurationSeconds:
+                        journey.estimatedDurationSeconds,
 
                     active:
                         journey.active,
@@ -6354,13 +7098,10 @@ app.post(
                     guardian: {
 
                         id:
-                            guardian._id.toString(),
+                            guardian._id,
 
                         name:
-                            guardian.name,
-
-                        phone:
-                            guardian.phone || ""
+                            guardian.name
 
                     }
 
@@ -6372,39 +7113,17 @@ app.post(
         } catch (error) {
 
             console.error(
-                "===================================="
-            );
-
-            console.error(
-                "START JOURNEY ERROR"
-            );
-
-            console.error(
-                "Message:",
-                error?.message
-            );
-
-            console.error(
-                "Name:",
-                error?.name
-            );
-
-            console.error(
-                "Stack:",
-                error?.stack
-            );
-
-            console.error(
-                "===================================="
+                "Start journey error:",
+                error
             );
 
 
             return res.status(500).json({
 
-                success: false,
+                success:
+                    false,
 
                 message:
-                    error?.message ||
                     "Unable to start journey."
 
             });
@@ -6429,24 +7148,31 @@ app.post(
 
         try {
 
+            await connectMongoDB();
+
+
             const latitude =
                 Number(
                     req.body?.latitude
                 );
+
 
             const longitude =
                 Number(
                     req.body?.longitude
                 );
 
+
             const accuracy =
                 req.body?.accuracy !== undefined
-                    ? Number(req.body.accuracy)
+                    ? Number(
+                        req.body.accuracy
+                    )
                     : null;
 
 
             if (
-                !validCoordinates(
+                !validJourneyCoordinates(
                     latitude,
                     longitude
                 )
@@ -6454,7 +7180,8 @@ app.post(
 
                 return res.status(400).json({
 
-                    success: false,
+                    success:
+                        false,
 
                     message:
                         "Invalid location coordinates."
@@ -6463,11 +7190,6 @@ app.post(
 
             }
 
-
-            /*
-             * ONLY THE JOURNEY OWNER CAN SEND
-             * THEIR OWN MOVEMENT.
-             */
 
             const journey =
                 await Journey.findOne({
@@ -6488,7 +7210,8 @@ app.post(
 
                 return res.status(404).json({
 
-                    success: false,
+                    success:
+                        false,
 
                     message:
                         "Active journey not found."
@@ -6507,7 +7230,9 @@ app.post(
                     longitude,
 
                 accuracy:
-                    Number.isFinite(accuracy)
+                    Number.isFinite(
+                        accuracy
+                    )
                         ? accuracy
                         : null,
 
@@ -6518,7 +7243,7 @@ app.post(
 
 
             /*
-             * Keep the latest 2000 GPS points.
+             * SAVE GPS HISTORY.
              */
 
             journey.path.push(
@@ -6543,15 +7268,128 @@ app.post(
                 point;
 
 
+            /*
+             * CALCULATE ROUTE + ETA
+             * IF DESTINATION COORDINATES
+             * ARE AVAILABLE.
+             */
+
+            if (
+                validJourneyCoordinates(
+
+                    journey.destinationLatitude,
+
+                    journey.destinationLongitude
+
+                )
+            ) {
+
+                try {
+
+                    const route =
+                        await calculateJourneyRoute({
+
+                            latitude:
+                                latitude,
+
+                            longitude:
+                                longitude,
+
+                            destinationLatitude:
+                                journey.destinationLatitude,
+
+                            destinationLongitude:
+                                journey.destinationLongitude,
+
+                            travelMode:
+                                journey.travelMode
+
+                        });
+
+
+                    journey.routeDistanceMeters =
+                        route.distanceMeters;
+
+
+                    journey.estimatedDurationSeconds =
+                        route.durationSeconds;
+
+
+                    journey.predictedArrival =
+                        route.predictedArrival;
+
+
+                    journey.routeShape =
+                        route.routeShape;
+
+
+                } catch (
+                    routeError
+                ) {
+
+                    console.error(
+                        "Journey route calculation error:",
+                        routeError
+                    );
+
+                    /*
+                     * Do not reject the GPS update
+                     * just because routing temporarily
+                     * fails.
+                     */
+
+                }
+
+            }
+
+
             await journey.save();
 
 
             return res.json({
 
-                success: true,
+                success:
+                    true,
 
                 location:
-                    point
+                    point,
+
+                journey: {
+
+                    id:
+                        journey._id,
+
+                    travelMode:
+                        journey.travelMode,
+
+                    destination:
+                        journey.destination,
+
+                    destinationLatitude:
+                        journey.destinationLatitude,
+
+                    destinationLongitude:
+                        journey.destinationLongitude,
+
+                    currentLocation:
+                        journey.currentLocation,
+
+                    routeDistanceMeters:
+                        journey.routeDistanceMeters,
+
+                    estimatedDurationSeconds:
+                        journey.estimatedDurationSeconds,
+
+                    predictedArrival:
+                        journey.predictedArrival,
+
+                    routeShape:
+                        journey.routeShape,
+
+                    path:
+                        journey.path
+
+                }
 
             });
 
@@ -6566,7 +7404,8 @@ app.post(
 
             return res.status(500).json({
 
-                success: false,
+                success:
+                    false,
 
                 message:
                     "Unable to save journey location."
