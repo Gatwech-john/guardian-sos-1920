@@ -508,9 +508,6 @@ body {
     .red {
         color: #ff4444;
     }
-
-
-
 /* =========================================================
    WEATHER PAGE
 ========================================================= */
@@ -5877,6 +5874,7 @@ const USER_KEY = "guardianUser";
 
 
 
+
 /* =========================================================
    GUARDIAN SOS WEATHER
    FREE WEATHER DATA — NO API KEY REQUIRED
@@ -7105,9 +7103,8 @@ function initializeWeatherPage() {
 const protectedPages = [
     "home",
     "dashboard",
-    "sos",
+      "weather",
     "chat",
-    "weather",
     "contacts",
     "location",
     "history",
@@ -7122,8 +7119,8 @@ const allPages = [
     "forgotPassword",
     "home",
     "dashboard",
-    "sos",
     "weather",
+    "sos",
     "chat",
     "contacts",
     "location",
@@ -10189,6 +10186,7 @@ if (page === "chat") {
     loadGuardianMapPage();
 
 }
+
 if (page === "weather") {
 
     initializeWeatherPage();
