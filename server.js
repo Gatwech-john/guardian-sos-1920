@@ -5952,11 +5952,6 @@ app.post(
 );
 
 
-/* ============================================================
-   LIVE JOURNEY TRACKING
-============================================================ */
-
-
 /*
 ------------------------------------------------------------
 START JOURNEY
@@ -5972,13 +5967,56 @@ app.post(
 
         try {
 
+            console.log("====================================");
+            console.log("START JOURNEY REQUEST");
+            console.log("User:", req.user?.userId);
+            console.log("Body:", req.body);
+            console.log("====================================");
+
+
+            /* ====================================================
+               MAKE SURE MONGODB IS CONNECTED
+            ==================================================== */
+
+            await connectMongoDB();
+
+
+            /* ====================================================
+               MAKE SURE USER IS AUTHENTICATED
+            ==================================================== */
+
+            if (
+                !req.user ||
+                !req.user.userId
+            ) {
+
+                return res.status(401).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid authentication token."
+
+                });
+
+            }
+
+
+            /* ====================================================
+               READ REQUEST DATA
+            ==================================================== */
+
             const destination =
                 String(
                     req.body?.destination || ""
                 ).trim();
 
+
             const arrival =
-                req.body?.arrival;
+                String(
+                    req.body?.arrival || ""
+                ).trim();
+
 
             const note =
                 String(
@@ -5986,43 +6024,135 @@ app.post(
                 ).trim();
 
 
-            if (!destination || !arrival) {
+            /* ====================================================
+               VALIDATE DESTINATION
+            ==================================================== */
+
+            if (!destination) {
 
                 return res.status(400).json({
 
                     success: false,
 
                     message:
-                        "Destination and expected arrival time are required."
+                        "Destination is required."
 
                 });
 
             }
 
 
-            /*
-             * FIND THE USER'S DESIGNATED GUARDIAN.
-             *
-             * The emergency contact relationship must
-             * contain the word "Guardian".
-             */
+            if (destination.length > 500) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Destination is too long."
+
+                });
+
+            }
+
+
+            /* ====================================================
+               VALIDATE ARRIVAL TIME
+            ==================================================== */
+
+            if (!arrival) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Expected arrival time is required."
+
+                });
+
+            }
+
+
+            const arrivalDate =
+                new Date(arrival);
+
+
+            if (
+                Number.isNaN(
+                    arrivalDate.getTime()
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid expected arrival time."
+
+                });
+
+            }
+
+
+            /* ====================================================
+               ARRIVAL MUST BE IN THE FUTURE
+            ==================================================== */
+
+            if (
+                arrivalDate.getTime() <=
+                Date.now()
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Expected arrival time must be in the future."
+
+                });
+
+            }
+
+
+            /* ====================================================
+               FIND USER'S GUARDIAN CONTACT
+            ==================================================== */
 
             const guardianContact =
-                await EmergencyContact
-                    .findOne({
+    await EmergencyContact
+        .findOne({
 
-                        userId:
-                            req.user.userId,
+            userId:
+                req.user.userId,
 
-                        relationship: {
-                            $regex: /guardian/i
-                        }
+            relationship: {
+                $in: [
+                    "Mother",
+                    "Father",
+                    "Friend",
+                    "Sister",
+                    "Uncle",
+                    "Brother"
+                ].map(
+                    relationship =>
+                        new RegExp(
+                            `^${relationship}$`,
+                            "i"
+                        )
+                )
+            }
 
-                    })
-                    .sort({
-                        priority: 1,
-                        createdAt: 1
-                    });
+        })
+        .sort({
+
+            priority: 1,
+
+            createdAt: 1
+
+        });
 
 
             if (!guardianContact) {
@@ -6039,16 +6169,35 @@ app.post(
             }
 
 
-            /*
-             * FIND THE GUARDIAN'S GUARDIAN SOS ACCOUNT
-             * USING THE SAVED PHONE NUMBER.
-             */
+            /* ====================================================
+               NORMALIZE GUARDIAN PHONE NUMBER
+            ==================================================== */
 
             const phoneVariants =
                 getPhoneVariants(
                     guardianContact.phone
                 );
 
+
+            if (
+                !phoneVariants.length
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "The selected Guardian does not have a valid phone number."
+
+                });
+
+            }
+
+
+            /* ====================================================
+               FIND GUARDIAN GUARDIAN SOS ACCOUNT
+            ==================================================== */
 
             const guardian =
                 await User.findOne({
@@ -6082,10 +6231,9 @@ app.post(
             }
 
 
-            /*
-             * DO NOT ALLOW TWO ACTIVE JOURNEYS
-             * FOR THE SAME USER.
-             */
+            /* ====================================================
+               PREVENT DUPLICATE ACTIVE JOURNEY
+            ==================================================== */
 
             const existingJourney =
                 await Journey.findOne({
@@ -6113,6 +6261,10 @@ app.post(
             }
 
 
+            /* ====================================================
+               CREATE JOURNEY
+            ==================================================== */
+
             const journey =
                 await Journey.create({
 
@@ -6126,7 +6278,7 @@ app.post(
                         destination,
 
                     arrival:
-                        new Date(arrival),
+                        arrivalDate,
 
                     note:
                         note,
@@ -6137,10 +6289,39 @@ app.post(
                     startedAt:
                         new Date(),
 
+                    endedAt:
+                        null,
+
+                    currentLocation: {
+
+                        latitude:
+                            null,
+
+                        longitude:
+                            null,
+
+                        accuracy:
+                            null,
+
+                        timestamp:
+                            null
+
+                    },
+
                     path:
                         []
 
                 });
+
+
+            /* ====================================================
+               SUCCESS RESPONSE
+            ==================================================== */
+
+            console.log(
+                "Journey started successfully:",
+                journey._id.toString()
+            );
 
 
             return res.status(201).json({
@@ -6153,7 +6334,7 @@ app.post(
                 journey: {
 
                     id:
-                        journey._id,
+                        journey._id.toString(),
 
                     destination:
                         journey.destination,
@@ -6173,10 +6354,13 @@ app.post(
                     guardian: {
 
                         id:
-                            guardian._id,
+                            guardian._id.toString(),
 
                         name:
-                            guardian.name
+                            guardian.name,
+
+                        phone:
+                            guardian.phone || ""
 
                     }
 
@@ -6188,8 +6372,30 @@ app.post(
         } catch (error) {
 
             console.error(
-                "Start journey error:",
-                error
+                "===================================="
+            );
+
+            console.error(
+                "START JOURNEY ERROR"
+            );
+
+            console.error(
+                "Message:",
+                error?.message
+            );
+
+            console.error(
+                "Name:",
+                error?.name
+            );
+
+            console.error(
+                "Stack:",
+                error?.stack
+            );
+
+            console.error(
+                "===================================="
             );
 
 
@@ -6198,6 +6404,7 @@ app.post(
                 success: false,
 
                 message:
+                    error?.message ||
                     "Unable to start journey."
 
             });
@@ -6206,7 +6413,6 @@ app.post(
 
     }
 );
-
 
 /*
 ------------------------------------------------------------
