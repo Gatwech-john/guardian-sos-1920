@@ -9577,6 +9577,176 @@ let guardianMapPollTimer =
 let currentGuardianJourney =
     null;
 
+/*
+ * LANDLINK-STYLE MAP LAYERS
+ *
+ * This matches the map used by the supplied Landlink file:
+ * - OpenStreetMap Street Map
+ * - OpenStreetMap HOT Detailed Map
+ * - Esri Satellite + Esri labels (default)
+ */
+let guardianMapLayersAdded =
+    false;
+
+
+/* =========================================================
+   CREATE LANDLINK-STYLE GUARDIAN MAP
+========================================================= */
+
+function createGuardianLandlinkMap(
+    mapElement,
+    center,
+    zoom
+) {
+
+    if (!mapElement) {
+        return;
+    }
+
+    if (guardianMap) {
+
+        guardianMap.invalidateSize();
+
+        return;
+
+    }
+
+    guardianMap =
+        L.map(
+            mapElement
+        ).setView(
+            center,
+            zoom
+        );
+
+
+    /*
+     * LANDLINK LABELS LAYER
+     * Roads, place names, counties, etc.
+     */
+    const labelLayer =
+        L.tileLayer(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+            {
+                attribution:
+                    "Tiles &copy; Esri"
+            }
+        );
+
+
+    /*
+     * LANDLINK STREET MAP
+     */
+    const streetLayer =
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                attribution:
+                    "&copy; OpenStreetMap contributors"
+            }
+        );
+
+
+    /*
+     * LANDLINK DETAILED / HOT MAP
+     */
+    const osmHot =
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+            {
+                attribution:
+                    "&copy; OpenStreetMap contributors, HOT"
+            }
+        );
+
+
+    /*
+     * LANDLINK SATELLITE MAP
+     */
+    const hybridLayer =
+        L.tileLayer(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            {
+                attribution:
+                    "Tiles &copy; Esri"
+            }
+        );
+
+
+    /*
+     * LANDLINK SATELLITE LABELS
+     */
+    const hybridLabels =
+        L.tileLayer(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+            {
+                attribution:
+                    "Labels &copy; Esri"
+            }
+        );
+
+
+    /*
+     * SAME DEFAULT AS LANDLINK:
+     * SATELLITE + LABELS
+     */
+    hybridLayer.addTo(
+        guardianMap
+    );
+
+    hybridLabels.addTo(
+        guardianMap
+    );
+
+
+    /*
+     * SAME LANDLINK LAYER CONTROL
+     */
+    const baseMaps = {
+        "Street Map":
+            streetLayer,
+
+        "Detailed Map":
+            osmHot,
+
+        "Satellite (Hybrid)":
+            hybridLayer
+    };
+
+
+    const overlayMaps = {
+        "Labels":
+            hybridLabels
+    };
+
+
+    L.control.layers(
+        baseMaps,
+        overlayMaps
+    ).addTo(
+        guardianMap
+    );
+
+
+    guardianMapLayersAdded =
+        true;
+
+
+    setTimeout(
+        function() {
+
+            if (guardianMap) {
+
+                guardianMap.invalidateSize();
+
+            }
+
+        },
+        100
+    );
+
+}
+
 
 /* =========================================================
    LOAD GUARDIAN LIVE JOURNEY
@@ -9601,12 +9771,11 @@ async function loadGuardianMapPage() {
 
 
     /*
-     * THE MAP MUST ALWAYS EXIST.
+     * THE MAP ALWAYS EXISTS.
      *
-     * Create the Leaflet map FIRST.
-     * Do NOT wait for a journey.
+     * It is created before checking whether
+     * a traveler has started a journey.
      */
-
     if (!mapElement) {
 
         return;
@@ -9614,64 +9783,16 @@ async function loadGuardianMapPage() {
     }
 
 
-    if (!guardianMap) {
-
-        guardianMap =
-            L.map(
-                mapElement
-            ).setView(
-                [-0.3031, 36.0800],
-                7
-            );
-
-
-        L.tileLayer(
-            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            {
-
-                maxZoom: 19,
-
-                attribution:
-                    "&copy; OpenStreetMap contributors"
-
-            }
-        ).addTo(
-            guardianMap
-        );
-
-    } else {
-
-        guardianMap.invalidateSize();
-
-    }
-
-
-    /*
-     * Make sure Leaflet recalculates the
-     * map size after the page becomes visible.
-     */
-
-    setTimeout(
-        function() {
-
-            if (guardianMap) {
-
-                guardianMap.invalidateSize();
-
-            }
-
-        },
-        100
+    createGuardianLandlinkMap(
+        mapElement,
+        [-1.286389, 36.817223],
+        12
     );
 
 
     /*
      * DEFAULT MAP STATE
-     *
-     * The map remains available even when
-     * there is no active journey.
      */
-
     if (status) {
 
         status.textContent =
@@ -9692,12 +9813,10 @@ async function loadGuardianMapPage() {
 
 
     /*
-     * NOW check whether a Guardian journey exists.
+     * NOW CHECK FOR AN ACTIVE JOURNEY.
      *
-     * The journey is OPTIONAL.
-     * The map itself is NOT optional.
+     * The map itself is never removed.
      */
-
     try {
 
         const response =
@@ -9708,10 +9827,7 @@ async function loadGuardianMapPage() {
 
         /*
          * NO ACTIVE JOURNEY
-         *
-         * KEEP THE MAP.
          */
-
         if (
             !response ||
             !response.journey
@@ -9720,11 +9836,6 @@ async function loadGuardianMapPage() {
             currentGuardianJourney =
                 null;
 
-
-            /*
-             * Remove only old journey graphics.
-             * NEVER remove the actual map.
-             */
 
             if (guardianMapCurrentMarker) {
 
@@ -9781,11 +9892,12 @@ async function loadGuardianMapPage() {
             }
 
 
-            /*
-             * IMPORTANT:
-             * Do NOT call clearGuardianMap().
-             * Do NOT stop/delete the map.
-             */
+            if (guardianMap) {
+
+                guardianMap.invalidateSize();
+
+            }
+
 
             return;
 
@@ -9795,7 +9907,6 @@ async function loadGuardianMapPage() {
         /*
          * ACTIVE JOURNEY FOUND
          */
-
         currentGuardianJourney =
             response.journey;
 
@@ -9854,7 +9965,6 @@ async function loadGuardianMapPage() {
         /*
          * Continue checking the live journey.
          */
-
         startGuardianMapPolling();
 
 
@@ -9867,14 +9977,9 @@ async function loadGuardianMapPage() {
 
 
         /*
-         * IMPORTANT:
-         *
-         * The API can fail, but the MAP MUST
-         * remain visible.
-         *
-         * DO NOT call clearGuardianMap().
+         * The API can fail, but the map
+         * must remain visible.
          */
-
         if (status) {
 
             status.textContent =
@@ -9894,10 +9999,6 @@ async function loadGuardianMapPage() {
         }
 
 
-        /*
-         * Keep the Leaflet map alive.
-         */
-
         if (guardianMap) {
 
             guardianMap.invalidateSize();
@@ -9910,7 +10011,7 @@ async function loadGuardianMapPage() {
 
 
 /* =========================================================
-   DRAW LEAFLET MAP
+   DRAW GUARDIAN JOURNEY ON LANDLINK-STYLE MAP
 ========================================================= */
 
 function renderGuardianJourneyMap(
@@ -9938,38 +10039,27 @@ function renderGuardianJourneyMap(
             : [];
 
 
+    /*
+     * KEEP THE LANDLINK MAP EVEN WHEN
+     * THERE IS NO GPS PATH YET.
+     */
     if (!path.length) {
 
-    if (!guardianMap) {
+        createGuardianLandlinkMap(
+            mapElement,
+            [-1.286389, 36.817223],
+            12
+        );
 
-        guardianMap =
-            L.map(
-                mapElement
-            ).setView(
-                [-0.3031, 36.0800],
-                7
-            );
+        if (guardianMap) {
 
-        L.tileLayer(
-    "https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    {
-        maxZoom: 19,
+            guardianMap.invalidateSize();
 
-        attribution:
-            "&copy; OpenStreetMap contributors &copy; CARTO"
-    }
-).addTo(
-    guardianMap
-);
+        }
 
-    } else {
-
-        guardianMap.invalidateSize();
+        return;
 
     }
-
-    return;
-}
 
 
     const latest =
@@ -10000,40 +10090,20 @@ function renderGuardianJourneyMap(
 
 
     /*
-     * CREATE LEAFLET MAP ON FIRST LOAD
+     * CREATE THE SAME LANDLINK MAP
+     * AND THEN MOVE TO THE TRAVELER.
      */
-
-    if (!guardianMap) {
-
-        guardianMap =
-            L.map(
-                mapElement
-            ).setView(
-                [
-                    latitude,
-                    longitude
-                ],
-                16
-            );
+    createGuardianLandlinkMap(
+        mapElement,
+        [
+            latitude,
+            longitude
+        ],
+        16
+    );
 
 
-        /*
-         * OPENSTREETMAP FREE TILES
-         */
-
-        L.tileLayer(
-    "https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    {
-        maxZoom: 19,
-
-        attribution:
-            "&copy; OpenStreetMap contributors &copy; CARTO"
-    }
-        ).addTo(
-            guardianMap
-        );
-
-    } else {
+    if (guardianMap) {
 
         guardianMap.setView(
             [
@@ -10050,7 +10120,6 @@ function renderGuardianJourneyMap(
      * CONVERT GPS PATH
      * INTO LEAFLET LAT/LNG ARRAY
      */
-
     const mapPath =
         path
             .map(
@@ -10080,10 +10149,16 @@ function renderGuardianJourneyMap(
             );
 
 
+    if (!mapPath.length) {
+
+        return;
+
+    }
+
+
     /*
      * REMOVE OLD ROUTE
      */
-
     if (
         guardianMapPath
     ) {
@@ -10098,7 +10173,6 @@ function renderGuardianJourneyMap(
     /*
      * DRAW TRAVELLED ROUTE
      */
-
     guardianMapPath =
         L.polyline(
             mapPath,
@@ -10122,7 +10196,6 @@ function renderGuardianJourneyMap(
     /*
      * REMOVE OLD CURRENT LOCATION
      */
-
     if (
         guardianMapCurrentMarker
     ) {
@@ -10148,7 +10221,6 @@ function renderGuardianJourneyMap(
     /*
      * CURRENT LOCATION MARKER
      */
-
     guardianMapCurrentMarker =
         L.marker(
             [
@@ -10172,7 +10244,6 @@ function renderGuardianJourneyMap(
     /*
      * GPS ACCURACY CIRCLE
      */
-
     const accuracy =
         Math.max(
             Number(
@@ -10214,7 +10285,6 @@ function renderGuardianJourneyMap(
     /*
      * KEEP CURRENT LOCATION VISIBLE
      */
-
     guardianMap.panTo(
         [
             latitude,
@@ -10254,6 +10324,10 @@ function clearGuardianMap() {
 
     guardianMapCurrentMarker =
         null;
+
+
+    guardianMapLayersAdded =
+        false;
 
 
     currentGuardianJourney =
