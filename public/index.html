@@ -3909,7 +3909,23 @@ align-items: flex-start;
 }
 
 
+#journeyArrival {
+    color: #ff1493 !important;
+    border: 1px solid #ff1493 !important;
+    accent-color: #ff1493;
+}
 
+#journeyArrival::-webkit-calendar-picker-indicator {
+    filter:
+        invert(32%)
+        sepia(99%)
+        saturate(7474%)
+        hue-rotate(313deg)
+        brightness(101%)
+        contrast(101%);
+
+    cursor: pointer;
+}
 
 
 </style>
@@ -11852,10 +11868,27 @@ async function loadGuardianMapPage() {
      */
     try {
 
-        const response =
-            await api(
-                "/api/journey/guardian-active"
-            );
+        let response =
+    await api(
+        "/api/journey/my-active"
+    );
+
+
+/*
+ * If I am not the traveler,
+ * check whether I am the Guardian.
+ */
+if (
+    !response ||
+    !response.journey
+) {
+
+    response =
+        await api(
+            "/api/journey/guardian-active"
+        );
+
+}
 
 
         /*
@@ -12140,13 +12173,11 @@ function renderGuardianJourneyMap(
 
     resetGuardianJourneyLayers();
 
-
     createGuardianLandlinkMap(
         mapElement,
         [-1.286389, 36.817223],
         12
     );
-
 
     if (guardianMap) {
 
@@ -12630,6 +12661,127 @@ function resetGuardianJourneyLayers() {
 
 }
 
+/* =========================================================
+   RESET JOURNEY LAYERS
+   Keeps the base map visible.
+========================================================= */
+
+function resetGuardianJourneyLayers() {
+
+    if (!guardianMap) {
+
+        currentGuardianJourney =
+            null;
+
+        return;
+
+    }
+
+
+    /*
+     * TRAVELED PATH
+     */
+    if (
+        guardianMapPath
+    ) {
+
+        guardianMap.removeLayer(
+            guardianMapPath
+        );
+
+        guardianMapPath =
+            null;
+
+    }
+
+
+    /*
+     * REMAINING ROUTE
+     */
+    if (
+        guardianMapRoute
+    ) {
+
+        guardianMap.removeLayer(
+            guardianMapRoute
+        );
+
+        guardianMapRoute =
+            null;
+
+    }
+
+
+    /*
+     * CURRENT LOCATION
+     */
+    if (
+        guardianMapCurrentMarker
+    ) {
+
+        guardianMap.removeLayer(
+            guardianMapCurrentMarker
+        );
+
+        guardianMapCurrentMarker =
+            null;
+
+    }
+
+
+    /*
+     * GPS ACCURACY CIRCLE
+     */
+    if (
+        guardianMapCurrentCircle
+    ) {
+
+        guardianMap.removeLayer(
+            guardianMapCurrentCircle
+        );
+
+        guardianMapCurrentCircle =
+            null;
+
+    }
+
+
+    /*
+     * DESTINATION MARKER
+     */
+    if (
+        window.guardianMapDestinationMarker
+    ) {
+
+        guardianMap.removeLayer(
+            window.guardianMapDestinationMarker
+        );
+
+        window.guardianMapDestinationMarker =
+            null;
+
+    }
+
+
+    currentGuardianJourney =
+        null;
+
+
+    /*
+     * KEEP THE BASE MAP.
+     */
+    guardianMap.setView(
+        [
+            -1.286389,
+            36.817223
+        ],
+        12
+    );
+
+
+    guardianMap.invalidateSize();
+
+}
 /* =========================================================
    CLEAR GUARDIAN MAP
 ========================================================= */
@@ -14249,7 +14401,46 @@ window.startJourney = async function() {
             "Starting your protected journey..."
         );
 
+/*
+ * GET THE TRAVELER'S CURRENT LOCATION
+ * BEFORE CREATING THE JOURNEY.
+ */
+const startPosition =
+    await new Promise(
+        function(resolve, reject) {
 
+            navigator.geolocation.getCurrentPosition(
+
+                resolve,
+
+                reject,
+
+                {
+                    enableHighAccuracy:
+                        true,
+
+                    maximumAge:
+                        0,
+
+                    timeout:
+                        20000
+
+                }
+
+            );
+
+        }
+    );
+
+
+const startLatitude =
+    startPosition.coords.latitude;
+
+const startLongitude =
+    startPosition.coords.longitude;
+
+const startAccuracy =
+    startPosition.coords.accuracy;
         /*
          * START JOURNEY.
          */
@@ -14266,25 +14457,34 @@ window.startJourney = async function() {
 
                     body: {
 
-                        destination:
-                            destination,
+    destination:
+        destination,
 
-                        destinationLatitude:
-                            destinationLatitude,
+    destinationLatitude:
+        destinationLatitude,
 
-                        destinationLongitude:
-                            destinationLongitude,
+    destinationLongitude:
+        destinationLongitude,
 
-                        travelMode:
-                            travelMode,
+    travelMode:
+        travelMode,
 
-                        arrival:
-                            arrival,
+    arrival:
+        arrival,
 
-                        note:
-                            note
+    note:
+        note,
 
-                    }
+    startLatitude:
+        startLatitude,
+
+    startLongitude:
+        startLongitude,
+
+    startAccuracy:
+        startAccuracy
+
+}
 
                 }
 
@@ -14303,45 +14503,54 @@ window.startJourney = async function() {
         }
 
 
-        GS.journey = {
+       GS.journey = {
 
-            id:
-                data.journey.id,
+    id:
+        data.journey.id,
 
-            destination:
-                data.journey.destination,
+    destination:
+        data.journey.destination,
 
-            destinationLatitude:
-                data.journey.destinationLatitude,
+    destinationLatitude:
+        data.journey.destinationLatitude,
 
-            destinationLongitude:
-                data.journey.destinationLongitude,
+    destinationLongitude:
+        data.journey.destinationLongitude,
 
-            travelMode:
-                data.journey.travelMode,
+    travelMode:
+        data.journey.travelMode,
 
-            arrival:
-                data.journey.arrival,
+    arrival:
+        data.journey.arrival,
 
-            predictedArrival:
-                data.journey.predictedArrival,
+    predictedArrival:
+        data.journey.predictedArrival,
 
-            routeDistanceMeters:
-                data.journey.routeDistanceMeters,
+    routeDistanceMeters:
+        data.journey.routeDistanceMeters,
 
-            estimatedDurationSeconds:
-                data.journey.estimatedDurationSeconds,
+    estimatedDurationSeconds:
+        data.journey.estimatedDurationSeconds,
 
-            note:
-                data.journey.note || "",
+    routeShape:
+        data.journey.routeShape || [],
 
-            startedAt:
-                data.journey.startedAt,
+    currentLocation:
+        data.journey.currentLocation || null,
 
-            active:
-                true
+    path:
+        data.journey.path || [],
 
-        };
+    note:
+        data.journey.note || "",
+
+    startedAt:
+        data.journey.startedAt,
+
+    active:
+        true
+
+};
 
 
         save(
@@ -14821,7 +15030,138 @@ async function restoreActiveJourney() {
     }
 
 };
-    function renderJourney(){const el=$('journeyState');if(!el)return;if(!GS.journey){el.textContent='No journey is active.';return;}el.innerHTML=GS.journey.active?'🧭 <strong>Journey active:</strong> '+esc(GS.journey.destination)+' • expected '+new Date(GS.journey.arrival).toLocaleString():'✓ <strong>Journey completed.</strong> '+esc(GS.journey.destination);}
+    function renderJourney() {
+
+    const el =
+        $('journeyState');
+
+    if (!el) {
+        return;
+    }
+
+
+    if (!GS.journey) {
+
+        el.innerHTML =
+            "No journey is active.";
+
+        return;
+
+    }
+
+
+    if (!GS.journey.active) {
+
+        el.innerHTML =
+            "✓ <strong>Journey completed.</strong><br>" +
+            esc(
+                GS.journey.destination
+            );
+
+        return;
+
+    }
+
+
+    const distance =
+        Number(
+            GS.journey.routeDistanceMeters
+        );
+
+
+    let distanceText =
+        "Calculating...";
+
+
+    if (
+        Number.isFinite(distance)
+    ) {
+
+        if (distance >= 1000) {
+
+            distanceText =
+                (
+                    distance / 1000
+                ).toFixed(1) +
+                " km";
+
+        } else {
+
+            distanceText =
+                Math.round(
+                    distance
+                ) +
+                " m";
+
+        }
+
+    }
+
+
+    let predictedText =
+        "Calculating...";
+
+
+    if (
+        GS.journey.predictedArrival
+    ) {
+
+        predictedText =
+            new Date(
+                GS.journey.predictedArrival
+            ).toLocaleTimeString(
+                [],
+                {
+                    hour:
+                        "2-digit",
+
+                    minute:
+                        "2-digit"
+                }
+            );
+
+    }
+
+
+    const expectedText =
+        GS.journey.arrival
+            ? new Date(
+                GS.journey.arrival
+            ).toLocaleString()
+            : "—";
+
+
+    el.innerHTML =
+
+        "🧭 <strong>Journey active</strong><br><br>" +
+
+        "<strong>Destination:</strong> " +
+        esc(
+            GS.journey.destination
+        ) +
+
+        "<br>" +
+
+        "<strong>Distance remaining:</strong> " +
+        esc(
+            distanceText
+        ) +
+
+        "<br>" +
+
+        "<strong>Predicted arrival:</strong> " +
+        esc(
+            predictedText
+        ) +
+
+        "<br>" +
+
+        "<strong>Expected arrival:</strong> " +
+        esc(
+            expectedText
+        );
+
+}
 
     function renderFamily(){const el=$('familyList');if(!el)return;if(!GS.family.length){el.innerHTML='<div class="info-box">No family members yet. Add the people you trust most.</div>';return;}el.innerHTML=GS.family.map((f,i)=>'<div class="family-item"><div class="family-avatar">👤</div><div><strong>'+esc(f.name)+'</strong><small>'+esc(f.relation)+' • '+esc(f.phone)+'</small></div><button class="family-remove" onclick="removeFamilyMember('+i+')">Remove</button></div>').join('');}
     window.addFamilyMember=function(){const name=$('familyName')?.value.trim(),relation=$('familyRelation')?.value.trim(),phone=$('familyPhone')?.value.trim(),role=$('familyRole')?.value;if(!name||!phone){showToast('Name and phone are required.');return;}GS.family.push({name,relation:relation||role,phone,role});save('guardianFamilyCircle',GS.family);['familyName','familyRelation','familyPhone'].forEach(id=>$(id).value='');renderFamily();showToast('Added to your private family circle.');};

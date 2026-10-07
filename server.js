@@ -6994,123 +6994,250 @@ app.post(
             }
 
 
-            /*
-             * CREATE JOURNEY.
-             *
-             * We do NOT require current GPS here.
-             * The first GPS update will calculate
-             * the actual route and ETA.
-             */
+           /*
+ * GET THE TRAVELER'S STARTING LOCATION
+ * FROM THE REQUEST.
+ */
+const startLatitude =
+    Number(
+        req.body?.startLatitude
+    );
 
-            const journey =
-                await Journey.create({
+const startLongitude =
+    Number(
+        req.body?.startLongitude
+    );
 
-                    ownerUserId:
-                        req.user.userId,
-
-                    guardianUserId:
-                        guardian._id,
-
-                    destination:
-                        destination,
-
-                    destinationLatitude:
-                        destinationLatitude,
-
-                    destinationLongitude:
-                        destinationLongitude,
-
-                    travelMode:
-                        travelMode,
-
-                    arrival:
-                        arrival
-                            ? new Date(arrival)
-                            : new Date(),
-
-                    note:
-                        note,
-
-                    active:
-                        true,
-
-                    startedAt:
-                        new Date(),
-
-                    routeDistanceMeters:
-                        null,
-
-                    estimatedDurationSeconds:
-                        null,
-
-                    predictedArrival:
-                        null,
-
-                    routeShape:
-                        null,
-
-                    path:
-                        []
-
-                });
+const startAccuracy =
+    req.body?.startAccuracy !== undefined
+        ? Number(
+            req.body.startAccuracy
+        )
+        : null;
 
 
-            return res.status(201).json({
+/*
+ * STARTING LOCATION IS REQUIRED.
+ */
+if (
+    !validJourneyCoordinates(
+        startLatitude,
+        startLongitude
+    )
+) {
 
-                success:
-                    true,
+    return res.status(400).json({
 
-                message:
-                    "Journey started. Your Guardian can now see your live movement.",
+        success: false,
 
-                journey: {
+        message:
+            "Current traveler location is required to start the journey."
 
-                    id:
-                        journey._id,
+    });
 
-                    destination:
-                        journey.destination,
+}
 
-                    destinationLatitude:
-                        journey.destinationLatitude,
 
-                    destinationLongitude:
-                        journey.destinationLongitude,
+/*
+ * CALCULATE THE FIRST ROUTE IMMEDIATELY.
+ *
+ * This gives us:
+ * - remaining distance
+ * - predicted arrival
+ * - visible route/path
+ */
+let initialRoute = null;
 
-                    travelMode:
-                        journey.travelMode,
+try {
 
-                    arrival:
-                        journey.arrival,
+    initialRoute =
+        await calculateJourneyRoute({
 
-                    predictedArrival:
-                        journey.predictedArrival,
+            latitude:
+                startLatitude,
 
-                    routeDistanceMeters:
-                        journey.routeDistanceMeters,
+            longitude:
+                startLongitude,
 
-                    estimatedDurationSeconds:
-                        journey.estimatedDurationSeconds,
+            destinationLatitude:
+                destinationLatitude,
 
-                    active:
-                        journey.active,
+            destinationLongitude:
+                destinationLongitude,
 
-                    startedAt:
-                        journey.startedAt,
+            travelMode:
+                travelMode
 
-                    guardian: {
+        });
 
-                        id:
-                            guardian._id,
+} catch (routeError) {
 
-                        name:
-                            guardian.name
+    console.error(
+        "Initial journey route calculation error:",
+        routeError
+    );
 
-                    }
+    return res.status(500).json({
 
-                }
+        success: false,
 
-            });
+        message:
+            "Unable to calculate the journey route. Please try again."
+
+    });
+
+}
+
+
+/*
+ * CREATE THE FIRST GPS POINT.
+ */
+const initialPoint = {
+
+    latitude:
+        startLatitude,
+
+    longitude:
+        startLongitude,
+
+    accuracy:
+        Number.isFinite(startAccuracy)
+            ? startAccuracy
+            : null,
+
+    timestamp:
+        new Date()
+
+};
+
+
+/*
+ * CREATE JOURNEY WITH THE ROUTE
+ * ALREADY AVAILABLE.
+ */
+const journey =
+    await Journey.create({
+
+        ownerUserId:
+            req.user.userId,
+
+        guardianUserId:
+            guardian._id,
+
+        destination:
+            destination,
+
+        destinationLatitude:
+            destinationLatitude,
+
+        destinationLongitude:
+            destinationLongitude,
+
+        travelMode:
+            travelMode,
+
+        arrival:
+            arrival
+                ? new Date(arrival)
+                : new Date(),
+
+        note:
+            note,
+
+        active:
+            true,
+
+        startedAt:
+            new Date(),
+
+        routeDistanceMeters:
+            initialRoute.distanceMeters,
+
+        estimatedDurationSeconds:
+            initialRoute.durationSeconds,
+
+        predictedArrival:
+            initialRoute.predictedArrival,
+
+        routeShape:
+            initialRoute.routeShape,
+
+        currentLocation:
+            initialPoint,
+
+        path:
+            [
+                initialPoint
+            ]
+
+    });
+
+
+           return res.status(201).json({
+
+    success:
+        true,
+
+    message:
+        "Journey started successfully.",
+
+    journey: {
+
+        id:
+            journey._id,
+
+        destination:
+            journey.destination,
+
+        destinationLatitude:
+            journey.destinationLatitude,
+
+        destinationLongitude:
+            journey.destinationLongitude,
+
+        travelMode:
+            journey.travelMode,
+
+        arrival:
+            journey.arrival,
+
+        predictedArrival:
+            journey.predictedArrival,
+
+        routeDistanceMeters:
+            journey.routeDistanceMeters,
+
+        estimatedDurationSeconds:
+            journey.estimatedDurationSeconds,
+
+        routeShape:
+            journey.routeShape,
+
+        currentLocation:
+            journey.currentLocation,
+
+        path:
+            journey.path,
+
+        active:
+            journey.active,
+
+        startedAt:
+            journey.startedAt,
+
+        guardian: {
+
+            id:
+                guardian._id,
+
+            name:
+                guardian.name
+
+        }
+
+    }
+
+});
 
 
         } catch (error) {
