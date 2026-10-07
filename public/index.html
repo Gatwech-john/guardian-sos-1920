@@ -3929,19 +3929,13 @@ align-items: flex-start;
     ====================================================== -->
 
     <section id="loginPage" class="page auth-page">
-
         <div class="auth-box">
-
             <div class="auth-logo">SOS GUARDIAN</div>
-
             <div class="auth-subtitle">
                 Emergency Assistance & Personal Safety
             </div>
-
             <h2>Welcome Back</h2>
-
             <form id="loginForm">
-
                 <div class="form-group">
                     <label for="loginEmail">Email</label>
                     <input
@@ -11868,80 +11862,38 @@ async function loadGuardianMapPage() {
          * NO ACTIVE JOURNEY
          */
         if (
-            !response ||
-            !response.journey
-        ) {
+    !response ||
+    !response.journey
+) {
 
-            currentGuardianJourney =
-                null;
+    resetGuardianJourneyLayers();
 
+    if (status) {
 
-            if (guardianMapCurrentMarker) {
+        status.textContent =
+            "MAP ACTIVE — No live journey is currently active.";
 
-                guardianMap.removeLayer(
-                    guardianMapCurrentMarker
-                );
+        status.style.color =
+            "#ff1493";
 
-                guardianMapCurrentMarker =
-                    null;
+    }
 
-            }
+    if (info) {
 
+        info.innerHTML =
+            "The map is ready. When a traveler starts a journey, their live movement will appear here.";
 
-            if (guardianMapCurrentCircle) {
+    }
 
-                guardianMap.removeLayer(
-                    guardianMapCurrentCircle
-                );
+    if (guardianMap) {
 
-                guardianMapCurrentCircle =
-                    null;
+        guardianMap.invalidateSize();
 
-            }
+    }
 
+    return;
 
-            if (guardianMapPath) {
-
-                guardianMap.removeLayer(
-                    guardianMapPath
-                );
-
-                guardianMapPath =
-                    null;
-
-            }
-
-
-            if (status) {
-
-                status.textContent =
-                    "MAP ACTIVE — No live journey is currently active.";
-
-                status.style.color =
-                    "#ff1493";
-
-            }
-
-
-            if (info) {
-
-                info.innerHTML =
-                    "The map is ready. When a traveler starts a journey, their live movement will appear here.";
-
-            }
-
-
-            if (guardianMap) {
-
-                guardianMap.invalidateSize();
-
-            }
-
-
-            return;
-
-        }
-
+}
 
         /*
          * ACTIVE JOURNEY FOUND
@@ -12184,24 +12136,27 @@ function renderGuardianJourneyMap(
      * KEEP THE LANDLINK MAP EVEN WHEN
      * THERE IS NO GPS PATH YET.
      */
-    if (!path.length) {
+   if (!path.length) {
 
-        createGuardianLandlinkMap(
-            mapElement,
-            [-1.286389, 36.817223],
-            12
-        );
+    resetGuardianJourneyLayers();
 
-        if (guardianMap) {
 
-            guardianMap.invalidateSize();
+    createGuardianLandlinkMap(
+        mapElement,
+        [-1.286389, 36.817223],
+        12
+    );
 
-        }
 
-        return;
+    if (guardianMap) {
+
+        guardianMap.invalidateSize();
 
     }
 
+    return;
+
+}
 
     const latest =
         path[
@@ -12542,6 +12497,140 @@ if (
 
 
 /* =========================================================
+   RESET GUARDIAN JOURNEY LAYERS
+   Keeps the map itself alive.
+   Removes only the old journey information.
+========================================================= */
+
+function resetGuardianJourneyLayers() {
+
+    if (!guardianMap) {
+
+        currentGuardianJourney =
+            null;
+
+        return;
+
+    }
+
+
+    /*
+     * REMOVE TRAVELLED PATH
+     */
+
+    if (
+        guardianMapPath
+    ) {
+
+        guardianMap.removeLayer(
+            guardianMapPath
+        );
+
+        guardianMapPath =
+            null;
+
+    }
+
+
+    /*
+     * REMOVE REMAINING ROUTE
+     */
+
+    if (
+        guardianMapRoute
+    ) {
+
+        guardianMap.removeLayer(
+            guardianMapRoute
+        );
+
+        guardianMapRoute =
+            null;
+
+    }
+
+
+    /*
+     * REMOVE CURRENT LOCATION MARKER
+     */
+
+    if (
+        guardianMapCurrentMarker
+    ) {
+
+        guardianMap.removeLayer(
+            guardianMapCurrentMarker
+        );
+
+        guardianMapCurrentMarker =
+            null;
+
+    }
+
+
+    /*
+     * REMOVE GPS ACCURACY CIRCLE
+     */
+
+    if (
+        guardianMapCurrentCircle
+    ) {
+
+        guardianMap.removeLayer(
+            guardianMapCurrentCircle
+        );
+
+        guardianMapCurrentCircle =
+            null;
+
+    }
+
+
+    /*
+     * REMOVE DESTINATION MARKER
+     */
+
+    if (
+        window.guardianMapDestinationMarker
+    ) {
+
+        guardianMap.removeLayer(
+            window.guardianMapDestinationMarker
+        );
+
+        window.guardianMapDestinationMarker =
+            null;
+
+    }
+
+
+    /*
+     * CLEAR CURRENT JOURNEY DATA
+     */
+
+    currentGuardianJourney =
+        null;
+
+
+    /*
+     * RETURN MAP TO ITS NORMAL
+     * NO-JOURNEY VIEW.
+     */
+
+    guardianMap.setView(
+        [
+            -1.286389,
+            36.817223
+        ],
+        12
+    );
+
+
+    guardianMap.invalidateSize();
+
+}
+
+/* =========================================================
    CLEAR GUARDIAN MAP
 ========================================================= */
 
@@ -12601,6 +12690,7 @@ guardianMapDestinationMarker =
     null;
 
 }
+
 
 
 /* =========================================================
@@ -14667,6 +14757,48 @@ async function restoreActiveJourney() {
 
         );
 
+
+        /*
+         * SERVER CONFIRMED THAT
+         * THE JOURNEY WAS ENDED.
+         */
+
+        stopJourneyLocationTracking();
+
+
+        GS.journey =
+            null;
+
+
+        localStorage.removeItem(
+            "guardianJourney"
+        );
+
+
+        renderJourney();
+
+
+        /*
+         * Clear any journey-related
+         * map information if this
+         * page is currently open.
+         */
+
+        if (
+            typeof resetGuardianJourneyLayers ===
+            "function"
+        ) {
+
+            resetGuardianJourneyLayers();
+
+        }
+
+
+        showToast(
+            "Travel Safety Mode ended."
+        );
+
+
     } catch (error) {
 
         console.error(
@@ -14674,27 +14806,19 @@ async function restoreActiveJourney() {
             error
         );
 
+
+        /*
+         * IMPORTANT:
+         * Do NOT clear the local journey
+         * when the server failed.
+         */
+
+        showToast(
+            error.message ||
+            "Unable to end journey. Please try again."
+        );
+
     }
-
-
-    stopJourneyLocationTracking();
-
-
-    GS.journey =
-        null;
-
-
-    localStorage.removeItem(
-        "guardianJourney"
-    );
-
-
-    renderJourney();
-
-
-    showToast(
-        "Travel Safety Mode ended."
-    );
 
 };
     function renderJourney(){const el=$('journeyState');if(!el)return;if(!GS.journey){el.textContent='No journey is active.';return;}el.innerHTML=GS.journey.active?'🧭 <strong>Journey active:</strong> '+esc(GS.journey.destination)+' • expected '+new Date(GS.journey.arrival).toLocaleString():'✓ <strong>Journey completed.</strong> '+esc(GS.journey.destination);}
