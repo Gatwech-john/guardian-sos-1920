@@ -3910,16 +3910,7 @@ align-items: flex-start;
 
 
 
-#journeyArrival {
-    color: #ff1493 !important;
-    border: 1px solid #ff1493 !important;
-    accent-color: #ff1493;
-}
 
-#journeyArrival::-webkit-calendar-picker-indicator {
-    filter: invert(32%) sepia(99%) saturate(7474%) hue-rotate(313deg) brightness(101%) contrast(101%);
-    cursor: pointer;
-}
 
 </style>
 <!-- LEAFLET MAP -->
@@ -5752,17 +5743,9 @@ align-items: flex-start;
         Expected arrival
 
         <input
-    type="datetime-local"
-    id="journeyArrival"
-    style="
-        width:100%;
-        padding:12px;
-        border:1px solid #ff1493;
-        border-radius:10px;
-        background:#000;
-        color:#ff1493;
-    "
->
+            id="journeyArrival"
+            type="datetime-local"
+        >
     </label>
 
 
@@ -11972,6 +11955,7 @@ const modeLabels = {
 let distanceText =
     "Calculating...";
 
+
 if (
     Number.isFinite(
         Number(
@@ -11981,33 +11965,23 @@ if (
     )
 ) {
 
-    const distanceMeters =
+    const kilometres =
         Number(
             currentGuardianJourney
                 .routeDistanceMeters
-        );
+        ) / 1000;
 
-    if (
-        distanceMeters < 1000
-    ) {
 
-        distanceText =
-            Math.round(
-                distanceMeters
-            ) +
-            " m";
+    distanceText =
+        kilometres < 1
 
-    } else {
+            ? Math.round(
+                kilometres * 1000
+              ) +
+              " m"
 
-        const kilometres =
-            distanceMeters /
-            1000;
-
-        distanceText =
-            kilometres.toFixed(1) +
-            " km";
-
-    }
+            : kilometres.toFixed(1) +
+              " km";
 
 }
 
@@ -14380,20 +14354,10 @@ window.startJourney = async function() {
 
 
         /*
- * NOW START LIVE GPS.
- *
- * The first GPS position is sent immediately.
- * This allows the server to calculate:
- *
- * - distance remaining
- * - predicted arrival
- * - route shape
- *
- * without requiring the traveler
- * to physically start moving.
- */
+         * NOW START LIVE GPS.
+         */
 
-startJourneyLocationTracking(true);
+        startJourneyLocationTracking();
 
 
         showToast(
@@ -14418,9 +14382,7 @@ startJourneyLocationTracking(true);
 
 };
 
-function startJourneyLocationTracking(
-    sendImmediately = false
-) {
+function startJourneyLocationTracking() {
 
     if (
         journeyWatchId !== null
@@ -14451,15 +14413,11 @@ function startJourneyLocationTracking(
 
 
                 /*
-                 * Normally send once every
+                 * Send at most once every
                  * 5 seconds.
-                 *
-                 * But the first GPS position
-                 * must always be sent immediately.
                  */
 
                 if (
-                    !sendImmediately &&
                     now -
                     journeyLastSentAt <
                     5000
@@ -14472,15 +14430,6 @@ function startJourneyLocationTracking(
 
                 journeyLastSentAt =
                     now;
-
-                /*
-                 * After the first successful
-                 * GPS update, normal 5-second
-                 * throttling continues.
-                 */
-
-                sendImmediately =
-                    false;
 
 
                 const latitude =
@@ -14495,67 +14444,59 @@ function startJourneyLocationTracking(
 
                 try {
 
-                    const journeyData =
-                        await api(
+                   const journeyData =
+    await api(
 
-                            "/api/journey/" +
-                            encodeURIComponent(
-                                GS.journey.id
-                            ) +
-                            "/location",
+        "/api/journey/" +
+        encodeURIComponent(
+            GS.journey.id
+        ) +
+        "/location",
 
-                            {
+        {
 
-                                method:
-                                    "POST",
+            method:
+                "POST",
 
-                                body: {
+            body: {
 
-                                    latitude:
-                                        latitude,
+                latitude:
+                    latitude,
 
-                                    longitude:
-                                        longitude,
+                longitude:
+                    longitude,
 
-                                    accuracy:
-                                        accuracy
+                accuracy:
+                    accuracy
 
-                                }
+            }
 
-                            }
+        }
 
-                        );
-
-
-                    if (
-                        journeyData &&
-                        journeyData.journey
-                    ) {
-
-                        GS.journey =
-                            {
-
-                                ...GS.journey,
-
-                                ...journeyData.journey
-
-                            };
+    );
 
 
-                        save(
-                            "guardianJourney",
-                            GS.journey
-                        );
+if (
+    journeyData &&
+    journeyData.journey
+) {
+
+    GS.journey =
+        {
+
+            ...GS.journey,
+
+            ...journeyData.journey
+
+        };
 
 
-                        /*
-                         * Refresh the journey
-                         * information immediately.
-                         */
+    save(
+        "guardianJourney",
+        GS.journey
+    );
 
-                        renderJourney();
-
-                    }
+}
 
 
                 } catch (error) {
