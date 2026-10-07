@@ -15280,10 +15280,53 @@ try {
 
         try {
 
+            /*
+             * ANDROID WEBVIEW:
+             * Firebase Web Messaging is not used here.
+             * Android notifications are handled separately.
+             */
+            const ua =
+                navigator.userAgent || "";
+
+            const isAndroidWebView =
+                /Android/i.test(ua) &&
+                (
+                    /; wv\)/i.test(ua) ||
+                    /Version\/4\.0/i.test(ua) ||
+                    typeof window.AndroidContacts !== "undefined"
+                );
+
+            if (isAndroidWebView) {
+
+                console.log(
+                    "Guardian SOS: FCM Web Messaging skipped inside Android WebView."
+                );
+
+                return null;
+
+            }
+
+
             if (!messaging) {
 
                 console.warn(
                     "Firebase Messaging is not available."
+                );
+
+                return null;
+
+            }
+
+
+            /*
+             * Browser must support Service Workers.
+             */
+            if (
+                !("serviceWorker" in navigator)
+            ) {
+
+                console.warn(
+                    "Service Workers are not supported."
                 );
 
                 return null;
@@ -15323,6 +15366,9 @@ try {
             }
 
 
+            /*
+             * Get FCM token.
+             */
             const token =
                 await getToken(
 
@@ -15368,7 +15414,6 @@ try {
         }
 
     };
-
 
                 
 

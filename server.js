@@ -4133,6 +4133,7 @@ function getPhoneVariants(phone) {
 ============================================================ */
 
 const VALHALLA_URL =
+    process.env.VALHALLA_URL ||
     "https://valhalla.openstreetmap.de/route";
 
 
@@ -7070,21 +7071,96 @@ try {
 
         });
 
+
 } catch (routeError) {
 
     console.error(
-        "Initial journey route calculation error:",
+        "Initial route calculation failed:",
         routeError
     );
 
-    return res.status(500).json({
 
-        success: false,
+    /*
+     * SAFETY FALLBACK
+     *
+     * The journey should still start even if
+     * the external routing service is temporarily
+     * unavailable.
+     */
 
-        message:
-            "Unable to calculate the journey route. Please try again."
+    const fallbackDistance =
+        haversineDistance(
 
-    });
+            startLatitude,
+            startLongitude,
+
+            destinationLatitude,
+            destinationLongitude
+
+        );
+
+
+    const transport =
+        JOURNEY_TRANSPORT[
+            travelMode
+        ] ||
+        JOURNEY_TRANSPORT.CAR;
+
+
+    const speedKmh =
+        Number(
+            transport.defaultSpeedKmh
+        ) || 60;
+
+
+    const speedMetersPerSecond =
+        (speedKmh * 1000) / 3600;
+
+
+    const fallbackDuration =
+        Math.max(
+
+            60,
+
+            Math.round(
+                fallbackDistance /
+                speedMetersPerSecond
+            )
+
+        );
+
+
+    initialRoute = {
+
+        distanceMeters:
+            Math.round(
+                fallbackDistance
+            ),
+
+        durationSeconds:
+            fallbackDuration,
+
+        predictedArrival:
+            new Date(
+                Date.now() +
+                fallbackDuration * 1000
+            ),
+
+        routeShape: [
+
+            [
+                startLatitude,
+                startLongitude
+            ],
+
+            [
+                destinationLatitude,
+                destinationLongitude
+            ]
+
+        ]
+
+    };
 
 }
 
@@ -7708,11 +7784,18 @@ app.patch(
 
         try {
 
+            /*
+             * IMPORTANT:
+             * Make sure MongoDB is connected before
+             * querying the Journey collection.
+             */
+            await connectMongoDB();
+
+
             const journey =
                 await Journey.findOneAndUpdate(
 
                     {
-
                         _id:
                             req.params.id,
 
@@ -7725,30 +7808,36 @@ app.patch(
                     },
 
                     {
+                        $set: {
 
-                        active:
-                            false,
+                            active:
+                                false,
 
-                        endedAt:
-                            new Date()
+                            endedAt:
+                                new Date()
+
+                        }
 
                     },
 
                     {
-
                         new:
                             true
-
                     }
 
                 );
 
 
+            /*
+             * No active journey belonging
+             * to this logged-in user.
+             */
             if (!journey) {
 
                 return res.status(404).json({
 
-                    success: false,
+                    success:
+                        false,
 
                     message:
                         "Active journey not found."
@@ -7758,9 +7847,10 @@ app.patch(
             }
 
 
-            return res.json({
+            return res.status(200).json({
 
-                success: true,
+                success:
+                    true,
 
                 message:
                     "Journey ended successfully.",
@@ -7773,16 +7863,28 @@ app.patch(
         } catch (error) {
 
             console.error(
-                "End journey error:",
+                "END JOURNEY ERROR:",
                 error
+            );
+
+            console.error(
+                "END JOURNEY ERROR MESSAGE:",
+                error?.message
+            );
+
+            console.error(
+                "END JOURNEY ERROR STACK:",
+                error?.stack
             );
 
 
             return res.status(500).json({
 
-                success: false,
+                success:
+                    false,
 
                 message:
+                    error?.message ||
                     "Unable to end journey."
 
             });
