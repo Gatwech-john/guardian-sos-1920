@@ -7212,9 +7212,11 @@ function connectChatSocket() {
         if (currentChatUserId) {
 
             chatSocket.emit(
-                "check_user_status",
-                currentChatUserId
-            );
+    "check_user_status",
+    {
+        userId: String(currentChatUserId)
+    }
+);
 
         }
 
@@ -7287,7 +7289,9 @@ chatSocket = io({
 
             chatSocket.emit(
                 "check_user_status",
-                currentChatUserId
+                {
+                    userId: String(currentChatUserId)
+                }
             );
         }
     }
@@ -9056,6 +9060,8 @@ async function processSelectedPhoneContact(name, phone, email) {
 let currentChatUserId = null;
 let currentConversationId = null;
 
+let lastRenderedChatDateLabel = null;
+
 
 
 /* =========================================================
@@ -9848,6 +9854,7 @@ async function loadChatMessages(
 
 
     messagesList.innerHTML =
+
         `
             <div
                 style="
@@ -9880,7 +9887,7 @@ async function loadChatMessages(
 
         messagesList.innerHTML =
             "";
-
+lastRenderedChatDateLabel = null;
 
         if (!messages.length) {
 

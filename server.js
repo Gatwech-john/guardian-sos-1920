@@ -1519,33 +1519,31 @@ io.on("connection", (socket) => {
        USER ONLINE STATUS
     ============================================================ */
 
-    socket.on(
-        "check_user_status",
-        function(userId) {
+   socket.on("check_user_status", function(payload) {
 
-            if (!userId) {
-                return;
-            }
 
-            const targetRoom =
-                io.sockets.adapter.rooms.get(
-                    "user:" + String(userId)
-                );
+const userId =
+    typeof payload === "string"
+        ? payload
+        : payload && payload.userId;
 
-            const online =
-                !!targetRoom &&
-                targetRoom.size > 0;
+if (!userId) {
+    return;
+}
 
-            socket.emit(
-                "user_status",
-                {
-                    userId: String(userId),
-                    online: online
-                }
-            );
-
-        }
+const targetRoom =
+    io.sockets.adapter.rooms.get(
+        "user:" + String(userId)
     );
+
+socket.emit("user_status", {
+    userId: String(userId),
+    online: !!targetRoom && targetRoom.size > 0
+});
+
+
+});
+
 
 
     /*
@@ -2059,44 +2057,7 @@ socket.on(
 
 
 
-socket.on(
-    "check_user_status",
-    function(data) {
 
-        if (!data || !data.userId) {
-            return;
-        }
-
-
-        const roomName =
-            "user:" +
-            String(data.userId);
-
-
-        const room =
-            io.sockets.adapter.rooms.get(
-                roomName
-            );
-
-
-        const online =
-            !!room &&
-            room.size > 0;
-
-
-        socket.emit(
-            "user_status",
-            {
-                userId:
-                    String(data.userId),
-
-                online:
-                    online
-            }
-        );
-
-    }
-);
 
 });
 
