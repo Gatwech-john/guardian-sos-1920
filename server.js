@@ -294,12 +294,10 @@ const UserSchema = new mongoose.Schema(
     type: [String],
     default: []
 },
-
 lastSeenAt: {
     type: Date,
-    default: null
+    default: null,
 },
-
         password: {
             type: String,
             required: true
@@ -4757,138 +4755,6 @@ app.get(
     }
 );
 
-
-
-/* ============================================================
-   CHAT PRESENCE HEARTBEAT
-   Marks the current user as online.
-============================================================ */
-
-app.post(
-    "/api/chat/presence",
-    authenticateToken,
-    async (req, res) => {
-
-        try {
-
-            await connectMongoDB();
-
-
-            await User.updateOne(
-                {
-                    _id:
-                        req.user.userId
-                },
-                {
-                    $set: {
-                        lastSeenAt:
-                            new Date()
-                    }
-                }
-            );
-
-
-            return res.json({
-                success: true
-            });
-
-
-        } catch (error) {
-
-            console.error(
-                "Presence heartbeat error:",
-                error
-            );
-
-
-            return res.status(500).json({
-                success: false
-            });
-
-        }
-
-    }
-);
-
-
-/* ============================================================
-   CHECK USER PRESENCE
-============================================================ */
-
-app.get(
-    "/api/chat/presence/:userId",
-    authenticateToken,
-    async (req, res) => {
-
-        try {
-
-            await connectMongoDB();
-
-
-            const user =
-                await User.findById(
-                    req.params.userId
-                )
-                .select("lastSeenAt")
-                .lean();
-
-
-            if (!user) {
-
-                return res.status(404).json({
-                    success: false,
-                    online: false
-                });
-
-            }
-
-
-            const lastSeen =
-                user.lastSeenAt
-                    ? new Date(
-                        user.lastSeenAt
-                    ).getTime()
-                    : 0;
-
-
-            /*
-             * User is considered online when
-             * heartbeat was received within
-             * the last 30 seconds.
-             */
-
-            const online =
-                lastSeen > 0 &&
-                (
-                    Date.now() -
-                    lastSeen
-                ) < 30000;
-
-
-            return res.json({
-                success: true,
-                online: online
-            });
-
-
-        } catch (error) {
-
-            console.error(
-                "Presence check error:",
-                error
-            );
-
-
-            return res.status(500).json({
-                success: false,
-                online: false
-            });
-
-        }
-
-    }
-);
-
 /* ============================================================
    CREATE / OPEN DIRECT CHAT
 ============================================================ */
@@ -5002,6 +4868,181 @@ app.post(
     }
 );
 
+
+/* ============================================================
+   USER CHAT PRESENCE
+============================================================ */
+
+
+/*
+------------------------------------------------------------
+UPDATE CURRENT USER PRESENCE
+POST /api/chat/presence
+------------------------------------------------------------
+*/
+
+app.post(
+    "/api/chat/presence",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            await connectMongoDB();
+
+
+            await User.updateOne(
+                {
+                    _id:
+                        req.user.userId
+                },
+                {
+                    $set: {
+                        lastSeenAt:
+                            new Date()
+                    }
+                }
+            );
+
+
+            return res.json({
+
+                success:
+                    true
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Presence update error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to update presence."
+
+            });
+
+        }
+
+    }
+);
+
+
+/*
+------------------------------------------------------------
+CHECK ANOTHER USER'S PRESENCE
+GET /api/chat/presence/:userId
+------------------------------------------------------------
+*/
+
+app.get(
+    "/api/chat/presence/:userId",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            await connectMongoDB();
+
+
+            const user =
+                await User
+                    .findById(
+                        req.params.userId
+                    )
+                    .select(
+                        "_id lastSeenAt"
+                    )
+                    .lean();
+
+
+            if (!user) {
+
+                return res.status(404).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "User not found."
+
+                });
+
+            }
+
+
+            const lastSeen =
+                user.lastSeenAt
+                    ? new Date(
+                        user.lastSeenAt
+                    ).getTime()
+                    : 0;
+
+
+            const now =
+                Date.now();
+
+
+            /*
+             * User is considered online when
+             * the last heartbeat was received
+             * within the last 30 seconds.
+             */
+
+            const online =
+                lastSeen > 0 &&
+                (
+                    now -
+                    lastSeen
+                ) <=
+                30000;
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                online:
+                    online,
+
+                lastSeenAt:
+                    user.lastSeenAt || null
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Presence check error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to check user presence."
+
+            });
+
+        }
+
+    }
+);
 /* ============================================================
    GET CHAT CONVERSATIONS
 ============================================================ */

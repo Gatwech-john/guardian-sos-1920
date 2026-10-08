@@ -7193,155 +7193,6 @@ function getToken() {
 
 let chatSocket = null;
 
-/* =========================================================
-   GUARDIAN SOS ONLINE PRESENCE
-========================================================= */
-
-let presenceTimer = null;
-
-
-async function sendPresenceHeartbeat() {
-
-    if (!getToken()) {
-        return;
-    }
-
-
-    /*
-     * Do not send heartbeat while the page
-     * is actually hidden.
-     */
-
-    if (
-        document.visibilityState ===
-        "hidden"
-    ) {
-        return;
-    }
-
-
-    try {
-
-        await api(
-            "/api/chat/presence",
-            {
-                method: "POST"
-            }
-        );
-
-    } catch (error) {
-
-        console.warn(
-            "Presence heartbeat failed:",
-            error
-        );
-
-    }
-
-}
-
-
-function startPresenceHeartbeat() {
-
-    clearInterval(
-        presenceTimer
-    );
-
-
-    sendPresenceHeartbeat();
-
-
-    presenceTimer =
-        setInterval(
-            function() {
-
-                sendPresenceHeartbeat();
-
-                if (
-                    currentChatUserId
-                ) {
-
-                    refreshCurrentChatUserStatus();
-
-                }
-
-            },
-            10000
-        );
-
-}
-
-
-async function refreshCurrentChatUserStatus() {
-
-    if (
-        !currentChatUserId
-    ) {
-        return;
-    }
-
-
-    try {
-
-        const data =
-            await api(
-                "/api/chat/presence/" +
-                encodeURIComponent(
-                    currentChatUserId
-                )
-            );
-
-
-        const status =
-            document.getElementById(
-                "chatWindowStatus"
-            );
-
-
-        if (!status) {
-            return;
-        }
-
-
-        if (data.online) {
-
-            status.textContent =
-                "Online";
-
-            status.classList.remove(
-                "offline"
-            );
-
-            status.classList.add(
-                "online"
-            );
-
-        } else {
-
-            status.textContent =
-                "Offline";
-
-            status.classList.remove(
-                "online"
-            );
-
-            status.classList.add(
-                "offline"
-            );
-
-        }
-
-    } catch (error) {
-
-        console.warn(
-            "Unable to check user presence:",
-            error
-        );
-
-    }
-
-}
-
 function connectChatSocket() {
 
     const token = getToken();
@@ -7470,65 +7321,7 @@ chatSocket = io({
    ONLINE / OFFLINE STATUS
 ========================================================= */
 
-chatSocket.on(
-    "user_status",
-    function(data) {
 
-        if (!data || !data.userId) {
-            return;
-        }
-
-
-        const status =
-            document.getElementById(
-                "chatWindowStatus"
-            );
-
-
-        if (
-            !status ||
-            !currentChatUserId
-        ) {
-            return;
-        }
-
-
-        if (
-            String(data.userId) !==
-            String(currentChatUserId)
-        ) {
-            return;
-        }
-
-
-        if (data.online) {
-
-            status.textContent =
-                "Online";
-
-            status.classList.remove(
-                "offline"
-            );
-
-            status.classList.add(
-                "online"
-            );
-
-        } else {
-
-            status.textContent =
-                "Offline";
-
-            status.classList.remove(
-                "online"
-            );
-
-            status.classList.add(
-                "offline"
-            );
-        }
-    }
-);
 
 
 
@@ -7592,6 +7385,194 @@ function requestUserStatus(userId) {
 }
 
 
+/* =========================================================
+   RELIABLE USER PRESENCE
+   HTTP HEARTBEAT
+========================================================= */
+
+let presenceHeartbeatTimer = null;
+
+
+async function sendPresenceHeartbeat() {
+
+    if (!getToken()) {
+        return;
+    }
+
+
+    if (
+        document.visibilityState ===
+        "hidden"
+    ) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await api(
+            "/api/chat/presence",
+            {
+                method:
+                    "POST"
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Presence heartbeat error:",
+            error
+        );
+
+    }
+
+}
+
+
+async function refreshCurrentChatUserStatus() {
+
+    if (
+        !currentChatUserId ||
+        !getToken()
+    ) {
+
+        return;
+
+    }
+
+
+    const status =
+        document.getElementById(
+            "chatWindowStatus"
+        );
+
+
+    if (!status) {
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/api/chat/presence/" +
+                encodeURIComponent(
+                    currentChatUserId
+                )
+            );
+
+
+        if (
+            !data ||
+            String(
+                currentChatUserId
+            ) !==
+            String(
+                currentChatUserId
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        if (data.online) {
+
+            status.textContent =
+                "Online";
+
+            status.classList.remove(
+                "offline"
+            );
+
+            status.classList.add(
+                "online"
+            );
+
+        } else {
+
+            status.textContent =
+                "Offline";
+
+            status.classList.remove(
+                "online"
+            );
+
+            status.classList.add(
+                "offline"
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "User presence check error:",
+            error
+        );
+
+    }
+
+}
+
+
+function startPresenceHeartbeat() {
+
+    if (
+        presenceHeartbeatTimer
+    ) {
+
+        return;
+
+    }
+
+
+    sendPresenceHeartbeat();
+
+
+    presenceHeartbeatTimer =
+        setInterval(
+            function() {
+
+                if (
+                    document.visibilityState !==
+                    "hidden"
+                ) {
+
+                    sendPresenceHeartbeat();
+
+                }
+
+            },
+            10000
+        );
+
+}
+
+
+document.addEventListener(
+    "visibilitychange",
+    function() {
+
+        if (
+            document.visibilityState ===
+            "visible"
+        ) {
+
+            sendPresenceHeartbeat();
+
+            refreshCurrentChatUserStatus();
+
+        }
+
+    }
+);
+
 
 function sendChatMessage() {
 
@@ -7616,8 +7597,6 @@ if (
 ) {
 
     connectChatSocket();
-
-    
 
     showToast(
         "Connecting to chat..."
@@ -9208,7 +9187,258 @@ let currentChatUserId = null;
 let currentConversationId = null;
 
 
+/* =========================================================
+   FAST WHATSAPP-STYLE CHAT CACHE
+========================================================= */
 
+const chatMessageRequests = {};
+
+function getChatCacheKey(conversationId) {
+
+    const currentUser =
+        getStoredUser();
+
+    const currentUserId =
+        currentUser &&
+        (
+            currentUser._id ||
+            currentUser.id
+        );
+
+    return (
+        "guardianChatMessages:" +
+        String(currentUserId || "user") +
+        ":" +
+        String(conversationId)
+    );
+
+}
+
+
+function getCachedChatMessages(conversationId) {
+
+    try {
+
+        const raw =
+            localStorage.getItem(
+                getChatCacheKey(
+                    conversationId
+                )
+            );
+
+        if (!raw) {
+            return [];
+        }
+
+        const parsed =
+            JSON.parse(raw);
+
+        return Array.isArray(parsed)
+            ? parsed
+            : [];
+
+    } catch (error) {
+
+        console.error(
+            "Chat cache read error:",
+            error
+        );
+
+        return [];
+
+    }
+
+}
+
+
+function saveCachedChatMessages(
+    conversationId,
+    messages
+) {
+
+    try {
+
+        if (!conversationId) {
+            return;
+        }
+
+        const safeMessages =
+            Array.isArray(messages)
+                ? messages.slice(-100)
+                : [];
+
+        localStorage.setItem(
+            getChatCacheKey(
+                conversationId
+            ),
+            JSON.stringify(
+                safeMessages
+            )
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Chat cache save error:",
+            error
+        );
+
+    }
+
+}
+
+
+function fetchFreshChatMessages(
+    conversationId
+) {
+
+    if (
+        chatMessageRequests[
+            conversationId
+        ]
+    ) {
+
+        return chatMessageRequests[
+            conversationId
+        ];
+
+    }
+
+
+    chatMessageRequests[
+        conversationId
+    ] =
+        api(
+            "/api/chat/messages/" +
+            encodeURIComponent(
+                conversationId
+            )
+        )
+        .then(function(data) {
+
+            const messages =
+                Array.isArray(
+                    data.messages
+                )
+                    ? data.messages
+                    : [];
+
+            saveCachedChatMessages(
+                conversationId,
+                messages
+            );
+
+            return messages;
+
+        })
+        .catch(function(error) {
+
+            console.error(
+                "Fresh chat messages error:",
+                error
+            );
+
+            throw error;
+
+        })
+        .finally(function() {
+
+            delete chatMessageRequests[
+                conversationId
+            ];
+
+        });
+
+
+    return chatMessageRequests[
+        conversationId
+    ];
+
+}
+
+
+/* =========================================================
+   PRELOAD RECENT CONVERSATIONS
+========================================================= */
+
+function preloadRecentChatMessages(
+    conversations
+) {
+
+    if (
+        !Array.isArray(conversations) ||
+        !conversations.length
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+     * Preload the five most recent
+     * conversations.
+     *
+     * This happens in the background.
+     * It does NOT block the chat list.
+     */
+
+    conversations
+        .slice(0, 5)
+        .forEach(function(conversation) {
+
+            if (
+                !conversation ||
+                !conversation._id
+            ) {
+
+                return;
+
+            }
+
+            const conversationId =
+                String(
+                    conversation._id
+                );
+
+
+            /*
+             * If already cached, do not
+             * request it again immediately.
+             */
+
+            const cached =
+                getCachedChatMessages(
+                    conversationId
+                );
+
+            if (cached.length) {
+
+                return;
+
+            }
+
+
+            /*
+             * Start the request in the
+             * background.
+             */
+
+            fetchFreshChatMessages(
+                conversationId
+            )
+            .catch(function(error) {
+
+                console.error(
+                    "Chat preload error:",
+                    error
+                );
+
+            });
+
+        });
+
+}
 /* =========================================================
    LOAD CONVERSATIONS
 ========================================================= */
@@ -9216,7 +9446,9 @@ let currentConversationId = null;
 async function loadChats() {
 
     const chatList =
-        document.getElementById("chatList");
+        document.getElementById(
+            "chatList"
+        );
 
     if (!chatList) {
         return;
@@ -9225,10 +9457,14 @@ async function loadChats() {
     try {
 
         const data =
-            await api("/api/chat/conversations");
+            await api(
+                "/api/chat/conversations"
+            );
 
         const conversations =
-            Array.isArray(data.conversations)
+            Array.isArray(
+                data.conversations
+            )
                 ? data.conversations
                 : [];
 
@@ -9253,6 +9489,7 @@ async function loadChats() {
             `;
 
             return;
+
         }
 
 
@@ -9267,110 +9504,149 @@ async function loadChats() {
             );
 
 
+        /*
+         * DISPLAY THE CHAT LIST FIRST.
+         * DO NOT WAIT FOR MESSAGE PRELOADING.
+         */
+
         chatList.innerHTML =
-            conversations.map(function(conversation) {
+            conversations
+                .map(function(conversation) {
 
-                const participants =
-                    Array.isArray(
-                        conversation.participants
-                    )
-                        ? conversation.participants
-                        : [];
-
-
-                const otherUser =
-                    participants.find(function(user) {
-
-                        return String(
-                            user._id ||
-                            user.id
-                        ) !==
-                        String(currentUserId);
-
-                    });
+                    const participants =
+                        Array.isArray(
+                            conversation.participants
+                        )
+                            ? conversation.participants
+                            : [];
 
 
-                if (!otherUser) {
-                    return "";
-                }
+                    const otherUser =
+                        participants.find(
+                            function(user) {
 
+                                return String(
+                                    user._id ||
+                                    user.id
+                                ) !==
+                                String(
+                                    currentUserId
+                                );
 
-                const userName =
-                    otherUser.name ||
-                    "Guardian SOS User";
-
-
-                const lastMessage =
-                    conversation.lastMessage ||
-                    "Start a conversation";
-
-
-                const lastTime =
-                    conversation.lastMessageAt
-                        ? new Date(
-                            conversation.lastMessageAt
-                          ).toLocaleTimeString(
-                            [],
-                            {
-                                hour: "2-digit",
-                                minute: "2-digit"
                             }
-                          )
-                        : "";
+                        );
 
 
-                const avatar =
-                    userName
-                        .charAt(0)
-                        .toUpperCase();
+                    if (!otherUser) {
+                        return "";
+                    }
 
 
-                return `
-                    <div
-                        class="chat-item"
-                        onclick="openExistingChat(
-                            '${escapeHTML(conversation._id)}',
-                            '${escapeHTML(otherUser._id)}',
-                            '${escapeHTML(userName)}'
-                        )"
-                    >
+                    const userName =
+                        otherUser.name ||
+                        "Guardian SOS User";
 
-                        <div class="chat-avatar">
-                            ${escapeHTML(avatar)}
-                        </div>
 
-                        <div class="chat-info">
+                    const lastMessage =
+                        conversation.lastMessage ||
+                        "Start a conversation";
 
-                            <div class="chat-name">
-                                ${escapeHTML(userName)}
+
+                    const lastTime =
+                        conversation.lastMessageAt
+                            ? new Date(
+                                conversation.lastMessageAt
+                              ).toLocaleTimeString(
+                                [],
+                                {
+                                    hour:
+                                        "2-digit",
+
+                                    minute:
+                                        "2-digit"
+                                }
+                              )
+                            : "";
+
+
+                    const avatar =
+                        userName
+                            .charAt(0)
+                            .toUpperCase();
+
+
+                    return `
+                        <div
+                            class="chat-item"
+                            onclick="openExistingChat(
+                                '${escapeHTML(
+                                    conversation._id
+                                )}',
+                                '${escapeHTML(
+                                    otherUser._id
+                                )}',
+                                '${escapeHTML(
+                                    userName
+                                )}'
+                            )"
+                        >
+
+                            <div class="chat-avatar">
+                                ${escapeHTML(
+                                    avatar
+                                )}
                             </div>
 
-                            <div class="chat-last-message">
-                                ${escapeHTML(lastMessage)}
+                            <div class="chat-info">
+
+                                <div class="chat-name">
+                                    ${escapeHTML(
+                                        userName
+                                    )}
+                                </div>
+
+                                <div class="chat-last-message">
+                                    ${escapeHTML(
+                                        lastMessage
+                                    )}
+                                </div>
+
+                            </div>
+
+                            <div class="chat-time">
+                                ${escapeHTML(
+                                    lastTime
+                                )}
                             </div>
 
                         </div>
+                    `;
 
-                        <div class="chat-time">
-                            ${escapeHTML(lastTime)}
-                        </div>
-
-                    </div>
-                `;
-
-            }).join("");
+                })
+                .join("");
 
 
-/*
- * =========================================================
- * PRELOAD RECENT CHAT MESSAGES IN BACKGROUND
- * =========================================================
- */
+        /*
+         * IMPORTANT:
+         *
+         * Start loading recent messages
+         * AFTER the chat list is already
+         * visible.
+         *
+         * This makes the next chat opening
+         * much faster.
+         */
 
-preloadChatMessages(
-    conversations
-);
+        setTimeout(
+            function() {
 
+                preloadRecentChatMessages(
+                    conversations
+                );
+
+            },
+            0
+        );
 
 
     } catch (error) {
@@ -9388,7 +9664,9 @@ preloadChatMessages(
                     ⚠️
                 </div>
 
-                <h3>Unable to load conversations</h3>
+                <h3>
+                    Unable to load conversations
+                </h3>
 
                 <p>
                     ${escapeHTML(
@@ -9404,107 +9682,14 @@ preloadChatMessages(
 
 }
 
-async function preloadChatMessages(
-    conversations
-) {
 
-    if (
-        !Array.isArray(conversations) ||
-        !conversations.length
-    ) {
-        return;
-    }
-
-
-    /*
-     * Only preload the most recent conversations.
-     * This prevents unnecessary server requests.
-     */
-
-    const recent =
-        conversations.slice(0, 5);
-
-
-    await Promise.all(
-        recent.map(
-            async function(conversation) {
-
-                try {
-
-                    const conversationId =
-                        conversation._id;
-
-                    if (!conversationId) {
-                        return;
-                    }
-
-
-                    const cacheKey =
-                        "guardianChatMessages:" +
-                        String(conversationId);
-
-
-                    /*
-                     * If we already have a cache,
-                     * do not unnecessarily download it again.
-                     */
-
-                    if (
-                        localStorage.getItem(
-                            cacheKey
-                        )
-                    ) {
-                        return;
-                    }
-
-
-                    const data =
-                        await api(
-                            "/api/chat/messages/" +
-                            encodeURIComponent(
-                                conversationId
-                            )
-                        );
-
-
-                    const messages =
-                        Array.isArray(
-                            data.messages
-                        )
-                            ? data.messages
-                            : [];
-
-
-                    if (messages.length) {
-
-                        localStorage.setItem(
-                            cacheKey,
-                            JSON.stringify(
-                                messages.slice(-100)
-                            )
-                        );
-
-                    }
-
-                } catch (error) {
-
-                    console.warn(
-                        "Chat preload failed:",
-                        error
-                    );
-
-                }
-
-            }
-        )
-    );
-
-}
 /* =========================================================
    OPEN CHAT WITH REGISTERED USER
 ========================================================= */
 
-async function openChatWithUser(user) {
+async function openChatWithUser(
+    user
+) {
 
     try {
 
@@ -9556,19 +9741,20 @@ async function openChatWithUser(user) {
 
 
         /*
-         * SET THE USER IMMEDIATELY
+         * SET USER IMMEDIATELY.
          */
+
         currentChatUserId =
             userId;
-
 
         currentConversationId =
             null;
 
 
         /*
-         * OPEN CHAT WINDOW IMMEDIATELY
+         * OPEN CHAT IMMEDIATELY.
          */
+
         showChatWindow(
             user,
             null
@@ -9576,15 +9762,16 @@ async function openChatWithUser(user) {
 
 
         /*
-         * CONNECT REAL-TIME CHAT
-         * WITHOUT WAITING
+         * CONNECT SOCKET IN BACKGROUND.
          */
+
         connectChatSocket();
 
 
         /*
-         * GET CONVERSATION IN BACKGROUND
+         * GET OR CREATE CONVERSATION.
          */
+
         const data =
             await api(
                 "/api/chat/conversations",
@@ -9624,17 +9811,22 @@ async function openChatWithUser(user) {
 
 
         /*
-         * LOAD MESSAGES
+         * LOAD MESSAGES IN BACKGROUND.
          */
-        await loadChatMessages(
+
+        loadChatMessages(
             conversation._id
-        );
+        ).catch(function(error) {
+
+            console.error(
+                "New chat message load error:",
+                error
+            );
+
+        });
 
 
-        /*
-         * KEEP SOCKET CONNECTED
-         */
-        connectChatSocket();
+        refreshCurrentChatUserStatus();
 
 
     } catch (error) {
@@ -9667,6 +9859,10 @@ async function openExistingChat(
 
     try {
 
+        /*
+         * SET CHAT STATE FIRST.
+         */
+
         currentConversationId =
             conversationId;
 
@@ -9674,28 +9870,52 @@ async function openExistingChat(
             userId;
 
 
+        /*
+         * OPEN THE CHAT IMMEDIATELY.
+         */
+
         showChatWindow(
             {
-                _id: userId,
-                name: userName
+                _id:
+                    userId,
+
+                name:
+                    userName
             },
             conversationId
         );
 
 
+        /*
+         * LOAD CACHED/FRESH MESSAGES
+         * WITHOUT BLOCKING THE CHAT WINDOW.
+         */
+
         loadChatMessages(
-    conversationId
-).catch(function(error) {
+            conversationId
+        ).catch(function(error) {
 
-    console.error(
-        "Load existing chat messages error:",
-        error
-    );
+            console.error(
+                "Load existing chat messages error:",
+                error
+            );
 
-});
+        });
 
+
+        /*
+         * CONNECT SOCKET IN BACKGROUND.
+         */
 
         connectChatSocket();
+
+
+        /*
+         * CHECK REAL ONLINE STATUS
+         * IN THE BACKGROUND.
+         */
+
+        refreshCurrentChatUserStatus();
 
 
     } catch (error) {
@@ -9714,7 +9934,6 @@ async function openExistingChat(
     }
 
 }
-
 
 /* =========================================================
    SHOW CHAT WINDOW
@@ -10030,11 +10249,11 @@ if (avatar) {
         "Checking...";
 
     status.classList.remove(
-        "offline"
+        "online"
     );
 
     status.classList.remove(
-        "online"
+        "offline"
     );
 
 }
@@ -10105,58 +10324,31 @@ async function loadChatMessages(
             "messagesList"
         );
 
+
     if (!messagesList) {
         return;
     }
 
-    const cacheKey =
-        "guardianChatMessages:" +
-        String(conversationId);
 
     /*
-     * ========================================================
-     * SHOW CACHED MESSAGES IMMEDIATELY
-     * ========================================================
+     * =====================================================
+     * STEP 1
+     * SHOW CACHED MESSAGES IMMEDIATELY.
+     *
+     * NEVER SHOW "Loading messages..."
+     * =====================================================
      */
 
-    let cachedMessages = [];
-
-    try {
-
-        const cached =
-            localStorage.getItem(
-                cacheKey
-            );
-
-        if (cached) {
-
-            cachedMessages =
-                JSON.parse(cached);
-
-        }
-
-    } catch (error) {
-
-        console.warn(
-            "Chat cache could not be read:",
-            error
+    const cachedMessages =
+        getCachedChatMessages(
+            conversationId
         );
 
-    }
 
-
-    /*
-     * ========================================================
-     * RENDER CACHE WITHOUT SHOWING "LOADING..."
-     * ========================================================
-     */
-
-    if (
-        Array.isArray(cachedMessages) &&
-        cachedMessages.length
-    ) {
+    if (cachedMessages.length) {
 
         messagesList.innerHTML = "";
+
 
         cachedMessages.forEach(
             function(message) {
@@ -10168,67 +10360,54 @@ async function loadChatMessages(
             }
         );
 
+
         messagesList.scrollTop =
             messagesList.scrollHeight;
+
+    } else {
+
+        /*
+         * FIRST OPEN OF A CHAT:
+         * Keep the screen usable.
+         * Do NOT display "Loading messages..."
+         */
+
+        messagesList.innerHTML = "";
 
     }
 
 
     /*
-     * ========================================================
-     * LOAD FRESH MESSAGES IN BACKGROUND
-     * ========================================================
+     * =====================================================
+     * STEP 2
+     * FETCH FRESH MESSAGES IN THE BACKGROUND.
+     *
+     * The user does NOT wait for this before
+     * seeing the chat.
+     * =====================================================
      */
 
     try {
 
-        const data =
-            await api(
-                "/api/chat/messages/" +
-                encodeURIComponent(
-                    conversationId
-                )
-            );
-
-
         const messages =
-            Array.isArray(data.messages)
-                ? data.messages
-                : [];
+            await fetchFreshChatMessages(
+                conversationId
+            );
 
 
         /*
-         * SAVE FRESH MESSAGES TO LOCAL CACHE
-         */
-
-        try {
-
-            localStorage.setItem(
-                cacheKey,
-                JSON.stringify(
-                    messages.slice(-100)
-                )
-            );
-
-        } catch (error) {
-
-            console.warn(
-                "Unable to save chat cache:",
-                error
-            );
-
-        }
-
-
-        /*
-         * ====================================================
-         * ONLY REPLACE THE SCREEN AFTER SERVER RESPONSE
-         * ====================================================
+         * If the user has already opened
+         * another conversation, do not replace
+         * that conversation's messages.
          */
 
         if (
-            String(currentConversationId) !==
-            String(conversationId)
+            String(
+                currentConversationId
+            ) !==
+            String(
+                conversationId
+            )
         ) {
 
             return;
@@ -10241,28 +10420,18 @@ async function loadChatMessages(
 
         if (!messages.length) {
 
-            /*
-             * Do not destroy already-visible cached messages.
-             */
-
-            if (
-                !cachedMessages.length
-            ) {
-
-                messagesList.innerHTML = `
-                    <div
-                        style="
-                            text-align:center;
-                            padding:30px 15px;
-                            opacity:.6;
-                        "
-                    >
-                        No messages yet.<br>
-                        Send a message to start the conversation.
-                    </div>
-                `;
-
-            }
+            messagesList.innerHTML = `
+                <div
+                    style="
+                        text-align:center;
+                        padding:30px 15px;
+                        opacity:.6;
+                    "
+                >
+                    No messages yet.<br>
+                    Send a message to start the conversation.
+                </div>
+            `;
 
             return;
 
@@ -10294,8 +10463,9 @@ async function loadChatMessages(
 
         /*
          * IMPORTANT:
-         * If cached messages are already visible,
-         * DO NOT replace them with an error.
+         *
+         * If cached messages already exist,
+         * NEVER replace them with an error.
          */
 
         if (
@@ -10808,7 +10978,7 @@ loginForm.addEventListener(
             }
 
 
-           localStorage.setItem(
+    localStorage.setItem(
     TOKEN_KEY,
     data.token
 );
@@ -10818,15 +10988,10 @@ localStorage.setItem(
     JSON.stringify(data.user)
 );
 
-
-/*
- * TOKEN IS NOW STORED.
- * CONNECT CHAT AFTER LOGIN.
- */
-
 connectChatSocket();
 
 startPresenceHeartbeat();
+
 
 /*
  * REGISTER FCM AFTER FIREBASE
@@ -14381,12 +14546,13 @@ document.addEventListener(
     "DOMContentLoaded",
     function() {
 
-        /*
-         * If a user is already logged in and opens
-         * the website without a hash, HOME opens first.
-         */
-
         handleRoute();
+
+        if (getToken()) {
+
+            startPresenceHeartbeat();
+
+        }
 
     }
 );
@@ -21409,18 +21575,9 @@ setInterval(
 );
 
 if (getToken()) {
-
-    setTimeout(
-        function() {
-
-            connectChatSocket();
-
-            startPresenceHeartbeat();
-
-        },
-        300
-    );
-
+    setTimeout(() => {
+        connectChatSocket();
+    }, 300);
 }
 /* =========================================================
    CHAT SEARCH
@@ -21900,7 +22057,6 @@ Object.assign(window, {
     clearCurrentChat
 
 });
-
 
 
 
