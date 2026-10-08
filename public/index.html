@@ -7193,6 +7193,155 @@ function getToken() {
 
 let chatSocket = null;
 
+/* =========================================================
+   GUARDIAN SOS ONLINE PRESENCE
+========================================================= */
+
+let presenceTimer = null;
+
+
+async function sendPresenceHeartbeat() {
+
+    if (!getToken()) {
+        return;
+    }
+
+
+    /*
+     * Do not send heartbeat while the page
+     * is actually hidden.
+     */
+
+    if (
+        document.visibilityState ===
+        "hidden"
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/api/chat/presence",
+            {
+                method: "POST"
+            }
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "Presence heartbeat failed:",
+            error
+        );
+
+    }
+
+}
+
+
+function startPresenceHeartbeat() {
+
+    clearInterval(
+        presenceTimer
+    );
+
+
+    sendPresenceHeartbeat();
+
+
+    presenceTimer =
+        setInterval(
+            function() {
+
+                sendPresenceHeartbeat();
+
+                if (
+                    currentChatUserId
+                ) {
+
+                    refreshCurrentChatUserStatus();
+
+                }
+
+            },
+            10000
+        );
+
+}
+
+
+async function refreshCurrentChatUserStatus() {
+
+    if (
+        !currentChatUserId
+    ) {
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/api/chat/presence/" +
+                encodeURIComponent(
+                    currentChatUserId
+                )
+            );
+
+
+        const status =
+            document.getElementById(
+                "chatWindowStatus"
+            );
+
+
+        if (!status) {
+            return;
+        }
+
+
+        if (data.online) {
+
+            status.textContent =
+                "Online";
+
+            status.classList.remove(
+                "offline"
+            );
+
+            status.classList.add(
+                "online"
+            );
+
+        } else {
+
+            status.textContent =
+                "Offline";
+
+            status.classList.remove(
+                "online"
+            );
+
+            status.classList.add(
+                "offline"
+            );
+
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "Unable to check user presence:",
+            error
+        );
+
+    }
+
+}
+
 function connectChatSocket() {
 
     const token = getToken();
@@ -7467,6 +7616,8 @@ if (
 ) {
 
     connectChatSocket();
+
+    
 
     showToast(
         "Connecting to chat..."
@@ -9210,6 +9361,18 @@ async function loadChats() {
             }).join("");
 
 
+/*
+ * =========================================================
+ * PRELOAD RECENT CHAT MESSAGES IN BACKGROUND
+ * =========================================================
+ */
+
+preloadChatMessages(
+    conversations
+);
+
+
+
     } catch (error) {
 
         console.error(
@@ -9241,7 +9404,102 @@ async function loadChats() {
 
 }
 
+async function preloadChatMessages(
+    conversations
+) {
 
+    if (
+        !Array.isArray(conversations) ||
+        !conversations.length
+    ) {
+        return;
+    }
+
+
+    /*
+     * Only preload the most recent conversations.
+     * This prevents unnecessary server requests.
+     */
+
+    const recent =
+        conversations.slice(0, 5);
+
+
+    await Promise.all(
+        recent.map(
+            async function(conversation) {
+
+                try {
+
+                    const conversationId =
+                        conversation._id;
+
+                    if (!conversationId) {
+                        return;
+                    }
+
+
+                    const cacheKey =
+                        "guardianChatMessages:" +
+                        String(conversationId);
+
+
+                    /*
+                     * If we already have a cache,
+                     * do not unnecessarily download it again.
+                     */
+
+                    if (
+                        localStorage.getItem(
+                            cacheKey
+                        )
+                    ) {
+                        return;
+                    }
+
+
+                    const data =
+                        await api(
+                            "/api/chat/messages/" +
+                            encodeURIComponent(
+                                conversationId
+                            )
+                        );
+
+
+                    const messages =
+                        Array.isArray(
+                            data.messages
+                        )
+                            ? data.messages
+                            : [];
+
+
+                    if (messages.length) {
+
+                        localStorage.setItem(
+                            cacheKey,
+                            JSON.stringify(
+                                messages.slice(-100)
+                            )
+                        );
+
+                    }
+
+                } catch (error) {
+
+                    console.warn(
+                        "Chat preload failed:",
+                        error
+                    );
+
+                }
+
+            }
+        )
+    );
+
+}
 /* =========================================================
    OPEN CHAT WITH REGISTERED USER
 ========================================================= */
@@ -9767,16 +10025,24 @@ if (avatar) {
 
 
    if (status) {
-    status.textContent = "Offline";
 
-    status.classList.remove("online");
-    status.classList.add("offline");
+    status.textContent =
+        "Checking...";
+
+    status.classList.remove(
+        "offline"
+    );
+
+    status.classList.remove(
+        "online"
+    );
+
 }
 
 
     chatWindow.style.display =
         "flex";
-
+refreshCurrentChatUserStatus();
 }
 
 
@@ -9839,27 +10105,80 @@ async function loadChatMessages(
             "messagesList"
         );
 
-
     if (!messagesList) {
-
         return;
+    }
+
+    const cacheKey =
+        "guardianChatMessages:" +
+        String(conversationId);
+
+    /*
+     * ========================================================
+     * SHOW CACHED MESSAGES IMMEDIATELY
+     * ========================================================
+     */
+
+    let cachedMessages = [];
+
+    try {
+
+        const cached =
+            localStorage.getItem(
+                cacheKey
+            );
+
+        if (cached) {
+
+            cachedMessages =
+                JSON.parse(cached);
+
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "Chat cache could not be read:",
+            error
+        );
 
     }
 
 
-    messagesList.innerHTML =
-        `
-            <div
-                style="
-                    text-align:center;
-                    padding:20px;
-                    opacity:.7;
-                "
-            >
-                Loading messages...
-            </div>
-        `;
+    /*
+     * ========================================================
+     * RENDER CACHE WITHOUT SHOWING "LOADING..."
+     * ========================================================
+     */
 
+    if (
+        Array.isArray(cachedMessages) &&
+        cachedMessages.length
+    ) {
+
+        messagesList.innerHTML = "";
+
+        cachedMessages.forEach(
+            function(message) {
+
+                appendChatMessage(
+                    message
+                );
+
+            }
+        );
+
+        messagesList.scrollTop =
+            messagesList.scrollHeight;
+
+    }
+
+
+    /*
+     * ========================================================
+     * LOAD FRESH MESSAGES IN BACKGROUND
+     * ========================================================
+     */
 
     try {
 
@@ -9878,37 +10197,87 @@ async function loadChatMessages(
                 : [];
 
 
-        messagesList.innerHTML =
-            "";
+        /*
+         * SAVE FRESH MESSAGES TO LOCAL CACHE
+         */
+
+        try {
+
+            localStorage.setItem(
+                cacheKey,
+                JSON.stringify(
+                    messages.slice(-100)
+                )
+            );
+
+        } catch (error) {
+
+            console.warn(
+                "Unable to save chat cache:",
+                error
+            );
+
+        }
 
 
-        if (!messages.length) {
+        /*
+         * ====================================================
+         * ONLY REPLACE THE SCREEN AFTER SERVER RESPONSE
+         * ====================================================
+         */
 
-            messagesList.innerHTML = `
-                <div
-                    style="
-                        text-align:center;
-                        padding:30px 15px;
-                        opacity:.6;
-                    "
-                >
-                    No messages yet.<br>
-                    Send a message to start the conversation.
-                </div>
-            `;
+        if (
+            String(currentConversationId) !==
+            String(conversationId)
+        ) {
 
             return;
 
         }
 
 
-        messages.forEach(function(message) {
+        messagesList.innerHTML = "";
 
-            appendChatMessage(
-                message
-            );
 
-        });
+        if (!messages.length) {
+
+            /*
+             * Do not destroy already-visible cached messages.
+             */
+
+            if (
+                !cachedMessages.length
+            ) {
+
+                messagesList.innerHTML = `
+                    <div
+                        style="
+                            text-align:center;
+                            padding:30px 15px;
+                            opacity:.6;
+                        "
+                    >
+                        No messages yet.<br>
+                        Send a message to start the conversation.
+                    </div>
+                `;
+
+            }
+
+            return;
+
+        }
+
+
+        messages.forEach(
+            function(message) {
+
+                appendChatMessage(
+                    message
+                );
+
+            }
+        );
 
 
         messagesList.scrollTop =
@@ -9921,6 +10290,21 @@ async function loadChatMessages(
             "Load messages error:",
             error
         );
+
+
+        /*
+         * IMPORTANT:
+         * If cached messages are already visible,
+         * DO NOT replace them with an error.
+         */
+
+        if (
+            cachedMessages.length
+        ) {
+
+            return;
+
+        }
 
 
         messagesList.innerHTML = `
@@ -9941,7 +10325,6 @@ async function loadChatMessages(
     }
 
 }
-
 
 
 /* =========================================================
@@ -10443,6 +10826,7 @@ localStorage.setItem(
 
 connectChatSocket();
 
+startPresenceHeartbeat();
 
 /*
  * REGISTER FCM AFTER FIREBASE
@@ -21025,9 +21409,18 @@ setInterval(
 );
 
 if (getToken()) {
-    setTimeout(() => {
-        connectChatSocket();
-    }, 300);
+
+    setTimeout(
+        function() {
+
+            connectChatSocket();
+
+            startPresenceHeartbeat();
+
+        },
+        300
+    );
+
 }
 /* =========================================================
    CHAT SEARCH
@@ -21508,25 +21901,7 @@ Object.assign(window, {
 
 });
 
-/* ============================================================
-   DISCONNECT GUARDIAN SOS CHAT WHEN APP/PAGE CLOSES
-============================================================ */
 
-window.addEventListener(
-    "pagehide",
-    function() {
-
-        if (
-            chatSocket &&
-            chatSocket.connected
-        ) {
-
-            chatSocket.disconnect();
-
-        }
-
-    }
-);
 
 
 /* ============================================================
