@@ -7321,7 +7321,65 @@ chatSocket = io({
    ONLINE / OFFLINE STATUS
 ========================================================= */
 
+chatSocket.on(
+    "user_status",
+    function(data) {
 
+        if (!data || !data.userId) {
+            return;
+        }
+
+
+        const status =
+            document.getElementById(
+                "chatWindowStatus"
+            );
+
+
+        if (
+            !status ||
+            !currentChatUserId
+        ) {
+            return;
+        }
+
+
+        if (
+            String(data.userId) !==
+            String(currentChatUserId)
+        ) {
+            return;
+        }
+
+
+        if (data.online) {
+
+            status.textContent =
+                "Online";
+
+            status.classList.remove(
+                "offline"
+            );
+
+            status.classList.add(
+                "online"
+            );
+
+        } else {
+
+            status.textContent =
+                "Offline";
+
+            status.classList.remove(
+                "online"
+            );
+
+            status.classList.add(
+                "offline"
+            );
+        }
+    }
+);
 
 
 
@@ -7384,194 +7442,6 @@ function requestUserStatus(userId) {
 
 }
 
-
-/* =========================================================
-   RELIABLE USER PRESENCE
-   HTTP HEARTBEAT
-========================================================= */
-
-let presenceHeartbeatTimer = null;
-
-
-async function sendPresenceHeartbeat() {
-
-    if (!getToken()) {
-        return;
-    }
-
-
-    if (
-        document.visibilityState ===
-        "hidden"
-    ) {
-
-        return;
-
-    }
-
-
-    try {
-
-        await api(
-            "/api/chat/presence",
-            {
-                method:
-                    "POST"
-            }
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Presence heartbeat error:",
-            error
-        );
-
-    }
-
-}
-
-
-async function refreshCurrentChatUserStatus() {
-
-    if (
-        !currentChatUserId ||
-        !getToken()
-    ) {
-
-        return;
-
-    }
-
-
-    const status =
-        document.getElementById(
-            "chatWindowStatus"
-        );
-
-
-    if (!status) {
-        return;
-    }
-
-
-    try {
-
-        const data =
-            await api(
-                "/api/chat/presence/" +
-                encodeURIComponent(
-                    currentChatUserId
-                )
-            );
-
-
-        if (
-            !data ||
-            String(
-                currentChatUserId
-            ) !==
-            String(
-                currentChatUserId
-            )
-        ) {
-
-            return;
-
-        }
-
-
-        if (data.online) {
-
-            status.textContent =
-                "Online";
-
-            status.classList.remove(
-                "offline"
-            );
-
-            status.classList.add(
-                "online"
-            );
-
-        } else {
-
-            status.textContent =
-                "Offline";
-
-            status.classList.remove(
-                "online"
-            );
-
-            status.classList.add(
-                "offline"
-            );
-
-        }
-
-    } catch (error) {
-
-        console.error(
-            "User presence check error:",
-            error
-        );
-
-    }
-
-}
-
-
-function startPresenceHeartbeat() {
-
-    if (
-        presenceHeartbeatTimer
-    ) {
-
-        return;
-
-    }
-
-
-    sendPresenceHeartbeat();
-
-
-    presenceHeartbeatTimer =
-        setInterval(
-            function() {
-
-                if (
-                    document.visibilityState !==
-                    "hidden"
-                ) {
-
-                    sendPresenceHeartbeat();
-
-                }
-
-            },
-            10000
-        );
-
-}
-
-
-document.addEventListener(
-    "visibilitychange",
-    function() {
-
-        if (
-            document.visibilityState ===
-            "visible"
-        ) {
-
-            sendPresenceHeartbeat();
-
-            refreshCurrentChatUserStatus();
-
-        }
-
-    }
-);
 
 
 function sendChatMessage() {
@@ -9187,258 +9057,7 @@ let currentChatUserId = null;
 let currentConversationId = null;
 
 
-/* =========================================================
-   FAST WHATSAPP-STYLE CHAT CACHE
-========================================================= */
 
-const chatMessageRequests = {};
-
-function getChatCacheKey(conversationId) {
-
-    const currentUser =
-        getStoredUser();
-
-    const currentUserId =
-        currentUser &&
-        (
-            currentUser._id ||
-            currentUser.id
-        );
-
-    return (
-        "guardianChatMessages:" +
-        String(currentUserId || "user") +
-        ":" +
-        String(conversationId)
-    );
-
-}
-
-
-function getCachedChatMessages(conversationId) {
-
-    try {
-
-        const raw =
-            localStorage.getItem(
-                getChatCacheKey(
-                    conversationId
-                )
-            );
-
-        if (!raw) {
-            return [];
-        }
-
-        const parsed =
-            JSON.parse(raw);
-
-        return Array.isArray(parsed)
-            ? parsed
-            : [];
-
-    } catch (error) {
-
-        console.error(
-            "Chat cache read error:",
-            error
-        );
-
-        return [];
-
-    }
-
-}
-
-
-function saveCachedChatMessages(
-    conversationId,
-    messages
-) {
-
-    try {
-
-        if (!conversationId) {
-            return;
-        }
-
-        const safeMessages =
-            Array.isArray(messages)
-                ? messages.slice(-100)
-                : [];
-
-        localStorage.setItem(
-            getChatCacheKey(
-                conversationId
-            ),
-            JSON.stringify(
-                safeMessages
-            )
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Chat cache save error:",
-            error
-        );
-
-    }
-
-}
-
-
-function fetchFreshChatMessages(
-    conversationId
-) {
-
-    if (
-        chatMessageRequests[
-            conversationId
-        ]
-    ) {
-
-        return chatMessageRequests[
-            conversationId
-        ];
-
-    }
-
-
-    chatMessageRequests[
-        conversationId
-    ] =
-        api(
-            "/api/chat/messages/" +
-            encodeURIComponent(
-                conversationId
-            )
-        )
-        .then(function(data) {
-
-            const messages =
-                Array.isArray(
-                    data.messages
-                )
-                    ? data.messages
-                    : [];
-
-            saveCachedChatMessages(
-                conversationId,
-                messages
-            );
-
-            return messages;
-
-        })
-        .catch(function(error) {
-
-            console.error(
-                "Fresh chat messages error:",
-                error
-            );
-
-            throw error;
-
-        })
-        .finally(function() {
-
-            delete chatMessageRequests[
-                conversationId
-            ];
-
-        });
-
-
-    return chatMessageRequests[
-        conversationId
-    ];
-
-}
-
-
-/* =========================================================
-   PRELOAD RECENT CONVERSATIONS
-========================================================= */
-
-function preloadRecentChatMessages(
-    conversations
-) {
-
-    if (
-        !Array.isArray(conversations) ||
-        !conversations.length
-    ) {
-
-        return;
-
-    }
-
-
-    /*
-     * Preload the five most recent
-     * conversations.
-     *
-     * This happens in the background.
-     * It does NOT block the chat list.
-     */
-
-    conversations
-        .slice(0, 5)
-        .forEach(function(conversation) {
-
-            if (
-                !conversation ||
-                !conversation._id
-            ) {
-
-                return;
-
-            }
-
-            const conversationId =
-                String(
-                    conversation._id
-                );
-
-
-            /*
-             * If already cached, do not
-             * request it again immediately.
-             */
-
-            const cached =
-                getCachedChatMessages(
-                    conversationId
-                );
-
-            if (cached.length) {
-
-                return;
-
-            }
-
-
-            /*
-             * Start the request in the
-             * background.
-             */
-
-            fetchFreshChatMessages(
-                conversationId
-            )
-            .catch(function(error) {
-
-                console.error(
-                    "Chat preload error:",
-                    error
-                );
-
-            });
-
-        });
-
-}
 /* =========================================================
    LOAD CONVERSATIONS
 ========================================================= */
@@ -9446,9 +9065,7 @@ function preloadRecentChatMessages(
 async function loadChats() {
 
     const chatList =
-        document.getElementById(
-            "chatList"
-        );
+        document.getElementById("chatList");
 
     if (!chatList) {
         return;
@@ -9457,14 +9074,10 @@ async function loadChats() {
     try {
 
         const data =
-            await api(
-                "/api/chat/conversations"
-            );
+            await api("/api/chat/conversations");
 
         const conversations =
-            Array.isArray(
-                data.conversations
-            )
+            Array.isArray(data.conversations)
                 ? data.conversations
                 : [];
 
@@ -9489,7 +9102,6 @@ async function loadChats() {
             `;
 
             return;
-
         }
 
 
@@ -9504,149 +9116,98 @@ async function loadChats() {
             );
 
 
-        /*
-         * DISPLAY THE CHAT LIST FIRST.
-         * DO NOT WAIT FOR MESSAGE PRELOADING.
-         */
-
         chatList.innerHTML =
-            conversations
-                .map(function(conversation) {
+            conversations.map(function(conversation) {
 
-                    const participants =
-                        Array.isArray(
-                            conversation.participants
-                        )
-                            ? conversation.participants
-                            : [];
+                const participants =
+                    Array.isArray(
+                        conversation.participants
+                    )
+                        ? conversation.participants
+                        : [];
 
 
-                    const otherUser =
-                        participants.find(
-                            function(user) {
+                const otherUser =
+                    participants.find(function(user) {
 
-                                return String(
-                                    user._id ||
-                                    user.id
-                                ) !==
-                                String(
-                                    currentUserId
-                                );
+                        return String(
+                            user._id ||
+                            user.id
+                        ) !==
+                        String(currentUserId);
 
+                    });
+
+
+                if (!otherUser) {
+                    return "";
+                }
+
+
+                const userName =
+                    otherUser.name ||
+                    "Guardian SOS User";
+
+
+                const lastMessage =
+                    conversation.lastMessage ||
+                    "Start a conversation";
+
+
+                const lastTime =
+                    conversation.lastMessageAt
+                        ? new Date(
+                            conversation.lastMessageAt
+                          ).toLocaleTimeString(
+                            [],
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit"
                             }
-                        );
+                          )
+                        : "";
 
 
-                    if (!otherUser) {
-                        return "";
-                    }
+                const avatar =
+                    userName
+                        .charAt(0)
+                        .toUpperCase();
 
 
-                    const userName =
-                        otherUser.name ||
-                        "Guardian SOS User";
+                return `
+                    <div
+                        class="chat-item"
+                        onclick="openExistingChat(
+                            '${escapeHTML(conversation._id)}',
+                            '${escapeHTML(otherUser._id)}',
+                            '${escapeHTML(userName)}'
+                        )"
+                    >
 
+                        <div class="chat-avatar">
+                            ${escapeHTML(avatar)}
+                        </div>
 
-                    const lastMessage =
-                        conversation.lastMessage ||
-                        "Start a conversation";
+                        <div class="chat-info">
 
-
-                    const lastTime =
-                        conversation.lastMessageAt
-                            ? new Date(
-                                conversation.lastMessageAt
-                              ).toLocaleTimeString(
-                                [],
-                                {
-                                    hour:
-                                        "2-digit",
-
-                                    minute:
-                                        "2-digit"
-                                }
-                              )
-                            : "";
-
-
-                    const avatar =
-                        userName
-                            .charAt(0)
-                            .toUpperCase();
-
-
-                    return `
-                        <div
-                            class="chat-item"
-                            onclick="openExistingChat(
-                                '${escapeHTML(
-                                    conversation._id
-                                )}',
-                                '${escapeHTML(
-                                    otherUser._id
-                                )}',
-                                '${escapeHTML(
-                                    userName
-                                )}'
-                            )"
-                        >
-
-                            <div class="chat-avatar">
-                                ${escapeHTML(
-                                    avatar
-                                )}
+                            <div class="chat-name">
+                                ${escapeHTML(userName)}
                             </div>
 
-                            <div class="chat-info">
-
-                                <div class="chat-name">
-                                    ${escapeHTML(
-                                        userName
-                                    )}
-                                </div>
-
-                                <div class="chat-last-message">
-                                    ${escapeHTML(
-                                        lastMessage
-                                    )}
-                                </div>
-
-                            </div>
-
-                            <div class="chat-time">
-                                ${escapeHTML(
-                                    lastTime
-                                )}
+                            <div class="chat-last-message">
+                                ${escapeHTML(lastMessage)}
                             </div>
 
                         </div>
-                    `;
 
-                })
-                .join("");
+                        <div class="chat-time">
+                            ${escapeHTML(lastTime)}
+                        </div>
 
+                    </div>
+                `;
 
-        /*
-         * IMPORTANT:
-         *
-         * Start loading recent messages
-         * AFTER the chat list is already
-         * visible.
-         *
-         * This makes the next chat opening
-         * much faster.
-         */
-
-        setTimeout(
-            function() {
-
-                preloadRecentChatMessages(
-                    conversations
-                );
-
-            },
-            0
-        );
+            }).join("");
 
 
     } catch (error) {
@@ -9664,9 +9225,7 @@ async function loadChats() {
                     ⚠️
                 </div>
 
-                <h3>
-                    Unable to load conversations
-                </h3>
+                <h3>Unable to load conversations</h3>
 
                 <p>
                     ${escapeHTML(
@@ -9687,9 +9246,7 @@ async function loadChats() {
    OPEN CHAT WITH REGISTERED USER
 ========================================================= */
 
-async function openChatWithUser(
-    user
-) {
+async function openChatWithUser(user) {
 
     try {
 
@@ -9741,20 +9298,19 @@ async function openChatWithUser(
 
 
         /*
-         * SET USER IMMEDIATELY.
+         * SET THE USER IMMEDIATELY
          */
-
         currentChatUserId =
             userId;
+
 
         currentConversationId =
             null;
 
 
         /*
-         * OPEN CHAT IMMEDIATELY.
+         * OPEN CHAT WINDOW IMMEDIATELY
          */
-
         showChatWindow(
             user,
             null
@@ -9762,16 +9318,15 @@ async function openChatWithUser(
 
 
         /*
-         * CONNECT SOCKET IN BACKGROUND.
+         * CONNECT REAL-TIME CHAT
+         * WITHOUT WAITING
          */
-
         connectChatSocket();
 
 
         /*
-         * GET OR CREATE CONVERSATION.
+         * GET CONVERSATION IN BACKGROUND
          */
-
         const data =
             await api(
                 "/api/chat/conversations",
@@ -9811,22 +9366,17 @@ async function openChatWithUser(
 
 
         /*
-         * LOAD MESSAGES IN BACKGROUND.
+         * LOAD MESSAGES
          */
-
-        loadChatMessages(
+        await loadChatMessages(
             conversation._id
-        ).catch(function(error) {
-
-            console.error(
-                "New chat message load error:",
-                error
-            );
-
-        });
+        );
 
 
-        refreshCurrentChatUserStatus();
+        /*
+         * KEEP SOCKET CONNECTED
+         */
+        connectChatSocket();
 
 
     } catch (error) {
@@ -9859,10 +9409,6 @@ async function openExistingChat(
 
     try {
 
-        /*
-         * SET CHAT STATE FIRST.
-         */
-
         currentConversationId =
             conversationId;
 
@@ -9870,52 +9416,28 @@ async function openExistingChat(
             userId;
 
 
-        /*
-         * OPEN THE CHAT IMMEDIATELY.
-         */
-
         showChatWindow(
             {
-                _id:
-                    userId,
-
-                name:
-                    userName
+                _id: userId,
+                name: userName
             },
             conversationId
         );
 
 
-        /*
-         * LOAD CACHED/FRESH MESSAGES
-         * WITHOUT BLOCKING THE CHAT WINDOW.
-         */
-
         loadChatMessages(
-            conversationId
-        ).catch(function(error) {
+    conversationId
+).catch(function(error) {
 
-            console.error(
-                "Load existing chat messages error:",
-                error
-            );
+    console.error(
+        "Load existing chat messages error:",
+        error
+    );
 
-        });
+});
 
-
-        /*
-         * CONNECT SOCKET IN BACKGROUND.
-         */
 
         connectChatSocket();
-
-
-        /*
-         * CHECK REAL ONLINE STATUS
-         * IN THE BACKGROUND.
-         */
-
-        refreshCurrentChatUserStatus();
 
 
     } catch (error) {
@@ -9934,6 +9456,7 @@ async function openExistingChat(
     }
 
 }
+
 
 /* =========================================================
    SHOW CHAT WINDOW
@@ -10244,24 +9767,16 @@ if (avatar) {
 
 
    if (status) {
+    status.textContent = "Offline";
 
-    status.textContent =
-        "Checking...";
-
-    status.classList.remove(
-        "online"
-    );
-
-    status.classList.remove(
-        "offline"
-    );
-
+    status.classList.remove("online");
+    status.classList.add("offline");
 }
 
 
     chatWindow.style.display =
         "flex";
-refreshCurrentChatUserStatus();
+
 }
 
 
@@ -10326,96 +9841,45 @@ async function loadChatMessages(
 
 
     if (!messagesList) {
+
         return;
-    }
-
-
-    /*
-     * =====================================================
-     * STEP 1
-     * SHOW CACHED MESSAGES IMMEDIATELY.
-     *
-     * NEVER SHOW "Loading messages..."
-     * =====================================================
-     */
-
-    const cachedMessages =
-        getCachedChatMessages(
-            conversationId
-        );
-
-
-    if (cachedMessages.length) {
-
-        messagesList.innerHTML = "";
-
-
-        cachedMessages.forEach(
-            function(message) {
-
-                appendChatMessage(
-                    message
-                );
-
-            }
-        );
-
-
-        messagesList.scrollTop =
-            messagesList.scrollHeight;
-
-    } else {
-
-        /*
-         * FIRST OPEN OF A CHAT:
-         * Keep the screen usable.
-         * Do NOT display "Loading messages..."
-         */
-
-        messagesList.innerHTML = "";
 
     }
 
 
-    /*
-     * =====================================================
-     * STEP 2
-     * FETCH FRESH MESSAGES IN THE BACKGROUND.
-     *
-     * The user does NOT wait for this before
-     * seeing the chat.
-     * =====================================================
-     */
+    messagesList.innerHTML =
+        `
+            <div
+                style="
+                    text-align:center;
+                    padding:20px;
+                    opacity:.7;
+                "
+            >
+                Loading messages...
+            </div>
+        `;
+
 
     try {
 
-        const messages =
-            await fetchFreshChatMessages(
-                conversationId
+        const data =
+            await api(
+                "/api/chat/messages/" +
+                encodeURIComponent(
+                    conversationId
+                )
             );
 
 
-        /*
-         * If the user has already opened
-         * another conversation, do not replace
-         * that conversation's messages.
-         */
-
-        if (
-            String(
-                currentConversationId
-            ) !==
-            String(
-                conversationId
-            )
-        ) {
-
-            return;
-
-        }
+        const messages =
+            Array.isArray(data.messages)
+                ? data.messages
+                : [];
 
 
-        messagesList.innerHTML = "";
+        messagesList.innerHTML =
+            "";
 
 
         if (!messages.length) {
@@ -10438,15 +9902,13 @@ async function loadChatMessages(
         }
 
 
-        messages.forEach(
-            function(message) {
+        messages.forEach(function(message) {
 
-                appendChatMessage(
-                    message
-                );
+            appendChatMessage(
+                message
+            );
 
-            }
-        );
+        });
 
 
         messagesList.scrollTop =
@@ -10459,22 +9921,6 @@ async function loadChatMessages(
             "Load messages error:",
             error
         );
-
-
-        /*
-         * IMPORTANT:
-         *
-         * If cached messages already exist,
-         * NEVER replace them with an error.
-         */
-
-        if (
-            cachedMessages.length
-        ) {
-
-            return;
-
-        }
 
 
         messagesList.innerHTML = `
@@ -10495,6 +9941,7 @@ async function loadChatMessages(
     }
 
 }
+
 
 
 /* =========================================================
@@ -10978,7 +10425,7 @@ loginForm.addEventListener(
             }
 
 
-    localStorage.setItem(
+           localStorage.setItem(
     TOKEN_KEY,
     data.token
 );
@@ -10988,9 +10435,13 @@ localStorage.setItem(
     JSON.stringify(data.user)
 );
 
-connectChatSocket();
 
-startPresenceHeartbeat();
+/*
+ * TOKEN IS NOW STORED.
+ * CONNECT CHAT AFTER LOGIN.
+ */
+
+connectChatSocket();
 
 
 /*
@@ -14546,13 +13997,12 @@ document.addEventListener(
     "DOMContentLoaded",
     function() {
 
+        /*
+         * If a user is already logged in and opens
+         * the website without a hash, HOME opens first.
+         */
+
         handleRoute();
-
-        if (getToken()) {
-
-            startPresenceHeartbeat();
-
-        }
 
     }
 );
@@ -22058,6 +21508,25 @@ Object.assign(window, {
 
 });
 
+/* ============================================================
+   DISCONNECT GUARDIAN SOS CHAT WHEN APP/PAGE CLOSES
+============================================================ */
+
+window.addEventListener(
+    "pagehide",
+    function() {
+
+        if (
+            chatSocket &&
+            chatSocket.connected
+        ) {
+
+            chatSocket.disconnect();
+
+        }
+
+    }
+);
 
 
 /* ============================================================
