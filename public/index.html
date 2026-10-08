@@ -11168,188 +11168,119 @@ async function loadDashboard() {
 }
 
 
+
 /* =========================================================
-   LOAD PROFILE
+   LOAD PROFILE — SHOW CACHED DATA FIRST
 ========================================================= */
 
-async function loadProfile() {
+function renderProfileUser(user) {
+    if (!user) return;
 
-    try {
+    const name = user.name || "User";
+    const email = user.email || "";
+    const phone = user.phone || "";
 
-        /*
-         * ALWAYS GET THE CURRENT USER
-         * DIRECTLY FROM MONGODB
-         */
-        const data =
-            await api("/api/auth/me");
-
-
-        if (
-            !data ||
-            !data.success ||
-            !data.user
-        ) {
-
-            console.error(
-                "Unable to load current user."
-            );
-
-            return;
-
-        }
-
-
-        /*
-         * THIS IS THE USER STORED IN MONGODB
-         */
-        const user =
-            data.user;
-
-
-        /*
-         * UPDATE LOCAL CACHE WITH
-         * THE LATEST MONGODB DATA
-         */
-        localStorage.setItem(
-            USER_KEY,
-            JSON.stringify(user)
-        );
-
-
-        const name =
-            user.name ||
-            "User";
-
-
-        const email =
-            user.email ||
-            "";
-
-
-        const phone =
-            user.phone ||
-            "";
-
-
-        /*
-         * PROFILE NAME
-         */
-        const profileName =
-            document.getElementById(
-                "profileName"
-            );
-
-        if (profileName) {
-
-            profileName.textContent =
-                name;
-
-        }
-
-
-        /*
-         * PROFILE EMAIL
-         */
-        const profileEmail =
-            document.getElementById(
-                "profileEmail"
-            );
-
-        if (profileEmail) {
-
-            profileEmail.textContent =
-                email;
-
-        }
-
-
-        /*
-         * PROFILE PHONE
-         */
-        const profilePhone =
-            document.getElementById(
-                "profilePhone"
-            );
-
-        if (profilePhone) {
-
-            profilePhone.textContent =
-                phone ||
-                "Not provided";
-
-        }
-
-
-        /*
-         * PROFILE PHOTO
-         */
-        const avatar =
-            document.getElementById(
-                "profileAvatar"
-            );
-
-
-        if (avatar) {
-
-            const profileImage =
-                user.profileImage || "";
-
-
-            if (profileImage) {
-
-                avatar.innerHTML = `
-                    <img
-                        src="${profileImage}"
-                        alt="Profile Picture"
-                        style="
-                            width: 100%;
-                            height: 100%;
-                            object-fit: cover;
-                            border-radius: 50%;
-                            display: block;
-                        "
-                    >
-                `;
-
-            } else {
-
-                avatar.textContent =
-                    name
-                        .charAt(0)
-                        .toUpperCase();
-
-            }
-
-        }
-
-
-        /*
-         * DASHBOARD USER NAME
-         */
-        const dashboardUserName =
-            document.getElementById(
-                "dashboardUserName"
-            );
-
-        if (dashboardUserName) {
-
-            dashboardUserName.textContent =
-                name;
-
-        }
-
-
-    } catch (error) {
-
-        console.error(
-            "Profile error:",
-            error
-        );
-
+    const profileName = document.getElementById("profileName");
+    if (profileName) {
+        profileName.textContent = name;
     }
 
+    const profileEmail = document.getElementById("profileEmail");
+    if (profileEmail) {
+        profileEmail.textContent = email;
+    }
+
+    const profilePhone = document.getElementById("profilePhone");
+    if (profilePhone) {
+        profilePhone.textContent = phone || "Not provided";
+    }
+
+    const avatar = document.getElementById("profileAvatar");
+
+    if (avatar) {
+        const profileImage = user.profileImage || "";
+
+        if (profileImage) {
+            avatar.innerHTML = "";
+
+            const img = document.createElement("img");
+            img.src = profileImage;
+            img.alt = "Profile Picture";
+            img.style.width = "100%";
+            img.style.height = "100%";
+            img.style.objectFit = "cover";
+            img.style.borderRadius = "50%";
+            img.style.display = "block";
+
+            avatar.appendChild(img);
+        } else {
+            avatar.textContent = name.charAt(0).toUpperCase();
+        }
+    }
+
+    const dashboardUserName =
+        document.getElementById("dashboardUserName");
+
+    if (dashboardUserName) {
+        dashboardUserName.textContent = name;
+    }
 }
 
+async function loadProfile() {
+    // 1. Display previously saved information immediately.
+    try {
+        const cachedUser = JSON.parse(
+            localStorage.getItem(USER_KEY) || "null"
+        );
+
+        if (cachedUser) {
+            renderProfileUser(cachedUser);
+        }
+    } catch (error) {
+        console.warn("Unable to read cached profile:", error);
+    }
+
+    // 2. Refresh the profile from the server.
+    try {
+        const data = await api("/api/auth/me");
+
+        if (!data || !data.success || !data.user) {
+            console.error("Unable to load current user.");
+            return;
+        }
+
+        // Preserve the cached image if the server omits it.
+        const serverUser = data.user;
+        let cachedUser = null;
+
+        try {
+            cachedUser = JSON.parse(
+                localStorage.getItem(USER_KEY) || "null"
+            );
+        } catch (error) {
+            cachedUser = null;
+        }
+
+        if (
+            !serverUser.profileImage &&
+            cachedUser &&
+            cachedUser.profileImage
+        ) {
+            serverUser.profileImage = cachedUser.profileImage;
+        }
+
+        localStorage.setItem(
+            USER_KEY,
+            JSON.stringify(serverUser)
+        );
+
+        // Update the screen with the latest server information.
+        renderProfileUser(serverUser);
+
+    } catch (error) {
+        console.error("Profile refresh error:", error);
+    }
+}
 
 /* =========================================================
    ADD CONTACT
