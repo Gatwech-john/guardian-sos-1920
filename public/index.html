@@ -5558,6 +5558,15 @@ align-items: flex-start;
                         <i class="bi bi-arrow-clockwise"></i>
                         Refresh Map
                     </button>
+                                        <button
+                        class="guardian-secondary"
+                        onclick="followGuardianTraveler()"
+                    >
+                        <i class="bi bi-crosshair"></i>
+                        Follow Traveler
+                    </button>
+
+
 
                 </div>
 
@@ -11802,6 +11811,12 @@ let guardianMapPath = null;
 let guardianMapCurrentCircle = null;
 let guardianMapCurrentMarker = null;
 let guardianMapPollTimer = null;
+
+let guardianMapFollow = true;
+let guardianMapLastJourneyId = null;
+
+
+
 let currentGuardianJourney = null;
 
 // NEW: remaining route and destination
@@ -11962,6 +11977,18 @@ function createGuardianLandlinkMap(
     guardianMapLayersAdded =
         true;
 
+            /*
+     * When the user drags the map, stop
+     * automatically re-centering it.
+     */
+    guardianMap.on(
+        "dragstart",
+        function() {
+
+            guardianMapFollow = false;
+
+        }
+    );
 
     setTimeout(
         function() {
@@ -12412,7 +12439,34 @@ function renderGuardianJourneyMap(
     );
 
 
-    if (guardianMap) {
+        const guardianJourneyKey =
+        String(
+            journey._id ||
+            journey.id ||
+            ""
+        );
+
+    const guardianIsNewJourney =
+        guardianJourneyKey !==
+        guardianMapLastJourneyId;
+
+    if (guardianIsNewJourney) {
+
+        guardianMapLastJourneyId =
+            guardianJourneyKey;
+
+        guardianMapFollow =
+            true;
+
+    }
+
+    if (
+        guardianMap &&
+        (
+            guardianIsNewJourney ||
+            guardianMapFollow
+        )
+    ) {
 
         guardianMap.setView(
             [
@@ -12696,15 +12750,20 @@ if (
         );
 
 
-    /*
+        /*
      * KEEP CURRENT LOCATION VISIBLE
+     * (only while the user has not dragged away)
      */
-    guardianMap.panTo(
-        [
-            latitude,
-            longitude
-        ]
-    );
+    if (guardianMapFollow) {
+
+        guardianMap.panTo(
+            [
+                latitude,
+                longitude
+            ]
+        );
+
+    }
 
 }
 
@@ -13026,7 +13085,17 @@ guardianMapDestinationMarker =
 }
 
 
+/* =========================================================
+   FOLLOW TRAVELER AGAIN
+========================================================= */
 
+function followGuardianTraveler() {
+
+    guardianMapFollow = true;
+
+    loadGuardianMapPage();
+
+}
 /* =========================================================
    REFRESH GUARDIAN MAP EVERY 5 SECONDS
 ========================================================= */
