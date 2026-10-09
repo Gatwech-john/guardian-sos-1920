@@ -3928,6 +3928,167 @@ align-items: flex-start;
 }
 
 
+/* =========================================================
+   VOICE RECORDING SCREEN
+========================================================= */
+
+.voice-rec-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999990;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, .88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.voice-rec-overlay.active {
+    display: flex;
+}
+
+.voice-rec-card {
+    width: 100%;
+    max-width: 380px;
+    padding: 34px 24px 28px;
+    border-radius: 26px;
+    text-align: center;
+    background:
+        radial-gradient(circle at top, rgba(255, 20, 147, .22), transparent 60%),
+        #111;
+    border: 1px solid #ff1493;
+    box-shadow: 0 0 40px rgba(255, 20, 147, .25);
+}
+
+.voice-rec-status {
+    color: #ff1493;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    margin-bottom: 22px;
+}
+
+.voice-rec-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff1493;
+    margin-right: 8px;
+    animation: voiceRecBlink 1s infinite;
+}
+
+.voice-rec-mic {
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: #ff1493;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    animation: voiceRecPulse 1.4s infinite;
+}
+
+.voice-rec-timer {
+    color: #fff;
+    font-size: 46px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    margin-bottom: 18px;
+    font-variant-numeric: tabular-nums;
+}
+
+.voice-rec-wave {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 28px;
+}
+
+.voice-rec-wave span {
+    width: 5px;
+    height: 10px;
+    border-radius: 5px;
+    background: #ff1493;
+    animation: voiceRecWave 1s ease-in-out infinite;
+}
+
+.voice-rec-wave span:nth-child(2n) { animation-delay: .15s; }
+.voice-rec-wave span:nth-child(3n) { animation-delay: .3s; }
+.voice-rec-wave span:nth-child(5n) { animation-delay: .45s; }
+
+.voice-rec-actions {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 36px;
+}
+
+.voice-rec-cancel,
+.voice-rec-stop {
+    border: none;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.voice-rec-circle {
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    transition: .2s;
+}
+
+.voice-rec-circle.cancel {
+    background: #000;
+    border: 2px solid #ff1493;
+    color: #ff1493;
+}
+
+.voice-rec-circle.stop {
+    background: #ff1493;
+    border: 2px solid #fff;
+    color: #fff;
+}
+
+.voice-rec-cancel:active .voice-rec-circle,
+.voice-rec-stop:active .voice-rec-circle {
+    transform: scale(.92);
+}
+
+@keyframes voiceRecBlink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: .2; }
+}
+
+@keyframes voiceRecPulse {
+    0%   { transform: scale(1);    box-shadow: 0 0 0 0 rgba(255, 20, 147, .6); }
+    70%  { transform: scale(1.05); box-shadow: 0 0 0 26px rgba(255, 20, 147, 0); }
+    100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(255, 20, 147, 0); }
+}
+
+@keyframes voiceRecWave {
+    0%, 100% { height: 8px; }
+    50%      { height: 40px; }
+}
+
 </style>
 <!-- LEAFLET MAP -->
 <link
@@ -7424,6 +7585,87 @@ chatSocket.on(
         }
     );
 }
+
+/* =========================================================
+   KEEP CHAT CONNECTION + ONLINE STATUS ALIVE ON PHONES
+========================================================= */
+
+function guardianEnsureChatConnection() {
+
+    if (!getToken()) {
+        return;
+    }
+
+    if (
+        !chatSocket ||
+        !chatSocket.connected
+    ) {
+
+        connectChatSocket();
+
+    }
+
+}
+
+function guardianRefreshOpenChatStatus() {
+
+    if (
+        chatSocket &&
+        chatSocket.connected &&
+        currentChatUserId
+    ) {
+
+        chatSocket.emit(
+            "check_user_status",
+            {
+                userId: String(currentChatUserId)
+            }
+        );
+
+    }
+
+}
+
+function guardianWakeChat() {
+
+    guardianEnsureChatConnection();
+
+    setTimeout(
+        guardianRefreshOpenChatStatus,
+        800
+    );
+
+}
+
+document.addEventListener(
+    "visibilitychange",
+    function() {
+
+        if (document.visibilityState === "visible") {
+            guardianWakeChat();
+        }
+
+    }
+);
+
+window.addEventListener("pageshow", guardianWakeChat);
+window.addEventListener("focus", guardianWakeChat);
+window.addEventListener("online", guardianWakeChat);
+
+setInterval(
+    function() {
+
+        if (document.visibilityState !== "visible") {
+            return;
+        }
+
+        guardianEnsureChatConnection();
+
+        guardianRefreshOpenChatStatus();
+
+    },
+    8000
+);
 
 function requestUserStatus(userId) {
 
@@ -13926,7 +14168,13 @@ function logout() {
 
 }
 
+    if (chatSocket) {
 
+        chatSocket.disconnect();
+
+        chatSocket = null;
+
+    }
 /* =========================================================
    INITIALIZATION
 ========================================================= */
@@ -16652,6 +16900,15 @@ mediaRecorder =
             );
 
 
+                    if (voiceRecordingCancelled) {
+
+            voiceRecordingCancelled = false;
+
+            recordedChunks = [];
+
+            return;
+
+        }
         if (!recordedChunks.length) {
 
             showToast(
@@ -16679,6 +16936,9 @@ mediaRecorder =
             showToast(
                 "Voice recording is empty."
             );
+
+                    voiceRecordingCancelled = false;
+        showVoiceRecordingScreen();
 
             return;
 
@@ -16737,6 +16997,8 @@ function stopVoiceRecording() {
         recording = false;
 
         mediaRecorder.stop();
+
+        hideVoiceRecordingScreen();
 
         const button =
             document.getElementById(
@@ -16902,6 +17164,105 @@ async function sendVoiceMessage(blob) {
 
 }
 
+
+/* ============================================================
+   VOICE RECORDING SCREEN
+============================================================ */
+
+let voiceRecordingCancelled = false;
+let voiceRecTimerInterval = null;
+let voiceRecStartedAt = 0;
+
+function showVoiceRecordingScreen() {
+
+    const screen =
+        document.getElementById("voiceRecordScreen");
+
+    const timer =
+        document.getElementById("voiceRecTimer");
+
+    if (timer) {
+        timer.textContent = "00:00";
+    }
+
+    if (screen) {
+        screen.classList.add("active");
+    }
+
+    voiceRecStartedAt = Date.now();
+
+    clearInterval(voiceRecTimerInterval);
+
+    voiceRecTimerInterval = setInterval(function() {
+
+        const seconds =
+            Math.floor(
+                (Date.now() - voiceRecStartedAt) / 1000
+            );
+
+        if (timer) {
+            timer.textContent =
+                String(Math.floor(seconds / 60)).padStart(2, "0") +
+                ":" +
+                String(seconds % 60).padStart(2, "0");
+        }
+
+    }, 250);
+
+}
+
+function hideVoiceRecordingScreen() {
+
+    clearInterval(voiceRecTimerInterval);
+
+    voiceRecTimerInterval = null;
+
+    const screen =
+        document.getElementById("voiceRecordScreen");
+
+    if (screen) {
+        screen.classList.remove("active");
+    }
+
+}
+
+/* STOP BUTTON: stop recording and SEND */
+function finishVoiceRecording() {
+
+    voiceRecordingCancelled = false;
+
+    stopVoiceRecording();
+
+}
+
+/* CANCEL BUTTON: stop recording and DO NOT send */
+function cancelVoiceRecording() {
+
+    voiceRecordingCancelled = true;
+
+    if (mediaRecorder && recording) {
+
+        recording = false;
+
+        mediaRecorder.stop();
+
+    }
+
+    const button =
+        document.getElementById("voiceRecordButton");
+
+    if (button) {
+        button.innerHTML = '<i class="bi bi-mic-fill"></i>';
+    }
+
+    hideVoiceRecordingScreen();
+
+    showToast("Voice recording cancelled.");
+
+}
+
+window.finishVoiceRecording = finishVoiceRecording;
+window.cancelVoiceRecording = cancelVoiceRecording;
 /* ============================================================
    LOCATION SHARING
 ============================================================ */
@@ -21765,6 +22126,55 @@ setInterval(
             onclick="acceptIncomingCall()">
             📞
         </button>
+
+    </div>
+
+</div>
+
+<div id="voiceRecordScreen" class="voice-rec-overlay">
+
+    <div class="voice-rec-card">
+
+        <div class="voice-rec-status">
+            <span class="voice-rec-dot"></span>
+            RECORDING VOICE MESSAGE
+        </div>
+
+        <div class="voice-rec-mic">
+            <i class="bi bi-mic-fill"></i>
+        </div>
+
+        <div id="voiceRecTimer" class="voice-rec-timer">00:00</div>
+
+        <div class="voice-rec-wave">
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+        </div>
+
+        <div class="voice-rec-actions">
+
+            <button
+                type="button"
+                class="voice-rec-cancel"
+                onclick="cancelVoiceRecording()">
+                <span class="voice-rec-circle cancel">
+                    <i class="bi bi-trash3-fill"></i>
+                </span>
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="voice-rec-stop"
+                onclick="finishVoiceRecording()">
+                <span class="voice-rec-circle stop">
+                    <i class="bi bi-stop-fill"></i>
+                </span>
+                Stop &amp; Send
+            </button>
+
+        </div>
 
     </div>
 

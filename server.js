@@ -4505,7 +4505,108 @@ if (
 
 }
 
+/* ------------------------------------------------------------
+   BACKUP ROAD ROUTING (OSRM)
+   Used when Valhalla fails. Returns the real road shape.
+------------------------------------------------------------ */
 
+async function calculateOsrmRoute(
+    latitude,
+    longitude,
+    destinationLatitude,
+    destinationLongitude,
+    travelMode
+) {
+
+    let baseUrl =
+        "https://routing.openstreetmap.de/routed-car/route/v1/driving/";
+
+    if (travelMode === "BICYCLE") {
+        baseUrl =
+            "https://routing.openstreetmap.de/routed-bike/route/v1/driving/";
+    }
+
+    if (travelMode === "WALKING") {
+        baseUrl =
+            "https://routing.openstreetmap.de/routed-foot/route/v1/driving/";
+    }
+
+    const url =
+        baseUrl +
+        Number(longitude) + "," + Number(latitude) +
+        ";" +
+        Number(destinationLongitude) + "," + Number(destinationLatitude) +
+        "?overview=full&geometries=geojson";
+
+    const response =
+        await fetch(
+            url,
+            {
+                headers: {
+                    "User-Agent": "GuardianSOS/1.0"
+                },
+                signal: AbortSignal.timeout(8000)
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            "OSRM routing failed: " + response.status
+        );
+    }
+
+    const data =
+        await response.json();
+
+    if (
+        data.code !== "Ok" ||
+        !Array.isArray(data.routes) ||
+        !data.routes.length
+    ) {
+        throw new Error(
+            "OSRM did not return a route."
+        );
+    }
+
+    const route =
+        data.routes[0];
+
+    let durationSeconds =
+        Number(route.duration);
+
+    if (travelMode === "MOTORCYCLE") {
+        durationSeconds =
+            Math.round(durationSeconds * 0.85);
+    }
+
+    /* OSRM gives [lon, lat]. Leaflet needs [lat, lon]. */
+    const routeShape =
+        route.geometry.coordinates.map(
+            function(point) {
+                return [point[1], point[0]];
+            }
+        );
+
+    return {
+
+        distanceMeters:
+            Math.round(Number(route.distance)),
+
+        durationSeconds:
+            Math.round(durationSeconds),
+
+        predictedArrival:
+            new Date(
+                Date.now() +
+                durationSeconds * 1000
+            ),
+
+        routeShape:
+            routeShape
+
+    };
+
+}
 /* ------------------------------------------------------------
    CALCULATE JOURNEY ROUTE
 ------------------------------------------------------------ */
@@ -4554,18 +4655,57 @@ async function calculateJourneyRoute({
 
     if (
         travelMode === "AIRPLANE"
-    ) {
+    )     try {
 
-        return calculateAirplaneRoute(
+        const valhallaRoute =
+            await Promise.race([
 
+                calculateValhallaRoute(
+                    latitude,
+                    longitude,
+                    destinationLatitude,
+                    destinationLongitude,
+                    travelMode
+                ),
+
+                new Promise(function(resolve, reject) {
+                    setTimeout(
+                        function() {
+                            reject(
+                                new Error("Valhalla timed out.")
+                            );
+                        },
+                        8000
+                    );
+                })
+
+            ]);
+
+        if (
+            valhallaRoute &&
+            Array.isArray(valhallaRoute.routeShape) &&
+            valhallaRoute.routeShape.length > 2
+        ) {
+            return valhallaRoute;
+        }
+
+        throw new Error(
+            "Valhalla returned no road shape."
+        );
+
+    } catch (valhallaError) {
+
+        console.error(
+            "Valhalla failed, using OSRM:",
+            valhallaError.message
+        );
+
+        return calculateOsrmRoute(
             latitude,
-
             longitude,
-
             destinationLatitude,
-
-            destinationLongitude
-
+            destinationLongitude,
+            travelMode
         );
 
     }
