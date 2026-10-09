@@ -4545,7 +4545,7 @@ async function calculateOsrmRoute(
                 headers: {
                     "User-Agent": "GuardianSOS/1.0"
                 },
-                signal: AbortSignal.timeout(8000)
+                signal: AbortSignal.timeout(4000)
             }
         );
 
@@ -4653,9 +4653,28 @@ async function calculateJourneyRoute({
     }
 
 
-    if (
-        travelMode === "AIRPLANE"
-    )     try {
+    /* AIRPLANE = straight line, as intended */
+
+    if (travelMode === "AIRPLANE") {
+
+        return calculateAirplaneRoute(
+
+            latitude,
+
+            longitude,
+
+            destinationLatitude,
+
+            destinationLongitude
+
+        );
+
+    }
+
+
+    /* CAR / MOTORCYCLE / BICYCLE / WALKING = real roads */
+
+    try {
 
         const valhallaRoute =
             await Promise.race([
@@ -4675,7 +4694,7 @@ async function calculateJourneyRoute({
                                 new Error("Valhalla timed out.")
                             );
                         },
-                        8000
+                        4000
                     );
                 })
 
@@ -4709,21 +4728,6 @@ async function calculateJourneyRoute({
         );
 
     }
-
-
-    return calculateValhallaRoute(
-
-        latitude,
-
-        longitude,
-
-        destinationLatitude,
-
-        destinationLongitude,
-
-        travelMode
-
-    );
 
 }
 
@@ -4778,6 +4782,8 @@ app.get(
         }
     }
 );
+
+
 
 /* ============================================================
    USER AVATAR (fast, cached image instead of base64 in chat data)
