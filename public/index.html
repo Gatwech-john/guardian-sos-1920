@@ -11813,6 +11813,7 @@ let guardianMapCurrentMarker = null;
 let guardianMapPollTimer = null;
 
 let guardianMapFollow = true;
+let guardianMapStartMarker = null;
 let guardianMapLastJourneyId = null;
 
 
@@ -12749,7 +12750,69 @@ if (
             guardianMap
         );
 
+    /*
+     * MARK WHERE THE JOURNEY BEGAN
+     */
+    let startLatitude = null;
+    let startLongitude = null;
 
+    if (
+        journey.startLocation &&
+        Number.isFinite(Number(journey.startLocation.latitude)) &&
+        Number.isFinite(Number(journey.startLocation.longitude))
+    ) {
+
+        startLatitude =
+            Number(journey.startLocation.latitude);
+
+        startLongitude =
+            Number(journey.startLocation.longitude);
+
+    } else if (path.length) {
+
+        startLatitude =
+            Number(path[0].latitude);
+
+        startLongitude =
+            Number(path[0].longitude);
+
+    }
+
+    clearGuardianStartMarker();
+
+    if (
+        Number.isFinite(startLatitude) &&
+        Number.isFinite(startLongitude)
+    ) {
+
+        guardianMapStartMarker =
+            L.circleMarker(
+                [
+                    startLatitude,
+                    startLongitude
+                ],
+                {
+                    radius: 10,
+                    color: "#ffffff",
+                    weight: 3,
+                    fillColor: "#00ff88",
+                    fillOpacity: 1
+                }
+            )
+            .addTo(guardianMap)
+            .bindTooltip(
+                "Start",
+                {
+                    permanent: true,
+                    direction: "top",
+                    offset: [0, -8]
+                }
+            )
+            .bindPopup(
+                "<strong>Journey started here</strong>"
+            );
+
+    }
         /*
      * KEEP CURRENT LOCATION VISIBLE
      * (only while the user has not dragged away)
@@ -12775,7 +12838,7 @@ if (
 ========================================================= */
 
 function resetGuardianJourneyLayers() {
-
+         clearGuardianStartMarker();
     if (!guardianMap) {
 
         currentGuardianJourney =
@@ -12908,7 +12971,7 @@ function resetGuardianJourneyLayers() {
 ========================================================= */
 
 function resetGuardianJourneyLayers() {
-
+            clearGuardianStartMarker();
     if (!guardianMap) {
 
         currentGuardianJourney =
@@ -13084,7 +13147,22 @@ guardianMapDestinationMarker =
 
 }
 
+function clearGuardianStartMarker() {
 
+    if (
+        guardianMap &&
+        guardianMapStartMarker
+    ) {
+
+        guardianMap.removeLayer(
+            guardianMapStartMarker
+        );
+
+    }
+
+    guardianMapStartMarker = null;
+
+}
 /* =========================================================
    FOLLOW TRAVELER AGAIN
 ========================================================= */

@@ -628,6 +628,16 @@ note: {
     default: "",
     maxlength: 2000
 },
+startLocation: {
+    latitude: {
+        type: Number,
+        default: null
+    },
+    longitude: {
+        type: Number,
+        default: null
+    }
+},
 
         active: {
             type: Boolean,
@@ -7399,6 +7409,11 @@ const journey =
 
         routeShape:
             initialRoute.routeShape,
+
+                    startLocation: {
+            latitude: startLatitude,
+            longitude: startLongitude
+        },
 
         currentLocation:
             initialPoint,
