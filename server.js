@@ -4638,6 +4638,48 @@ app.get(
         }
     }
 );
+
+/* ============================================================
+   USER AVATAR (fast, cached image instead of base64 in chat data)
+============================================================ */
+
+app.get("/api/users/:id/avatar", async (req, res) => {
+
+    try {
+
+        await connectMongoDB();
+
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(404).end();
+        }
+
+        const user =
+            await User.findById(req.params.id)
+                .select("profileImage");
+
+        if (!user || !user.profileImage) {
+            return res.status(404).end();
+        }
+
+        const match =
+            user.profileImage.match(/^data:(.+?);base64,(.+)$/);
+
+        if (!match) {
+            return res.status(404).end();
+        }
+
+        res.setHeader("Content-Type", match[1]);
+        res.setHeader("Cache-Control", "public, max-age=86400");
+
+        return res.send(Buffer.from(match[2], "base64"));
+
+    } catch (error) {
+
+        return res.status(500).end();
+
+    }
+
+});
 /* ============================================================
    CHAT USER SEARCH
 ============================================================ */
@@ -4844,19 +4886,27 @@ app.get(
             await connectMongoDB();
 
             const conversations =
-                await ChatConversation
-                    .find({
-                        participants:
-                            req.user.userId
-                    })
-                    .populate(
-                        "participants",
-                        "_id name email phone profileImage"
-                    )
-                    .sort({
-                        lastMessageAt: -1
-                    });
-                           lean();
+    await ChatConversation
+        .find({
+            participants:
+                req.user.userId
+        })
+        .populate(
+            "participants",
+            "_id name email phone"
+        )
+        .sort({
+            lastMessageAt: -1
+        })
+        .lean();
+
+conversations.forEach(function(c) {
+    (c.participants || []).forEach(function(p) {
+        p.profileImage =
+            "/api/users/" + p._id + "/avatar";
+    });
+});
+
 
             return res.json({
 
@@ -5150,7 +5200,7 @@ app.get(
                     .limit(100)
                     .populate(
                         "senderId",
-                        "_id name profileImage"
+                        "_id name"
                     )
                     .populate(
                         "replyTo",
@@ -5163,7 +5213,12 @@ app.get(
              * RETURN CHRONOLOGICAL ORDER
              */
             messages.reverse();
-
+messages.forEach(function(m) {
+    if (m.senderId && m.senderId._id) {
+        m.senderId.profileImage =
+            "/api/users/" + m.senderId._id + "/avatar";
+    }
+});
 
             return res.json({
 
