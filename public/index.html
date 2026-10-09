@@ -16760,148 +16760,58 @@ async function sendVoiceMessage(blob) {
     try {
 
         if (!blob || !blob.size) {
-
-            showToast(
-                "No voice recording was created."
-            );
-
+            showToast("No voice recording was created.");
             return;
-
         }
 
         if (!currentConversationId) {
-
-            showToast(
-                "Please open a conversation first."
-            );
-
+            showToast("Please open a conversation first.");
             return;
-
         }
 
-        /*
-         * Convert the recorded voice
-         * into a data URL.
-         *
-         * This avoids saving the voice
-         * file to the Vercel filesystem.
-         */
+        const mimeType = blob.type || "audio/webm";
 
-        const reader =
-            new FileReader();
+        const extension =
+            mimeType.includes("mp4") ? "m4a" :
+            mimeType.includes("ogg") ? "ogg" : "webm";
 
-        const audioData =
-            await new Promise(
-                function(resolve, reject) {
-
-                    reader.onload =
-                        function() {
-
-                            resolve(
-                                reader.result
-                            );
-
-                        };
-
-                    reader.onerror =
-                        function() {
-
-                            reject(
-                                new Error(
-                                    "Unable to read voice recording."
-                                )
-                            );
-
-                        };
-
-                    reader.readAsDataURL(
-                        blob
-                    );
-
-                }
-            );
-
-
-        const mimeType =
-            blob.type ||
-            "audio/webm";
-
-
-        const message =
-            await sendAdvancedMessage({
-
-                conversationId:
-                    currentConversationId,
-
-                text:
-                    "",
-
-                type:
-                    "voice",
-
-                attachment: {
-
-                    url:
-                        audioData,
-
-                    name:
-                        "voice-message.webm",
-
-                    mimeType:
-                        mimeType,
-
-                    size:
-                        blob.size
-
-                }
-
-            });
-
-
-        /*
-         * Immediately show the
-         * voice message in the chat.
-         */
-
-        appendChatMessage(
-            message
+        const voiceFile = new File(
+            [blob],
+            "voice-message." + extension,
+            { type: mimeType }
         );
 
+        // Upload the file instead of embedding base64 in the message
+        const uploaded = await uploadChatFile(voiceFile);
 
-        const messagesList =
-            document.getElementById(
-                "messagesList"
-            );
+        if (!uploaded || !uploaded.url) {
+            throw new Error("Voice upload failed.");
+        }
 
+        const message = await sendAdvancedMessage({
+            conversationId: currentConversationId,
+            text: "",
+            type: "voice",
+            attachment: uploaded
+        });
+
+        appendChatMessage(message);
+
+        const messagesList = document.getElementById("messagesList");
         if (messagesList) {
-
-            messagesList.scrollTop =
-                messagesList.scrollHeight;
-
+            messagesList.scrollTop = messagesList.scrollHeight;
         }
 
-
-        showToast(
-            "Voice message sent."
-        );
-
+        showToast("Voice message sent.");
 
     } catch (error) {
 
-        console.error(
-            "Voice message error:",
-            error
-        );
-
-        showToast(
-            error.message ||
-            "Unable to send voice message."
-        );
+        console.error("Voice message error:", error);
+        showToast(error.message || "Unable to send voice message.");
 
     }
 
 }
-
 /* ============================================================
    LOCATION SHARING
 ============================================================ */
@@ -19027,21 +18937,18 @@ function setupAdvancedSocketEvents() {
 }
 
 
-setInterval(
-    function() {
+let advancedEventsSocketId = null;
 
-        if (
-            chatSocket &&
-            chatSocket.connected
-        ) {
-
-            setupAdvancedSocketEvents();
-
-        }
-
-    },
-    1000
-);
+setInterval(function() {
+    if (
+        chatSocket &&
+        chatSocket.connected &&
+        advancedEventsSocketId !== chatSocket.id
+    ) {
+        advancedEventsSocketId = chatSocket.id;
+        setupAdvancedSocketEvents();
+    }
+}, 1000);
 
 
 /* ============================================================
@@ -20946,21 +20853,18 @@ stopCallTimer();
    CALL SOCKET INITIALIZATION
 ============================================================ */
 
-setInterval(
-    function() {
+let callEventsSocketId = null;
 
-        if (
-            chatSocket &&
-            chatSocket.connected
-        ) {
-
-            setupCallSocketEvents();
-
-        }
-
-    },
-    1000
-);
+setInterval(function() {
+    if (
+        chatSocket &&
+        chatSocket.connected &&
+        callEventsSocketId !== chatSocket.id
+    ) {
+        callEventsSocketId = chatSocket.id;
+        setupCallSocketEvents();
+    }
+}, 1000);
 
 if (getToken()) {
     setTimeout(() => {

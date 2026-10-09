@@ -4856,7 +4856,7 @@ app.get(
                     .sort({
                         lastMessageAt: -1
                     });
-
+                           lean();
 
             return res.json({
 
