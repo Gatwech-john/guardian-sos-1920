@@ -280,21 +280,22 @@ const UserSchema = new mongoose.Schema(
             trim: true,
             maxlength: 150
         },
+
         
-emailVerified: {
-    type: Boolean,
-    default: false
-},
+        emailVerified: {
+            type: Boolean,
+            default: false
+        },
 
-emailVerificationTokenHash: {
-    type: String,
-    default: null
-},
+        emailVerificationTokenHash: {
+            type: String,
+            default: null
+        },
 
-emailVerificationExpiresAt: {
-    type: Date,
-    default: null
-},
+        emailVerificationExpiresAt: {
+            type: Date,
+            default: null
+        },
 
 
         phone: {
@@ -2591,94 +2592,6 @@ app.get("/api/status", (req, res) => {
 
 
 
-/* ============================================================
-   EMAIL VERIFICATION
-   GET /api/auth/verify-email?token=...
-============================================================ */
-
-app.get("/api/auth/verify-email", async (req, res) => {
-    try {
-        await connectMongoDB();
-
-        const token = String(req.query.token || "");
-
-        if (!token || token.length > 256) {
-            return res.status(400).send(
-                "Invalid verification link. Please request a new one."
-            );
-        }
-
-        const tokenHash = crypto
-            .createHash("sha256")
-            .update(token)
-            .digest("hex");
-
-        const user = await User.findOne({
-            emailVerificationTokenHash: tokenHash,
-            emailVerificationExpiresAt: { $gt: new Date() }
-        });
-
-        if (!user) {
-            return res.status(400).send(
-                "This verification link is invalid or expired. Please request a new one."
-            );
-        }
-
-        user.emailVerified = true;
-        user.emailVerificationTokenHash = null;
-        user.emailVerificationExpiresAt = null;
-
-        await user.save();
-
-        return res.status(200).send(`
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport"
-                      content="width=device-width, initial-scale=1">
-                <title>Guardian SOS Email Verification</title>
-                <style>
-                    body {
-                        background: #080808;
-                        color: #fff;
-                        font-family: Arial, sans-serif;
-                        text-align: center;
-                        padding: 50px 20px;
-                    }
-                    .box {
-                        max-width: 440px;
-                        margin: auto;
-                        padding: 30px;
-                        border: 1px solid #ff1493;
-                        border-radius: 18px;
-                    }
-                    h1, a { color: #ff1493; }
-                    a { font-weight: bold; }
-                </style>
-            </head>
-            <body>
-                <div class="box">
-                    <h1>Email Verified!</h1>
-                    <p>Your Guardian SOS email address is now verified.</p>
-                    <p>You can return to Guardian SOS and sign in.</p>
-                    <a href="/">Open Guardian SOS</a>
-                </div>
-            </body>
-            </html>
-        `);
-
-    } catch (error) {
-        console.error("EMAIL VERIFICATION ERROR:", error);
-
-        return res.status(500).send(
-            "Unable to verify your email right now. Please try again later."
-        );
-    }
-});
-
-
-
 /*
 ------------------------------------------------------------
 REGISTER
@@ -2692,8 +2605,6 @@ app.post(
     "/api/auth/register",
     profileUpload.single("profileImage"),
     async (req, res) => {
-        let createdUser = null;
-
         try {
             await connectMongoDB();
 
@@ -2733,16 +2644,12 @@ app.post(
                 });
             }
 
-            const verificationToken = crypto.randomBytes(32).toString("hex");
-
-            const verificationTokenHash = crypto
-                .createHash("sha256")
-                .update(verificationToken)
-                .digest("hex");
-
             const hashedPassword = await bcrypt.hash(password, 12);
 
-            createdUser = await User.create({
+            const verificationCode =
+                crypto.randomInt(100000, 1000000).toString();
+
+            const user = await User.create({
                 name: name.trim(),
                 email: normalizedEmail,
                 phone: phone ? phone.trim() : "",
@@ -2753,86 +2660,49 @@ app.post(
                     : "",
 
                 emailVerified: false,
-                emailVerificationTokenHash: verificationTokenHash,
+
+                emailVerificationCodeHash:
+                    crypto.createHash("sha256")
+                        .update(verificationCode)
+                        .digest("hex"),
+
                 emailVerificationExpiresAt:
-                    new Date(Date.now() + 24 * 60 * 60 * 1000)
+                    new Date(Date.now() + 10 * 60 * 1000)
             });
 
-            const appUrl = (
-                process.env.APP_URL ||
-                (process.env.VERCEL_URL
-                    ? `https://${process.env.VERCEL_URL}`
-                    : "")
-            ).replace(/\/+$/, "");
+            try {
+                await passwordResetTransporter.sendMail({
+                    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+                    to: normalizedEmail,
+                    subject: "Verify your Guardian SOS account",
+                    text:
+                        `Your Guardian SOS verification code is ${verificationCode}. ` +
+                        "It expires in 10 minutes. If you did not create this account, ignore this email."
+                });
+            } catch (emailError) {
+                console.error("Verification email failed:", emailError);
 
-            if (!appUrl) {
-                throw new Error(
-                    "APP_URL is missing. Configure the deployed Guardian SOS URL."
-                );
+                await User.deleteOne({ _id: user._id });
+
+                return res.status(500).json({
+                    success: false,
+                    message: "We could not send the verification email. Please try again later."
+                });
             }
-
-            const verificationLink =
-                `${appUrl}/api/auth/verify-email?token=${verificationToken}`;
-
-            await passwordResetTransporter.sendMail({
-                from: process.env.SMTP_FROM || process.env.SMTP_USER,
-                to: normalizedEmail,
-                subject: "Verify your Guardian SOS email address",
-                text:
-                    `Hello ${name.trim()},\n\n` +
-                    `Please verify your Guardian SOS email address by opening this link:\n\n` +
-                    `${verificationLink}\n\n` +
-                    `This link expires in 24 hours.\n\n` +
-                    `If you did not create this account, you can ignore this email.`,
-                html: `
-                    <div style="font-family:Arial,sans-serif;background:#080808;color:#ffffff;padding:30px;border-radius:12px;">
-                        <h2 style="color:#ff1493;">GUARDIAN SOS</h2>
-                        <h3>Verify your email address</h3>
-                        <p>Hello ${name.trim().replace(/[&<>"']/g, "")},</p>
-                        <p>Please verify your email address to activate your account.</p>
-                        <p style="margin:30px 0;">
-                            <a href="${verificationLink}"
-                               style="background:#ff1493;color:#ffffff;padding:14px 22px;text-decoration:none;border-radius:8px;font-weight:bold;">
-                                VERIFY EMAIL
-                            </a>
-                        </p>
-                        <p>This link expires in 24 hours.</p>
-                        <p>If you did not create this account, ignore this email.</p>
-                    </div>
-                `
-            });
 
             return res.status(201).json({
                 success: true,
-                requiresEmailVerification: true,
-                message:
-                    "Account created. Check your email and click the verification link before signing in."
+                verificationRequired: true,
+                email: normalizedEmail,
+                message: "A verification code has been sent to your email."
             });
 
         } catch (error) {
-            console.error("Registration/email verification error:", error);
-
-            // Do not leave a newly created unusable account if email
-            // delivery fails. Never delete an account on an unrelated
-            // duplicate-registration request.
-            if (createdUser && createdUser.emailVerified === false) {
-                try {
-                    await User.deleteOne({
-                        _id: createdUser._id,
-                        emailVerified: false
-                    });
-                } catch (cleanupError) {
-                    console.error(
-                        "Unverified account cleanup failed:",
-                        cleanupError.message
-                    );
-                }
-            }
+            console.error("Registration error:", error);
 
             return res.status(500).json({
                 success: false,
-                message:
-                    "Unable to complete registration or send the verification email. Please try again."
+                message: "Unable to create account."
             });
         }
     }
@@ -2840,7 +2710,107 @@ app.post(
 
 
 
+app.post("/api/auth/verify-email", async (req, res) => {
+    try {
+        await connectMongoDB();
 
+        const email = String(req.body?.email || "")
+            .trim()
+            .toLowerCase();
+
+        const code = String(req.body?.code || "").trim();
+
+        if (!email || !/^\d{6}$/.test(code)) {
+            return res.status(400).json({
+                success: false,
+                message: "Enter your email and the six-digit verification code."
+            });
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "Account not found. Please sign up again."
+            });
+        }
+
+        if (user.emailVerified === true) {
+            return res.status(400).json({
+                success: false,
+                message: "This email is already verified. Please log in."
+            });
+        }
+
+        if (
+            !user.emailVerificationExpiresAt ||
+            user.emailVerificationExpiresAt.getTime() < Date.now()
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "The code has expired. Please sign up again."
+            });
+        }
+
+        const submittedHash = crypto.createHash("sha256")
+            .update(code)
+            .digest("hex");
+
+        const savedHash = user.emailVerificationCodeHash || "";
+
+        const submittedBuffer = Buffer.from(submittedHash, "hex");
+        const savedBuffer = Buffer.from(savedHash, "hex");
+
+        if (
+            submittedBuffer.length !== savedBuffer.length ||
+            !crypto.timingSafeEqual(submittedBuffer, savedBuffer)
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect verification code."
+            });
+        }
+
+        user.emailVerified = true;
+        user.emailVerificationCodeHash = null;
+        user.emailVerificationExpiresAt = null;
+
+        await user.save();
+
+        const token = createToken(user);
+
+        return res.status(200).json({
+            success: true,
+            message: "Email verified successfully.",
+            token,
+            user: {
+                id: user._id.toString(),
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                profileImage: user.profileImage
+            }
+        });
+
+    } catch (error) {
+        console.error("Email verification error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Unable to verify email right now."
+        });
+    }
+});
+
+
+/*
+------------------------------------------------------------
+LOGIN
+------------------------------------------------------------
+POST /api/auth/login
+------------------------------------------------------------
+*/
 
 /*
 ------------------------------------------------------------
@@ -2892,7 +2862,6 @@ app.post(
                 });
 
             }
-
 
 
             if (!isValidEmail(email)) {
@@ -2983,14 +2952,15 @@ app.post(
 
             }
 
-
-if (user.emailVerified !== true) {
+            
+if (user.emailVerified === false) {
     return res.status(403).json({
         success: false,
-        requiresEmailVerification: true,
-        message: "Please verify your email address before signing in."
+        message: "Please verify your email before logging in."
     });
 }
+
+
 
             /*
              * CREATE JWT

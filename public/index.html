@@ -4450,6 +4450,39 @@ align-items: flex-start;
 
     </section>
 
+<section id="emailVerificationPage" class="page auth-page" style="display:none;">
+    <div class="auth-box">
+        <div class="auth-logo">SOS GUARDIAN</div>
+
+        <h2>Verify Your Email</h2>
+
+        <p>
+            Enter the six-digit verification code sent to your email address.
+        </p>
+
+        <form id="emailVerificationForm">
+            <div class="form-group">
+                <label for="verificationCode">Verification Code</label>
+                <input
+                    type="text"
+                    id="verificationCode"
+                    inputmode="numeric"
+                    pattern="[0-9]{6}"
+                    maxlength="6"
+                    required
+                    placeholder="Enter 6-digit code"
+                >
+            </div>
+
+            <div id="emailVerificationMessage" class="auth-message"></div>
+
+            <button type="submit" id="verifyEmailButton" class="auth-button">
+                VERIFY EMAIL
+            </button>
+        </form>
+    </div>
+</section>
+
 
     <!-- =====================================================
          APP NAVIGATION
@@ -10969,8 +11002,10 @@ async function registerGuardianFCMToken() {
 }
 
 registerGuardianFCMToken();
+
+
 /* =========================================================
-   REGISTER
+   REGISTER — EMAIL VERIFICATION REQUIRED
 ========================================================= */
 
 const registerForm =
@@ -10981,7 +11016,6 @@ registerForm.addEventListener(
     async function(event) {
 
         event.preventDefault();
-
 
         const name =
             document.getElementById("registerName")
@@ -11012,146 +11046,148 @@ registerForm.addEventListener(
         const button =
             document.getElementById("registerButton");
 
-
         if (password !== confirmPassword) {
-
-            message.textContent =
-                "Passwords do not match.";
-
-            message.style.color =
-                "#ff4444";
-
+            message.textContent = "Passwords do not match.";
+            message.style.color = "#ff4444";
             return;
-
         }
-
 
         if (password.length < 8) {
-
             message.textContent =
                 "Password must contain at least 8 characters.";
-
-            message.style.color =
-                "#ff4444";
-
+            message.style.color = "#ff4444";
             return;
-
         }
 
-
         button.disabled = true;
-
-        message.textContent =
-            "Creating account...";
-
-        message.style.color =
-            "#ff1493";
-
+        message.textContent = "Creating account...";
+        message.style.color = "#ff1493";
 
         try {
 
             const registerPhoto =
-    document.getElementById("registerPhoto");
+                document.getElementById("registerPhoto");
 
-const formData =
-    new FormData();
+            const formData = new FormData();
 
-formData.append("name", name);
-formData.append("email", email);
-formData.append("phone", phone);
-formData.append("password", password);
+            formData.append("name", name);
+            formData.append("email", email);
+            formData.append("phone", phone);
+            formData.append("password", password);
 
-if (
-    registerPhoto &&
-    registerPhoto.files &&
-    registerPhoto.files.length > 0
-) {
-    formData.append(
-        "profileImage",
-        registerPhoto.files[0]
-    );
-}
+            if (
+                registerPhoto &&
+                registerPhoto.files &&
+                registerPhoto.files.length > 0
+            ) {
+                formData.append(
+                    "profileImage",
+                    registerPhoto.files[0]
+                );
+            }
 
-const response = await fetch(
-    "/api/auth/register",
-    {
-        method: "POST",
-        body: formData
-    }
-);
-
+            const response = await fetch(
+                "/api/auth/register",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
 
             let data = {};
 
             try {
-
                 data = await response.json();
-
             } catch (error) {
-
                 data = {};
-
             }
 
-
-            if (
-                !response.ok ||
-                !data.success
-            ) {
-
+            if (!response.ok || !data.success) {
                 throw new Error(
-                    data.message ||
-                    "Registration failed."
+                    data.message || "Registration failed."
                 );
-
             }
 
+            /*
+             * DO NOT STORE A LOGIN TOKEN HERE.
+             * The user must verify their email first.
+             */
 
-           if (data.requiresEmailVerification) {
-    message.textContent =
-        data.message ||
-        "Check your email and click the verification link before signing in.";
+            if (data.verificationRequired) {
 
-    message.style.color = "#00ff88";
+                window.pendingVerificationEmail =
+                    data.email || email;
 
-    registerForm.reset();
+                const verificationPage =
+                    document.getElementById(
+                        "emailVerificationPage"
+                    );
 
-    button.disabled = false;
+                const verificationEmail =
+                    document.getElementById(
+                        "verificationEmail"
+                    );
 
-    return;
-}
+                const verificationMessage =
+                    document.getElementById(
+                        "emailVerificationMessage"
+                    );
 
-localStorage.setItem(
-    TOKEN_KEY,
-    data.token
-);
+                if (!verificationPage) {
+                    throw new Error(
+                        "Email verification page is missing. Add the verification HTML before testing registration."
+                    );
+                }
 
-localStorage.setItem(
-    USER_KEY,
-    JSON.stringify(data.user)
-);
+                if (verificationEmail) {
+                    verificationEmail.textContent =
+                        window.pendingVerificationEmail;
+                }
 
-message.textContent =
-    "Account created successfully!";
+                if (verificationMessage) {
+                    verificationMessage.textContent =
+                        "We sent a verification code to your email.";
+                    verificationMessage.style.color =
+                        "#00ff88";
+                }
 
-message.style.color =
-    "#00ff88";
+                verificationPage.style.display = "block";
 
-setTimeout(function() {
-    navigateTo("home");
-}, 500);
+                const loginPage =
+                    document.getElementById("loginPage");
 
+                const registerPage =
+                    document.getElementById("registerPage");
+
+                if (loginPage) {
+                    loginPage.style.display = "none";
+                }
+
+                if (registerPage) {
+                    registerPage.style.display = "none";
+                }
+
+                message.textContent =
+                    "Check your email for the verification code.";
+                message.style.color = "#00ff88";
+
+                return;
+            }
+
+            throw new Error(
+                "The server did not request email verification. Check that /api/auth/register has been updated."
+            );
 
         } catch (error) {
 
             console.error(error);
 
             message.textContent =
-                error.message ||
-                "Unable to create account.";
+                error.message || "Unable to create account.";
 
-            message.style.color =
-                "#ff4444";
+            message.style.color = "#ff4444";
+
+        } finally {
 
             button.disabled = false;
 
@@ -11159,6 +11195,9 @@ setTimeout(function() {
 
     }
 );
+
+
+
 
 /* =========================================================
    FORGOT PASSWORD
