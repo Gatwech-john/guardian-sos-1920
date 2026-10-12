@@ -1011,9 +1011,7 @@ body {
     justify-content: center;
     text-align: center;
     padding: 20px;
-    box-shadow:
-        0 0 15px rgba(255, 20, 147, .35),
-        0 0 30px rgba(255, 20, 147, .15);
+    
     animation: dashboardPulse 1.8s infinite;
     transition: .2s;
     font-family: Arial, Helvetica, sans-serif;
@@ -1023,28 +1021,9 @@ body {
     margin: 20px auto;
 }
 @keyframes dashboardPulse {
-
-    0% {
-        transform: scale(1);
-        box-shadow:
-            0 0 15px rgba(255, 20, 147, .35),
-            0 0 30px rgba(255, 20, 147, .15);
-    }
-
-    50% {
-        transform: scale(1.05);
-        box-shadow:
-            0 0 25px rgba(255, 20, 147, .65),
-            0 0 45px rgba(255, 20, 147, .30);
-    }
-
-    100% {
-        transform: scale(1);
-        box-shadow:
-            0 0 15px rgba(255, 20, 147, .35),
-            0 0 30px rgba(255, 20, 147, .15);
-    }
-
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
     .primary-button {
         background: #ff1493;
@@ -1221,39 +1200,17 @@ body {
     text-align: center;
     line-height: 1.2;
     padding: 15px;
-    box-shadow:
-        0 0 15px rgba(255, 20, 147, .5),
-        0 0 35px rgba(255, 20, 147, .3);
+    
     animation: sosPulse 1.5s infinite;
     transition: .2s;
     font-family: Arial, Helvetica, sans-serif;
 }
 
 @keyframes sosPulse {
-
-    0% {
-        transform: scale(1);
-        box-shadow:
-            0 0 15px rgba(255, 20, 147, .5),
-            0 0 35px rgba(255, 20, 147, .3);
-    }
-
-    50% {
-        transform: scale(1.08);
-        box-shadow:
-            0 0 25px rgba(255, 20, 147, .8),
-            0 0 55px rgba(255, 20, 147, .5);
-    }
-
-    100% {
-        transform: scale(1);
-        box-shadow:
-            0 0 15px rgba(255, 20, 147, .5),
-            0 0 35px rgba(255, 20, 147, .3);
-    }
-
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
 }
-
     .sos-main-button:hover {
         background: #ff3ba5;
         font-family: Arial, Helvetica, sans-serif;
@@ -4459,57 +4416,7 @@ align-items: flex-start;
 
 
 
-/* =========================================================
-   REMOVE ALL SHADOWS FROM HOME BUTTONS
-========================================================= */
 
-/* SOS button + dashboard (watch) button */
-.home-actions .sos-main-button,
-.home-actions .secondary-button,
-.home-actions .primary-button,
-.sos-main-button,
-.secondary-button,
-.primary-button {
-    box-shadow: none !important;
-    text-shadow: none !important;
-}
-
-/* watch rainbow ring + face */
-.live-watch,
-.watch-face,
-.watch-center,
-.watch-digital {
-    box-shadow: none !important;
-    filter: none !important;
-    animation: none !important;
-}
-
-/* compass */
-.compass-outer,
-.compass-outer.facing-north,
-.compass-ring,
-.compass-hub,
-.compass-pointer,
-.compass-north-arrow {
-    box-shadow: none !important;
-    filter: none !important;
-    animation: none !important;
-}
-
-.compass-degrees,
-.compass-mark.cardinal span,
-.compass-mark.cardinal.north span {
-    text-shadow: none !important;
-}
-
-.compass-mark.major::before {
-    box-shadow: none !important;
-}
-
-/* heart icon */
-.home-actions .sos-main-button .sos-real-heart {
-    filter: none !important;
-}
 </style>
 <!-- LEAFLET MAP -->
 <link
