@@ -4089,6 +4089,264 @@ align-items: flex-start;
     50%      { height: 40px; }
 }
 
+
+/* =========================================================
+   GUARDIAN LIVE COMPASS
+========================================================= */
+
+.guardian-compass-wrap {
+    margin: 40px auto 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.compass-readout {
+    text-align: center;
+    line-height: 1;
+}
+
+.compass-degrees {
+    font-size: 42px;
+    font-weight: 900;
+    color: white;
+    letter-spacing: 2px;
+    text-shadow: 0 0 14px rgba(255, 20, 147, .6);
+    font-variant-numeric: tabular-nums;
+}
+
+.compass-direction {
+    margin-top: 6px;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 6px;
+    color: #ff1493;
+}
+
+.compass-outer {
+    position: relative;
+    width: min(300px, 78vw);
+    height: min(300px, 78vw);
+    border-radius: 50%;
+    padding: 9px;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+
+    background: conic-gradient(
+        #ff1493, #7b2cff, #00e5ff, #00ff88,
+        #ffe600, #ff7a00, #ff1493
+    );
+
+    box-shadow:
+        0 0 25px rgba(255, 20, 147, .55),
+        0 0 60px rgba(123, 44, 255, .35),
+        inset 0 0 18px rgba(0, 0, 0, .8);
+
+    animation: compassGlow 3s ease-in-out infinite;
+}
+
+.compass-outer:active {
+    cursor: grabbing;
+}
+
+@keyframes compassGlow {
+    0%, 100% { filter: brightness(1); }
+    50%      { filter: brightness(1.3); }
+}
+
+/* FIXED POINTER AT THE TOP */
+.compass-pointer {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 11px solid transparent;
+    border-right: 11px solid transparent;
+    border-top: 22px solid #fff;
+    filter: drop-shadow(0 0 6px #ff1493);
+    z-index: 20;
+}
+
+.compass-ring {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 30% 25%, #1c1c24, #050507 70%);
+    border: 2px solid #111;
+    overflow: hidden;
+    box-shadow:
+        inset 0 0 30px rgba(255, 20, 147, .18),
+        inset 0 0 60px rgba(0, 0, 0, .9);
+}
+
+/* THE ROTATING PART */
+.compass-dial {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    will-change: transform;
+}
+
+.compass-marks {
+    position: absolute;
+    inset: 0;
+}
+
+.compass-mark {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.compass-mark::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    width: 2px;
+    height: 8px;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, .35);
+}
+
+.compass-mark.major::before {
+    height: 14px;
+    width: 3px;
+    background: #ff1493;
+    box-shadow: 0 0 6px #ff1493;
+}
+
+.compass-mark.cardinal::before {
+    display: none;
+}
+
+.compass-mark span {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, .55);
+}
+
+.compass-mark.cardinal span {
+    top: 14px;
+    font-size: 26px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 0 10px rgba(255, 255, 255, .5);
+}
+
+.compass-mark.cardinal.north span {
+    color: #ff1493;
+    text-shadow: 0 0 14px #ff1493;
+    font-size: 30px;
+}
+
+/* DECORATIVE 8-POINT ROSE */
+.compass-rose {
+    position: absolute;
+    inset: 24%;
+    background:
+        conic-gradient(
+            from 0deg,
+            rgba(255, 20, 147, .35), rgba(0, 229, 255, .18),
+            rgba(255, 20, 147, .35), rgba(0, 229, 255, .18),
+            rgba(255, 20, 147, .35), rgba(0, 229, 255, .18),
+            rgba(255, 20, 147, .35), rgba(0, 229, 255, .18),
+            rgba(255, 20, 147, .35)
+        );
+    clip-path: polygon(
+        50% 0%, 59% 41%, 100% 50%, 59% 59%,
+        50% 100%, 41% 59%, 0% 50%, 41% 41%
+    );
+    opacity: .75;
+}
+
+/* NORTH ARROW (ALWAYS POINTS TO REAL NORTH) */
+.compass-north-arrow {
+    position: absolute;
+    left: 50%;
+    top: 24%;
+    width: 0;
+    height: 0;
+    transform: translateX(-50%);
+    border-left: 11px solid transparent;
+    border-right: 11px solid transparent;
+    border-bottom: 74px solid #ff1493;
+    filter: drop-shadow(0 0 8px #ff1493);
+}
+
+.compass-north-arrow::after {
+    content: "";
+    position: absolute;
+    left: -11px;
+    top: 74px;
+    width: 0;
+    height: 0;
+    border-left: 11px solid transparent;
+    border-right: 11px solid transparent;
+    border-top: 74px solid rgba(255, 255, 255, .85);
+}
+
+.compass-hub {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 22px;
+    height: 22px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: #000;
+    border: 3px solid #fff;
+    box-shadow: 0 0 12px #ff1493, 0 0 20px #00e5ff;
+    z-index: 5;
+}
+
+/* WHEN FACING NORTH */
+.compass-outer.facing-north {
+    box-shadow:
+        0 0 35px #00ff88,
+        0 0 80px rgba(0, 255, 136, .45),
+        inset 0 0 18px rgba(0, 0, 0, .8);
+}
+
+.compass-enable-button {
+    border: 1px solid #ff1493;
+    background: #111;
+    color: white;
+    border-radius: 30px;
+    padding: 11px 22px;
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.compass-enable-button i {
+    color: #ff1493;
+    margin-right: 6px;
+}
+
+.compass-enable-button:hover {
+    background: #ff1493;
+}
+
+.compass-status {
+    font-size: 12px;
+    color: #aaa;
+    max-width: 300px;
+    text-align: center;
+    line-height: 1.5;
+}
 </style>
 <!-- LEAFLET MAP -->
 <link
@@ -4665,27 +4923,42 @@ align-items: flex-start;
 
 </div>
 
-                    <div class="home-stats">
+                                        <div class="guardian-compass-wrap">
 
-                        <div class="stat">
-                            <div class="stat-number">SOS</div>
-                            <div class="stat-label">
-                                Emergency assistance
-                            </div>
+                        <div class="compass-readout">
+                            <div class="compass-degrees" id="compassDegrees">0°</div>
+                            <div class="compass-direction" id="compassDirection">N</div>
                         </div>
 
-                        <div class="stat">
-                            <div class="stat-number">GPS</div>
-                            <div class="stat-label">
-                                Location support
+                        <div class="compass-outer" id="compassOuter">
+
+                            <div class="compass-pointer"></div>
+
+                            <div class="compass-ring">
+
+                                <div class="compass-dial" id="compassDial">
+                                    <div class="compass-marks" id="compassMarks"></div>
+                                    <div class="compass-rose"></div>
+                                    <div class="compass-north-arrow"></div>
+                                </div>
+
+                                <div class="compass-hub"></div>
+
                             </div>
+
                         </div>
 
-                        <div class="stat">
-                            <div class="stat-number">24/7</div>
-                            <div class="stat-label">
-                                Quick access
-                            </div>
+                        <button
+                            type="button"
+                            id="compassEnableButton"
+                            class="compass-enable-button"
+                        >
+                            <i class="bi bi-compass-fill"></i>
+                            ENABLE LIVE COMPASS
+                        </button>
+
+                        <div class="compass-status" id="compassStatus">
+                            Rotate your phone, or drag the compass with your finger.
                         </div>
 
                     </div>
@@ -14601,6 +14874,215 @@ function logout() {
 
 }
 
+
+/* =========================================================
+   GUARDIAN LIVE COMPASS
+========================================================= */
+
+(function() {
+
+    const outer     = document.getElementById("compassOuter");
+    const dial      = document.getElementById("compassDial");
+    const marks     = document.getElementById("compassMarks");
+    const degreesEl = document.getElementById("compassDegrees");
+    const dirEl     = document.getElementById("compassDirection");
+    const button    = document.getElementById("compassEnableButton");
+    const statusEl  = document.getElementById("compassStatus");
+
+    if (!outer || !dial || !marks) {
+        return;
+    }
+
+    /* ---------- BUILD TICKS AND LETTERS ---------- */
+
+    const cardinals = { 0: "N", 90: "E", 180: "S", 270: "W" };
+
+    for (let angle = 0; angle < 360; angle += 5) {
+
+        const mark = document.createElement("div");
+        mark.className = "compass-mark";
+        mark.style.transform = "rotate(" + angle + "deg)";
+
+        if (cardinals[angle]) {
+
+            mark.classList.add("cardinal");
+
+            if (angle === 0) {
+                mark.classList.add("north");
+            }
+
+            mark.innerHTML = "<span>" + cardinals[angle] + "</span>";
+
+        } else if (angle % 30 === 0) {
+
+            mark.classList.add("major");
+            mark.innerHTML = "<span>" + angle + "</span>";
+
+        }
+
+        marks.appendChild(mark);
+    }
+
+    /* ---------- STATE ---------- */
+
+    let shownRotation = 0;
+    let gotAbsolute   = false;
+    let sensorActive  = false;
+    let currentHeading = 0;
+
+    const names = [
+        "N","NNE","NE","ENE","E","ESE","SE","SSE",
+        "S","SSW","SW","WSW","W","WNW","NW","NNW"
+    ];
+
+    function setStatus(text) {
+        if (statusEl) statusEl.textContent = text;
+    }
+
+    /* ---------- DRAW ---------- */
+
+    function render(heading) {
+
+        heading = ((heading % 360) + 360) % 360;
+        currentHeading = heading;
+
+        /* rotate by the shortest path so it never spins the long way */
+        const target = -heading;
+        const diff = ((target - shownRotation + 540) % 360) - 180;
+
+        shownRotation += diff;
+
+        dial.style.transform = "rotate(" + shownRotation + "deg)";
+
+        degreesEl.textContent = Math.round(heading) + "°";
+        dirEl.textContent = names[Math.round(heading / 22.5) % 16];
+
+        const nearNorth = heading < 4 || heading > 356;
+        outer.classList.toggle("facing-north", nearNorth);
+    }
+
+    /* ---------- PHONE SENSOR ---------- */
+
+    function onOrientation(event) {
+
+        let heading = null;
+
+        if (typeof event.webkitCompassHeading === "number") {
+
+            /* iPhone */
+            heading = event.webkitCompassHeading;
+
+        } else if (event.alpha !== null && event.alpha !== undefined) {
+
+            if (event.type === "deviceorientationabsolute") {
+                gotAbsolute = true;
+            } else if (gotAbsolute) {
+                return;
+            }
+
+            heading = 360 - event.alpha;
+
+            const screenAngle =
+                (screen.orientation && screen.orientation.angle) || 0;
+
+            heading += screenAngle;
+        }
+
+        if (heading === null) {
+            return;
+        }
+
+        if (!sensorActive) {
+            sensorActive = true;
+            button.style.display = "none";
+            setStatus("Live compass active. Turn your phone to rotate it.");
+        }
+
+        render(heading);
+    }
+
+    async function startCompass() {
+
+        try {
+
+            if (
+                typeof DeviceOrientationEvent !== "undefined" &&
+                typeof DeviceOrientationEvent.requestPermission === "function"
+            ) {
+
+                const result =
+                    await DeviceOrientationEvent.requestPermission();
+
+                if (result !== "granted") {
+                    setStatus("Compass permission was denied. You can still drag the compass.");
+                    return;
+                }
+            }
+
+            window.addEventListener("deviceorientationabsolute", onOrientation, true);
+            window.addEventListener("deviceorientation", onOrientation, true);
+
+            setStatus("Waiting for compass sensor...");
+
+            setTimeout(function() {
+                if (!sensorActive) {
+                    setStatus("No compass sensor found. Drag the compass to rotate it.");
+                }
+            }, 3000);
+
+        } catch (error) {
+
+            console.error("Compass error:", error);
+            setStatus("Compass unavailable. Drag the compass to rotate it.");
+        }
+    }
+
+    button.addEventListener("click", startCompass);
+
+    /* Android and desktop browsers don't need a permission prompt */
+    if (
+        typeof DeviceOrientationEvent !== "undefined" &&
+        typeof DeviceOrientationEvent.requestPermission !== "function"
+    ) {
+        startCompass();
+    }
+
+    /* ---------- DRAG TO ROTATE (works on every device) ---------- */
+
+    let dragging = false;
+    let startPointerAngle = 0;
+    let startHeading = 0;
+
+    function pointerAngle(event) {
+        const rect = outer.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        return Math.atan2(event.clientY - cy, event.clientX - cx) * 180 / Math.PI;
+    }
+
+    outer.addEventListener("pointerdown", function(event) {
+        dragging = true;
+        startPointerAngle = pointerAngle(event);
+        startHeading = currentHeading;
+        outer.setPointerCapture(event.pointerId);
+    });
+
+    outer.addEventListener("pointermove", function(event) {
+        if (!dragging) return;
+        const delta = pointerAngle(event) - startPointerAngle;
+        render(startHeading - delta);
+    });
+
+    function stopDrag() {
+        dragging = false;
+    }
+
+    outer.addEventListener("pointerup", stopDrag);
+    outer.addEventListener("pointercancel", stopDrag);
+
+    render(0);
+
+})();
    
 /* =========================================================
    INITIALIZATION
