@@ -4426,6 +4426,12 @@ align-items: flex-start;
     letter-spacing: 4px;
     margin-top: 4px;
 }
+
+.compass-direction {
+    font-size: 11px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+}
 </style>
 <!-- LEAFLET MAP -->
 <link
@@ -14949,6 +14955,10 @@ function logout() {
    GUARDIAN COMPASS — PHONE SENSOR ONLY
 ========================================================= */
 
+/* =========================================================
+   GUARDIAN COMPASS — ACCURATE PHONE SENSOR VERSION
+========================================================= */
+
 (function() {
 
     const outer     = document.getElementById("compassOuter");
@@ -14984,7 +14994,6 @@ function logout() {
         } else if (angle % 30 === 0) {
 
             mark.classList.add("major");
-
         }
 
         marks.appendChild(mark);
@@ -14993,69 +15002,66 @@ function logout() {
     /* ---------- STATE ---------- */
 
     const names = [
-        "N","NNE","NE","ENE","E","ESE","SE","SSE",
-        "S","SSW","SW","WSW","W","WNW","NW","NNW"
+        "NORTH", "NORTH-EAST", "EAST", "SOUTH-EAST",
+        "SOUTH", "SOUTH-WEST", "WEST", "NORTH-WEST"
     ];
 
+    const RAD = Math.PI / 180;
+
+    let targetHeading = null;   /* latest sensor value */
+    let smooth        = null;   /* filtered value shown on screen */
     let shownRotation = 0;
-    let smoothHeading = null;
     let gotAbsolute   = false;
+    let gotData       = false;
     let started       = false;
 
-    /* ---------- DRAW ---------- */
+    /* ---------- SCREEN ROTATION ---------- */
 
-    function render(heading) {
+    function screenAngle() {
 
-        heading = ((heading % 360) + 360) % 360;
-
-        /* smooth the sensor so the needle doesn't shake */
-        if (smoothHeading === null) {
-            smoothHeading = heading;
-        } else {
-            const d = ((heading - smoothHeading + 540) % 360) - 180;
-            smoothHeading = (smoothHeading + d * 0.25 + 360) % 360;
+        if (screen.orientation && typeof screen.orientation.angle === "number") {
+            return screen.orientation.angle;
         }
 
-        /* rotate by the shortest path so it never spins the long way */
-        const target = -smoothHeading;
-        const diff = ((target - shownRotation + 540) % 360) - 180;
-        shownRotation += diff;
+        if (typeof window.orientation === "number") {
+            return (window.orientation + 360) % 360;
+        }
 
-        dial.style.transform = "rotate(" + shownRotation + "deg)";
-
-        degreesEl.textContent = Math.round(smoothHeading) + "°";
-        dirEl.textContent = names[Math.round(smoothHeading / 22.5) % 16];
-
-        const nearNorth = smoothHeading < 4 || smoothHeading > 356;
-        outer.classList.toggle("facing-north", nearNorth);
+        return 0;
     }
 
-    /* ---------- HEADING WITH TILT COMPENSATION (Android) ---------- */
+    /* ---------- ANDROID HEADING FROM alpha / beta / gamma ---------- */
 
-    function headingFromAngles(alpha, beta, gamma) {
+    function androidHeading(alpha, beta, gamma) {
 
-        const rad = Math.PI / 180;
+        const a = alpha * RAD;
+        const b = beta  * RAD;
+        const g = gamma * RAD;
 
-        const x = beta  * rad;
-        const y = gamma * rad;
-        const z = alpha * rad;
+        const cA = Math.cos(a), sA = Math.sin(a);
+        const cB = Math.cos(b), sB = Math.sin(b);
+        const cG = Math.cos(g), sG = Math.sin(g);
 
-        const cY = Math.cos(y), sY = Math.sin(y);
-        const cZ = Math.cos(z), sZ = Math.sin(z);
-        const sX = Math.sin(x);
+        /* how much the screen faces the sky (1 = perfectly flat) */
+        const faceUp = cB * cG;
 
-        const Vx = -cZ * sY - sZ * sX * cY;
-        const Vy = -sZ * sY + cZ * sX * cY;
+        let east, north, extra = 0;
 
-        let heading = Math.atan(Vx / Vy);
+        if (Math.abs(faceUp) > 0.6) {
 
-        if (Vy < 0) {
-            heading += Math.PI;
-        } else if (Vx < 0) {
-            heading += 2 * Math.PI;
+            /* PHONE FLAT: use the direction the TOP of the phone points */
+            east  = -cB * sA;
+            north =  cB * cA;
+            extra = screenAngle();
+
+        } else {
+
+            /* PHONE UPRIGHT: use the direction the BACK of the phone points */
+            east  = -(cA * sG + cG * sA * sB);
+            north = -(sA * sG - cA * cG * sB);
         }
 
-        return heading / rad;
+        return Math.atan2(east, north) / RAD + extra;
     }
 
     /* ---------- SENSOR EVENT ---------- */
@@ -15064,43 +15070,105 @@ function logout() {
 
         let heading = null;
 
-        if (typeof event.webkitCompassHeading === "number") {
-
-            /* iPhone: already true compass heading */
-            heading = event.webkitCompassHeading;
-
-        } else if (
-            event.alpha !== null &&
-            event.alpha !== undefined &&
-            event.beta  !== null &&
-            event.gamma !== null
+        if (
+            typeof event.webkitCompassHeading === "number" &&
+            event.webkitCompassHeading >= 0
         ) {
 
-            /* Android: prefer the absolute (magnetic north) event */
-            if (event.type === "deviceorientationabsolute") {
-                gotAbsolute = true;
-            } else if (gotAbsolute) {
+            /* iPhone: Apple's own true compass heading */
+            heading = event.webkitCompassHeading + screenAngle();
+
+        } else {
+
+            if (
+                event.alpha === null ||
+                event.beta  === null ||
+                event.gamma === null
+            ) {
                 return;
             }
 
-            heading = headingFromAngles(
+            /*
+             * Only use sensors that know where NORTH is.
+             * Plain "deviceorientation" on Android is relative
+             * (random starting direction) and must be ignored.
+             */
+            if (event.type === "deviceorientationabsolute") {
+
+                gotAbsolute = true;
+
+            } else if (gotAbsolute || event.absolute !== true) {
+
+                return;
+            }
+
+            heading = androidHeading(
                 event.alpha,
                 event.beta,
                 event.gamma
             );
-
-            const screenAngle =
-                (screen.orientation && screen.orientation.angle) || 0;
-
-            heading += screenAngle;
         }
 
-        if (heading === null) {
+        if (heading === null || isNaN(heading)) {
             return;
         }
 
-        render(heading);
+        gotData = true;
+
+        targetHeading = ((heading % 360) + 360) % 360;
     }
+
+    /* ---------- DRAW ---------- */
+
+    function draw(heading) {
+
+        /* rotate by the shortest path so it never spins the long way */
+        const target = -heading;
+        const diff = ((target - shownRotation + 540) % 360) - 180;
+
+        shownRotation += diff;
+
+        dial.style.transform = "rotate(" + shownRotation + "deg)";
+
+        degreesEl.textContent = Math.round(heading) % 360 + "°";
+
+        dirEl.textContent = names[Math.round(heading / 45) % 8];
+
+        const nearNorth = heading < 3 || heading > 357;
+        outer.classList.toggle("facing-north", nearNorth);
+    }
+
+    /* ---------- SMOOTH ANIMATION LOOP ---------- */
+
+    function frame() {
+
+        if (targetHeading !== null) {
+
+            if (smooth === null) {
+
+                smooth = targetHeading;
+
+            } else {
+
+                const d = ((targetHeading - smooth + 540) % 360) - 180;
+
+                /* ignore tiny sensor shaking */
+                if (Math.abs(d) > 0.4) {
+
+                    /* small moves = very smooth, big turns = fast */
+                    const k = Math.min(0.5, 0.15 + Math.abs(d) / 90);
+
+                    smooth = (smooth + d * k + 360) % 360;
+                }
+            }
+
+            draw(smooth);
+        }
+
+        requestAnimationFrame(frame);
+    }
+
+    /* ---------- START LISTENING ---------- */
 
     function listen() {
 
@@ -15112,19 +15180,22 @@ function logout() {
 
         window.addEventListener("deviceorientationabsolute", onOrientation, true);
         window.addEventListener("deviceorientation", onOrientation, true);
-    }
 
-    /* ---------- START ---------- */
+        setTimeout(function() {
+
+            if (!gotData) {
+                dirEl.textContent = "NO SENSOR";
+            }
+
+        }, 3000);
+    }
 
     if (
         typeof DeviceOrientationEvent !== "undefined" &&
         typeof DeviceOrientationEvent.requestPermission === "function"
     ) {
 
-        /*
-         * iPhone: Safari only allows the sensor after a user touch.
-         * The first tap anywhere on the page switches it on silently.
-         */
+        /* iPhone: first tap anywhere switches the compass on */
         const askOnce = function() {
 
             document.removeEventListener("click", askOnce);
@@ -15144,11 +15215,12 @@ function logout() {
 
     } else {
 
-        /* Android / other: start straight away */
+        /* Android: start straight away */
         listen();
     }
 
-    render(0);
+    draw(0);
+    requestAnimationFrame(frame);
 
 })();
    
