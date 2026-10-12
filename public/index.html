@@ -4413,37 +4413,6 @@ align-items: flex-start;
 
 }
 
-/* =========================================================
-   ONLINE STATUS GREEN LIGHT
-========================================================= */
-
-.chat-avatar,
-.wa-avatar {
-    position: relative;
-}
-
-.chat-avatar.is-online::after,
-.wa-avatar.is-online::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    background: #00e676;
-    border: 2px solid #111;
-}
-
-.wa-user-status.online::before {
-    content: "";
-    display: inline-block;
-    width: 7px;
-    height: 7px;
-    margin-right: 5px;
-    border-radius: 50%;
-    background: #00e676;
-}
 
 
 
@@ -7955,43 +7924,6 @@ function getToken() {
 
 let chatSocket = null;
 
-/* =========================================================
-   ONLINE USERS (GREEN LIGHT)
-========================================================= */
-
-const onlineUsers = new Set();
-
-function setUserOnlineUI(userId, online) {
-
-    userId = String(userId);
-
-    if (online) {
-        onlineUsers.add(userId);
-    } else {
-        onlineUsers.delete(userId);
-    }
-
-    /* every avatar for this user (chat list + chat window) */
-    document
-        .querySelectorAll('[data-user-id="' + userId + '"]')
-        .forEach(function(element) {
-            element.classList.toggle("is-online", online);
-        });
-
-    /* the "Online / Offline" text in the open chat */
-    if (String(currentChatUserId) === userId) {
-
-        const status =
-            document.getElementById("chatWindowStatus");
-
-        if (status) {
-            status.textContent = online ? "Online" : "Offline";
-            status.classList.toggle("online", online);
-            status.classList.toggle("offline", !online);
-        }
-    }
-}
-
 function connectChatSocket() {
 
     const token = getToken();
@@ -8132,10 +8064,55 @@ chatSocket.on(
             return;
         }
 
-        setUserOnlineUI(
-            data.userId,
-            !!data.online
-        );
+
+        const status =
+            document.getElementById(
+                "chatWindowStatus"
+            );
+
+
+        if (
+            !status ||
+            !currentChatUserId
+        ) {
+            return;
+        }
+
+
+        if (
+            String(data.userId) !==
+            String(currentChatUserId)
+        ) {
+            return;
+        }
+
+
+        if (data.online) {
+
+            status.textContent =
+                "Online";
+
+            status.classList.remove(
+                "offline"
+            );
+
+            status.classList.add(
+                "online"
+            );
+
+        } else {
+
+            status.textContent =
+                "Offline";
+
+            status.classList.remove(
+                "online"
+            );
+
+            status.classList.add(
+                "offline"
+            );
+        }
     }
 );
 
@@ -10027,11 +10004,9 @@ async function loadChats() {
                         )"
                     >
 
-                                                <div
-                            class="chat-avatar ${onlineUsers.has(String(otherUser._id)) ? "is-online" : ""}"
-                            data-user-id="${escapeHTML(otherUser._id)}"
-                        >
+                        <div class="chat-avatar">
                             ${escapeHTML(avatar)}
+                        </div>
 
                         <div class="chat-info">
 
@@ -10054,12 +10029,6 @@ async function loadChats() {
 
             }).join("");
 
-                    /* ask the server who is online right now */
-        chatList
-            .querySelectorAll("[data-user-id]")
-            .forEach(function(element) {
-                requestUserStatus(element.dataset.userId);
-            });
 
     } catch (error) {
 
@@ -10617,19 +10586,12 @@ if (avatar) {
         );
 
 
-       const userKey = String(user._id || user.id);
-    const isOnline = onlineUsers.has(userKey);
+   if (status) {
+    status.textContent = "Offline";
 
-    if (status) {
-        status.textContent = isOnline ? "Online" : "Offline";
-        status.classList.toggle("online", isOnline);
-        status.classList.toggle("offline", !isOnline);
-    }
-
-    if (avatar) {
-        avatar.dataset.userId = userKey;
-        avatar.classList.toggle("is-online", isOnline);
-    }
+    status.classList.remove("online");
+    status.classList.add("offline");
+}
 
 
     chatWindow.style.display =
