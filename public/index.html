@@ -11107,36 +11107,39 @@ const response = await fetch(
             }
 
 
-            localStorage.setItem(
-                TOKEN_KEY,
-                data.token
-            );
+           if (data.requiresEmailVerification) {
+    message.textContent =
+        data.message ||
+        "Check your email and click the verification link before signing in.";
 
-            localStorage.setItem(
-                USER_KEY,
-                JSON.stringify(data.user)
-            );
+    message.style.color = "#00ff88";
 
-            
+    registerForm.reset();
 
+    button.disabled = false;
 
-            message.textContent =
-                "Account created successfully!";
+    return;
+}
 
-            message.style.color =
-                "#00ff88";
+localStorage.setItem(
+    TOKEN_KEY,
+    data.token
+);
 
+localStorage.setItem(
+    USER_KEY,
+    JSON.stringify(data.user)
+);
 
-            /*
-             * HOME IS NOW THE FIRST PAGE AFTER
-             * REGISTRATION AS WELL.
-             */
+message.textContent =
+    "Account created successfully!";
 
-            setTimeout(function() {
+message.style.color =
+    "#00ff88";
 
-                navigateTo("home");
-
-            }, 500);
+setTimeout(function() {
+    navigateTo("home");
+}, 500);
 
 
         } catch (error) {
