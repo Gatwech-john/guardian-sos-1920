@@ -4455,6 +4455,58 @@ align-items: flex-start;
     100% { transform: scale(1); }
 
 }
+
+/* =========================================================
+   REMOVE ALL SHADOWS FROM HOME BUTTONS
+========================================================= */
+
+/* SOS button + dashboard (watch) button */
+.home-actions .sos-main-button,
+.home-actions .secondary-button,
+.home-actions .primary-button,
+.sos-main-button,
+.secondary-button,
+.primary-button {
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* watch rainbow ring + face */
+.live-watch,
+.watch-face,
+.watch-center,
+.watch-digital {
+    box-shadow: none !important;
+    filter: none !important;
+    animation: none !important;
+}
+
+/* compass */
+.compass-outer,
+.compass-outer.facing-north,
+.compass-ring,
+.compass-hub,
+.compass-pointer,
+.compass-north-arrow {
+    box-shadow: none !important;
+    filter: none !important;
+    animation: none !important;
+}
+
+.compass-degrees,
+.compass-mark.cardinal span,
+.compass-mark.cardinal.north span {
+    text-shadow: none !important;
+}
+
+.compass-mark.major::before {
+    box-shadow: none !important;
+}
+
+/* heart icon */
+.home-actions .sos-main-button .sos-real-heart {
+    filter: none !important;
+}
 </style>
 <!-- LEAFLET MAP -->
 <link
