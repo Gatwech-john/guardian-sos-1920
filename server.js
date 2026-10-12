@@ -281,23 +281,6 @@ const UserSchema = new mongoose.Schema(
             maxlength: 150
         },
 
-        
-        emailVerified: {
-            type: Boolean,
-            default: false
-        },
-
-        emailVerificationTokenHash: {
-            type: String,
-            default: null
-        },
-
-        emailVerificationExpiresAt: {
-            type: Date,
-            default: null
-        },
-
-
         phone: {
             type: String,
             trim: true,
@@ -940,6 +923,51 @@ const MessageSchema = new mongoose.Schema({
 
 });
 
+
+/* ============================================================
+   EMAIL VERIFICATION (REGISTRATION ONLY)
+============================================================ */
+
+const EmailVerificationSchema = new mongoose.Schema({
+
+    email: {
+        type: String,
+        required: true,
+        lowercase: true,
+        trim: true,
+        unique: true
+    },
+
+    codeHash: {
+        type: String,
+        required: true
+    },
+
+    attempts: {
+        type: Number,
+        default: 0
+    },
+
+    lastSentAt: {
+        type: Date,
+        default: Date.now
+    },
+
+    // MongoDB deletes the document automatically after this time
+    expiresAt: {
+        type: Date,
+        required: true,
+        index: { expires: 0 }
+    }
+
+});
+
+const EmailVerification =
+    mongoose.models.EmailVerification ||
+    mongoose.model(
+        "EmailVerification",
+        EmailVerificationSchema
+    );
 /* ============================================================
    CREATE MODELS
 ============================================================ */
@@ -2591,6 +2619,136 @@ app.get("/api/status", (req, res) => {
 });
 
 
+/*
+------------------------------------------------------------
+SEND REGISTRATION VERIFICATION CODE
+POST /api/auth/send-verification-code
+------------------------------------------------------------
+*/
+
+app.post(
+    "/api/auth/send-verification-code",
+    async (req, res) => {
+
+        try {
+
+            await connectMongoDB();
+
+            const email =
+                String(req.body?.email || "")
+                    .trim()
+                    .toLowerCase();
+
+            if (!email || !isValidEmail(email)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Please enter a valid email address."
+                });
+            }
+
+            /* Email already registered? */
+            const existingUser =
+                await User.findOne({ email });
+
+            if (existingUser) {
+                return res.status(409).json({
+                    success: false,
+                    message: "An account with this email already exists."
+                });
+            }
+
+            /* Stop spamming: 60 seconds between codes */
+            const existing =
+                await EmailVerification.findOne({ email });
+
+            if (
+                existing &&
+                Date.now() - existing.lastSentAt.getTime() < 60 * 1000
+            ) {
+                return res.status(429).json({
+                    success: false,
+                    message: "Please wait a minute before requesting another code."
+                });
+            }
+
+            const code =
+                String(crypto.randomInt(100000, 1000000));
+
+            const codeHash =
+                crypto
+                    .createHash("sha256")
+                    .update(code)
+                    .digest("hex");
+
+            await EmailVerification.findOneAndUpdate(
+                { email },
+                {
+                    email,
+                    codeHash,
+                    attempts: 0,
+                    lastSentAt: new Date(),
+                    expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+                },
+                { upsert: true, new: true }
+            );
+
+            await passwordResetTransporter.sendMail({
+
+                from:
+                    process.env.SMTP_FROM ||
+                    process.env.SMTP_USER,
+
+                to: email,
+
+                subject: "Guardian SOS Email Verification Code",
+
+                text:
+`Welcome to Guardian SOS!
+
+Your email verification code is:
+
+${code}
+
+This code expires in 10 minutes.
+
+If you did not try to create an account, ignore this email.`,
+
+                html:
+`
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;background:#111;color:white;border-radius:12px;">
+    <h2 style="color:#ff1493;text-align:center;">GUARDIAN SOS</h2>
+    <p>Use this code to verify your email address:</p>
+    <div style="text-align:center;margin:25px 0;">
+        <span style="display:inline-block;padding:15px 25px;border:2px solid #ff1493;border-radius:10px;font-size:32px;font-weight:bold;letter-spacing:8px;color:#ff1493;background:#000;">
+            ${code}
+        </span>
+    </div>
+    <p>This code expires in <strong>10 minutes</strong>.</p>
+    <p>If you did not try to create an account, you can ignore this email.</p>
+</div>
+`
+            });
+
+            return res.json({
+                success: true,
+                message: "Verification code sent. Check your email."
+            });
+
+        } catch (error) {
+
+            console.error("Send verification code error:", error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable to send verification code."
+            });
+
+        }
+
+    }
+);
+
+
 
 /*
 ------------------------------------------------------------
@@ -2600,208 +2758,238 @@ POST /api/auth/register
 ------------------------------------------------------------
 */
 
-
 app.post(
     "/api/auth/register",
     profileUpload.single("profileImage"),
     async (req, res) => {
+
         try {
-            await connectMongoDB();
 
-            const { name, email, phone, password } = req.body;
+    await connectMongoDB();
 
-            if (!name || !email || !password) {
+        const {
+        name,
+        email,
+        phone,
+        password,
+        code
+    } = req.body;
+
+
+            if (
+                !name ||
+                !email ||
+                !password
+            ) {
+
                 return res.status(400).json({
+
                     success: false,
-                    message: "Name, email and password are required."
+
+                    message:
+                        "Name, email and password are required."
+
                 });
+
             }
+
 
             if (!isValidEmail(email)) {
+
                 return res.status(400).json({
+
                     success: false,
-                    message: "Please enter a valid email address."
+
+                    message:
+                        "Please enter a valid email address."
+
                 });
+
             }
+
 
             if (password.length < 8) {
+
                 return res.status(400).json({
+
                     success: false,
-                    message: "Password must contain at least 8 characters."
+
+                    message:
+                        "Password must contain at least 8 characters."
+
                 });
+
             }
 
-            const normalizedEmail = email.toLowerCase().trim();
 
-            const existingUser = await User.findOne({
-                email: normalizedEmail
-            });
+            const normalizedEmail =
+                email.toLowerCase().trim();
+
+
+            const existingUser =
+                await User.findOne({
+                    email: normalizedEmail
+                });
+
 
             if (existingUser) {
+
                 return res.status(409).json({
+
                     success: false,
-                    message: "An account with this email already exists."
+
+                    message:
+                        "An account with this email already exists."
+
+                });
+
+            }
+
+                        /* ------------------------------------------------
+               VERIFY EMAIL CODE
+            ------------------------------------------------ */
+
+            const suppliedCode =
+                String(code || "").trim();
+
+            if (!/^\d{6}$/.test(suppliedCode)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Please enter the 6-digit email verification code."
                 });
             }
 
-            const hashedPassword = await bcrypt.hash(password, 12);
+            const verification =
+                await EmailVerification.findOne({
+                    email: normalizedEmail
+                });
 
-            const verificationCode =
-                crypto.randomInt(100000, 1000000).toString();
+            if (
+                !verification ||
+                verification.expiresAt.getTime() < Date.now()
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Verification code expired. Please request a new one."
+                });
+            }
 
-            const user = await User.create({
-                name: name.trim(),
-                email: normalizedEmail,
-                phone: phone ? phone.trim() : "",
-                password: hashedPassword,
+            if (verification.attempts >= 5) {
+                await EmailVerification.deleteOne({ _id: verification._id });
 
-                profileImage: req.file
-                    ? `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`
-                    : "",
+                return res.status(429).json({
+                    success: false,
+                    message: "Too many wrong attempts. Please request a new code."
+                });
+            }
 
-                emailVerified: false,
+            const suppliedHash =
+                crypto
+                    .createHash("sha256")
+                    .update(suppliedCode)
+                    .digest("hex");
 
-                emailVerificationCodeHash:
-                    crypto.createHash("sha256")
-                        .update(verificationCode)
-                        .digest("hex"),
+            if (suppliedHash !== verification.codeHash) {
 
-                emailVerificationExpiresAt:
-                    new Date(Date.now() + 10 * 60 * 1000)
+                verification.attempts += 1;
+                await verification.save();
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid verification code."
+                });
+            }
+
+            const hashedPassword =
+                await bcrypt.hash(
+                    password,
+                    12
+                );
+
+
+            const user =
+    await User.create({
+
+        name:
+            name.trim(),
+
+        email:
+            normalizedEmail,
+
+        phone:
+            phone
+                ? phone.trim()
+                : "",
+
+        password:
+            hashedPassword,
+
+        profileImage:
+            req.file
+                ? `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`
+                : ""
+
+    });
+
+await EmailVerification.deleteOne({
+                email: normalizedEmail
             });
+            const token =
+                createToken(user);
 
-            try {
-                await passwordResetTransporter.sendMail({
-                    from: process.env.SMTP_FROM || process.env.SMTP_USER,
-                    to: normalizedEmail,
-                    subject: "Verify your Guardian SOS account",
-                    text:
-                        `Your Guardian SOS verification code is ${verificationCode}. ` +
-                        "It expires in 10 minutes. If you did not create this account, ignore this email."
-                });
-            } catch (emailError) {
-                console.error("Verification email failed:", emailError);
 
-                await User.deleteOne({ _id: user._id });
+            res.status(201).json({
 
-                return res.status(500).json({
-                    success: false,
-                    message: "We could not send the verification email. Please try again later."
-                });
-            }
-
-            return res.status(201).json({
                 success: true,
-                verificationRequired: true,
-                email: normalizedEmail,
-                message: "A verification code has been sent to your email."
+
+                message:
+                    "Account created successfully.",
+
+                token,
+
+                user: {
+
+                    id:
+                        user._id,
+
+                    name:
+                        user.name,
+
+                    email:
+                        user.email,
+
+                    phone:
+                        user.phone,
+
+                    profileImage:
+                        user.profileImage
+
+                }
+
             });
+
 
         } catch (error) {
-            console.error("Registration error:", error);
 
-            return res.status(500).json({
+            console.error(
+                "Registration error:",
+                error
+            );
+
+
+            res.status(500).json({
+
                 success: false,
-                message: "Unable to create account."
+
+                message:
+                    "Unable to create account."
+
             });
+
         }
+
     }
 );
-
-
-
-app.post("/api/auth/verify-email", async (req, res) => {
-    try {
-        await connectMongoDB();
-
-        const email = String(req.body?.email || "")
-            .trim()
-            .toLowerCase();
-
-        const code = String(req.body?.code || "").trim();
-
-        if (!email || !/^\d{6}$/.test(code)) {
-            return res.status(400).json({
-                success: false,
-                message: "Enter your email and the six-digit verification code."
-            });
-        }
-
-        const user = await User.findOne({ email });
-
-        if (!user) {
-            return res.status(400).json({
-                success: false,
-                message: "Account not found. Please sign up again."
-            });
-        }
-
-        if (user.emailVerified === true) {
-            return res.status(400).json({
-                success: false,
-                message: "This email is already verified. Please log in."
-            });
-        }
-
-        if (
-            !user.emailVerificationExpiresAt ||
-            user.emailVerificationExpiresAt.getTime() < Date.now()
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "The code has expired. Please sign up again."
-            });
-        }
-
-        const submittedHash = crypto.createHash("sha256")
-            .update(code)
-            .digest("hex");
-
-        const savedHash = user.emailVerificationCodeHash || "";
-
-        const submittedBuffer = Buffer.from(submittedHash, "hex");
-        const savedBuffer = Buffer.from(savedHash, "hex");
-
-        if (
-            submittedBuffer.length !== savedBuffer.length ||
-            !crypto.timingSafeEqual(submittedBuffer, savedBuffer)
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "Incorrect verification code."
-            });
-        }
-
-        user.emailVerified = true;
-        user.emailVerificationCodeHash = null;
-        user.emailVerificationExpiresAt = null;
-
-        await user.save();
-
-        const token = createToken(user);
-
-        return res.status(200).json({
-            success: true,
-            message: "Email verified successfully.",
-            token,
-            user: {
-                id: user._id.toString(),
-                name: user.name,
-                email: user.email,
-                phone: user.phone,
-                profileImage: user.profileImage
-            }
-        });
-
-    } catch (error) {
-        console.error("Email verification error:", error);
-
-        return res.status(500).json({
-            success: false,
-            message: "Unable to verify email right now."
-        });
-    }
-});
 
 
 /*
@@ -2951,15 +3139,6 @@ app.post(
                 });
 
             }
-
-            
-if (user.emailVerified === false) {
-    return res.status(403).json({
-        success: false,
-        message: "Please verify your email before logging in."
-    });
-}
-
 
 
             /*

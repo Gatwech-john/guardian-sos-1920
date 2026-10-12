@@ -4381,6 +4381,32 @@ align-items: flex-start;
                     >
                 </div>
 
+
+                                <div class="form-group">
+                    <label for="registerVerificationCode">Email Verification Code</label>
+
+                    <div style="display:flex; gap:8px;">
+                        <input
+                            type="text"
+                            id="registerVerificationCode"
+                            maxlength="6"
+                            inputmode="numeric"
+                            autocomplete="one-time-code"
+                            placeholder="6-digit code"
+                            style="flex:1;"
+                        >
+
+                        <button
+                            type="button"
+                            id="sendVerificationCodeButton"
+                            class="auth-button"
+                            style="width:auto; padding:0 14px; white-space:nowrap;"
+                        >
+                            SEND CODE
+                        </button>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="registerPhone">Phone</label>
                     <input
@@ -4449,39 +4475,6 @@ align-items: flex-start;
         </div>
 
     </section>
-
-<section id="emailVerificationPage" class="page auth-page" style="display:none;">
-    <div class="auth-box">
-        <div class="auth-logo">SOS GUARDIAN</div>
-
-        <h2>Verify Your Email</h2>
-
-        <p>
-            Enter the six-digit verification code sent to your email address.
-        </p>
-
-        <form id="emailVerificationForm">
-            <div class="form-group">
-                <label for="verificationCode">Verification Code</label>
-                <input
-                    type="text"
-                    id="verificationCode"
-                    inputmode="numeric"
-                    pattern="[0-9]{6}"
-                    maxlength="6"
-                    required
-                    placeholder="Enter 6-digit code"
-                >
-            </div>
-
-            <div id="emailVerificationMessage" class="auth-message"></div>
-
-            <button type="submit" id="verifyEmailButton" class="auth-button">
-                VERIFY EMAIL
-            </button>
-        </form>
-    </div>
-</section>
 
 
     <!-- =====================================================
@@ -11003,9 +10996,86 @@ async function registerGuardianFCMToken() {
 
 registerGuardianFCMToken();
 
-
 /* =========================================================
-   REGISTER — EMAIL VERIFICATION REQUIRED
+   SEND EMAIL VERIFICATION CODE (REGISTER)
+========================================================= */
+
+const sendVerificationCodeButton =
+    document.getElementById("sendVerificationCodeButton");
+
+if (sendVerificationCodeButton) {
+
+    sendVerificationCodeButton.addEventListener(
+        "click",
+        async function() {
+
+            const email =
+                document.getElementById("registerEmail")
+                    .value.trim().toLowerCase();
+
+            const message =
+                document.getElementById("registerMessage");
+
+            if (!email) {
+                message.textContent = "Enter your email first.";
+                message.style.color = "#ff4444";
+                return;
+            }
+
+            sendVerificationCodeButton.disabled = true;
+            message.textContent = "Sending verification code...";
+            message.style.color = "#ff1493";
+
+            try {
+
+                const response = await fetch(
+                    "/api/auth/send-verification-code",
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email: email })
+                    }
+                );
+
+                let data = {};
+                try { data = await response.json(); } catch (e) {}
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || "Unable to send code.");
+                }
+
+                message.textContent = data.message;
+                message.style.color = "#00ff88";
+
+                /* 60-second cooldown on the button */
+                let seconds = 60;
+                sendVerificationCodeButton.textContent = "RESEND (" + seconds + ")";
+
+                const timer = setInterval(function() {
+                    seconds--;
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        sendVerificationCodeButton.disabled = false;
+                        sendVerificationCodeButton.textContent = "SEND CODE";
+                    } else {
+                        sendVerificationCodeButton.textContent = "RESEND (" + seconds + ")";
+                    }
+                }, 1000);
+
+            } catch (error) {
+
+                message.textContent = error.message;
+                message.style.color = "#ff4444";
+                sendVerificationCodeButton.disabled = false;
+
+            }
+
+        }
+    );
+
+}
+/* =========================================================
+   REGISTER
 ========================================================= */
 
 const registerForm =
@@ -11016,6 +11086,7 @@ registerForm.addEventListener(
     async function(event) {
 
         event.preventDefault();
+
 
         const name =
             document.getElementById("registerName")
@@ -11040,154 +11111,165 @@ registerForm.addEventListener(
             document.getElementById("confirmPassword")
                 .value;
 
+                        const verificationCode =
+            document.getElementById("registerVerificationCode")
+                .value.trim();
+
         const message =
             document.getElementById("registerMessage");
 
         const button =
             document.getElementById("registerButton");
 
+
         if (password !== confirmPassword) {
-            message.textContent = "Passwords do not match.";
-            message.style.color = "#ff4444";
+
+            message.textContent =
+                "Passwords do not match.";
+
+            message.style.color =
+                "#ff4444";
+
             return;
+
         }
 
+
         if (password.length < 8) {
+
             message.textContent =
                 "Password must contain at least 8 characters.";
-            message.style.color = "#ff4444";
+
+            message.style.color =
+                "#ff4444";
+
             return;
+
+        }
+        if (!/^\d{6}$/.test(verificationCode)) {
+
+            message.textContent =
+                "Please enter the 6-digit code sent to your email.";
+
+            message.style.color =
+                "#ff4444";
+
+            return;
+
         }
 
         button.disabled = true;
-        message.textContent = "Creating account...";
-        message.style.color = "#ff1493";
+
+        message.textContent =
+            "Creating account...";
+
+        message.style.color =
+            "#ff1493";
+
 
         try {
 
             const registerPhoto =
-                document.getElementById("registerPhoto");
+    document.getElementById("registerPhoto");
 
-            const formData = new FormData();
+const formData =
+    new FormData();
 
-            formData.append("name", name);
-            formData.append("email", email);
-            formData.append("phone", phone);
-            formData.append("password", password);
+formData.append("name", name);
+formData.append("email", email);
+formData.append("phone", phone);
+formData.append("password", password);
 
-            if (
-                registerPhoto &&
-                registerPhoto.files &&
-                registerPhoto.files.length > 0
-            ) {
-                formData.append(
-                    "profileImage",
-                    registerPhoto.files[0]
-                );
-            }
+formData.append("code", verificationCode);
 
-            const response = await fetch(
-                "/api/auth/register",
-                {
-                    method: "POST",
-                    body: formData
-                }
-            );
+if (
+    registerPhoto &&
+    registerPhoto.files &&
+    registerPhoto.files.length > 0
+) {
+    formData.append(
+        "profileImage",
+        registerPhoto.files[0]
+    );
+}
+
+const response = await fetch(
+    "/api/auth/register",
+    {
+        method: "POST",
+        body: formData
+    }
+);
+
 
             let data = {};
 
             try {
+
                 data = await response.json();
+
             } catch (error) {
+
                 data = {};
+
             }
 
-            if (!response.ok || !data.success) {
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
                 throw new Error(
-                    data.message || "Registration failed."
+                    data.message ||
+                    "Registration failed."
                 );
+
             }
+
+
+            localStorage.setItem(
+                TOKEN_KEY,
+                data.token
+            );
+
+            localStorage.setItem(
+                USER_KEY,
+                JSON.stringify(data.user)
+            );
+
+            
+
+
+            message.textContent =
+                "Account created successfully!";
+
+            message.style.color =
+                "#00ff88";
+
 
             /*
-             * DO NOT STORE A LOGIN TOKEN HERE.
-             * The user must verify their email first.
+             * HOME IS NOW THE FIRST PAGE AFTER
+             * REGISTRATION AS WELL.
              */
 
-            if (data.verificationRequired) {
+            setTimeout(function() {
 
-                window.pendingVerificationEmail =
-                    data.email || email;
+                navigateTo("home");
 
-                const verificationPage =
-                    document.getElementById(
-                        "emailVerificationPage"
-                    );
+            }, 500);
 
-                const verificationEmail =
-                    document.getElementById(
-                        "verificationEmail"
-                    );
-
-                const verificationMessage =
-                    document.getElementById(
-                        "emailVerificationMessage"
-                    );
-
-                if (!verificationPage) {
-                    throw new Error(
-                        "Email verification page is missing. Add the verification HTML before testing registration."
-                    );
-                }
-
-                if (verificationEmail) {
-                    verificationEmail.textContent =
-                        window.pendingVerificationEmail;
-                }
-
-                if (verificationMessage) {
-                    verificationMessage.textContent =
-                        "We sent a verification code to your email.";
-                    verificationMessage.style.color =
-                        "#00ff88";
-                }
-
-                verificationPage.style.display = "block";
-
-                const loginPage =
-                    document.getElementById("loginPage");
-
-                const registerPage =
-                    document.getElementById("registerPage");
-
-                if (loginPage) {
-                    loginPage.style.display = "none";
-                }
-
-                if (registerPage) {
-                    registerPage.style.display = "none";
-                }
-
-                message.textContent =
-                    "Check your email for the verification code.";
-                message.style.color = "#00ff88";
-
-                return;
-            }
-
-            throw new Error(
-                "The server did not request email verification. Check that /api/auth/register has been updated."
-            );
 
         } catch (error) {
 
             console.error(error);
 
             message.textContent =
-                error.message || "Unable to create account.";
+                error.message ||
+                "Unable to create account.";
 
-            message.style.color = "#ff4444";
-
-        } finally {
+            message.style.color =
+                "#ff4444";
 
             button.disabled = false;
 
@@ -11195,9 +11277,6 @@ registerForm.addEventListener(
 
     }
 );
-
-
-
 
 /* =========================================================
    FORGOT PASSWORD
