@@ -23261,11 +23261,25 @@ setInterval(
 (function () {
 
     const NS = "http://www.w3.org/2000/svg";
-    const SEGMENTS = 45;        // more = smoother fade
-    const TAIL_FRACTION = 0.45; // tail length as part of the full border
-    const LOOP_SECONDS = 3;     // time for one full lap
+    const SEGMENTS = 45;
+    const TAIL_FRACTION = 0.45;
+    const LOOP_SECONDS = 3;
 
-    let svg, segs = [], arrow, total = 0, builtW = 0, builtH = 0, rectEl;
+    let svg = null, segs = [], arrow = null, rectEl = null;
+    let total = 0, builtW = 0, builtH = 0;
+
+    function makeRect(w, h, width) {
+        const r = document.createElementNS(NS, "rect");
+        r.setAttribute("x", 2);
+        r.setAttribute("y", 2);
+        r.setAttribute("width", w - 4);
+        r.setAttribute("height", h - 4);
+        r.setAttribute("rx", (h - 4) / 2);
+        r.setAttribute("fill", "none");
+        r.setAttribute("stroke", "lime");
+        r.setAttribute("stroke-width", width);
+        return r;
+    }
 
     function build(badge, w, h) {
 
@@ -23277,26 +23291,25 @@ setInterval(
         svg.setAttribute("height", h);
         svg.setAttribute("viewBox", "0 0 " + w + " " + h);
 
-        const mk = function () {
-            const r = document.createElementNS(NS, "rect");
-            r.setAttribute("x", 1);
-            r.setAttribute("y", 1);
-            r.setAttribute("width", w - 2);
-            r.setAttribute("height", h - 2);
-            r.setAttribute("rx", (h - 2) / 2);
-            r.setAttribute("fill", "none");
-            r.setAttribute("stroke", "lime");
-            r.setAttribute("stroke-width", 2.5);
-            return r;
-        };
+        /* Measuring rect: attached to the page BEFORE measuring */
+        rectEl = makeRect(w, h, 0);
+        rectEl.setAttribute("stroke", "none");
+        svg.appendChild(rectEl);
+        badge.appendChild(svg);
 
-        rectEl = mk();
         total = rectEl.getTotalLength();
+
+        if (!total || !isFinite(total)) {
+            /* Fallback: calculate the length by hand */
+            const r = (h - 4) / 2;
+            total = 2 * (w - 4 - 2 * r) + 2 * Math.PI * r;
+        }
+
+        const segLen = (total * TAIL_FRACTION) / SEGMENTS;
 
         segs = [];
         for (let i = 0; i < SEGMENTS; i++) {
-            const s = mk();
-            const segLen = (total * TAIL_FRACTION) / SEGMENTS;
+            const s = makeRect(w, h, 2.5);
             s.setAttribute("stroke-dasharray", segLen + " " + (total - segLen));
             s.setAttribute("stroke-opacity", 1 - i / SEGMENTS);
             svg.appendChild(s);
@@ -23307,8 +23320,6 @@ setInterval(
         arrow.setAttribute("points", "-9,-6 3,0 -9,6 -5,0");
         arrow.setAttribute("fill", "lime");
         svg.appendChild(arrow);
-
-        badge.appendChild(svg);
 
         builtW = w;
         builtH = h;
@@ -23325,7 +23336,7 @@ setInterval(
 
             if (w > 20 && h > 10) {
 
-                if (w !== builtW || h !== builtH || !svg) {
+                if (!svg || w !== builtW || h !== builtH || !svg.isConnected) {
                     build(badge, w, h);
                 }
 
@@ -23337,16 +23348,20 @@ setInterval(
                     s.el.setAttribute("stroke-dashoffset", -start);
                 });
 
-                // Arrow sits on the head and turns with the border
-                const p1 = rectEl.getPointAtLength((head - 2 + total) % total);
-                const p2 = rectEl.getPointAtLength((head + 2) % total);
-                const p  = rectEl.getPointAtLength(head);
-                const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+                let p, p1, p2;
+                try {
+                    p  = rectEl.getPointAtLength(head);
+                    p1 = rectEl.getPointAtLength((head - 2 + total) % total);
+                    p2 = rectEl.getPointAtLength((head + 2) % total);
+                } catch (e) { p = null; }
 
-                arrow.setAttribute(
-                    "transform",
-                    "translate(" + p.x + "," + p.y + ") rotate(" + angle + ")"
-                );
+                if (p) {
+                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+                    arrow.setAttribute(
+                        "transform",
+                        "translate(" + p.x + "," + p.y + ") rotate(" + angle + ")"
+                    );
+                }
             }
         }
 
