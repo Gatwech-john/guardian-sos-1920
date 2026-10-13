@@ -4399,37 +4399,20 @@ align-items: flex-start;
 
 
 
-/* ===== BADGE: LIME RUNNING LINE WITH ARROW ===== */
+/* ===== BADGE: LIME SNAKE BORDER ===== */
 #homePage .home-badge {
     position: relative;
-    border: 1px solid rgba(0, 255, 0, .35) !important;  /* dim lime track */
+    border: 1px solid rgba(0, 255, 0, .25) !important;  /* dim track */
     background: transparent !important;
-    color: #ffffff;
     overflow: visible;
 }
 
-/* The running line + arrow at the front */
-#homePage .home-badge::after {
-    content: "━━━▶";
+#homePage .home-badge .badge-snake {
     position: absolute;
-    top: 0;
-    left: 0;
-    color: lime;
-    font-size: 12px;
-    line-height: 1;
-    letter-spacing: -1px;
-    text-shadow: 0 0 6px lime;
+    left: -1px;
+    top: -1px;
     pointer-events: none;
-
-    offset-path: inset(0 round 999px);   /* follows the badge border */
-    offset-rotate: auto;                 /* arrow turns around the corners */
-    offset-anchor: 50% 50%;
-    animation: badgeRun 3s linear infinite;
-}
-
-@keyframes badgeRun {
-    from { offset-distance: 0%; }
-    to   { offset-distance: 100%; }
+    overflow: visible;
 }
 </style>
 <!-- LEAFLET MAP -->
@@ -23265,5 +23248,114 @@ setInterval(
     </div>
 
 </div>
+
+
+
+
+
+
+
+
+
+<script>
+(function () {
+
+    const NS = "http://www.w3.org/2000/svg";
+    const SEGMENTS = 45;        // more = smoother fade
+    const TAIL_FRACTION = 0.45; // tail length as part of the full border
+    const LOOP_SECONDS = 3;     // time for one full lap
+
+    let svg, segs = [], arrow, total = 0, builtW = 0, builtH = 0, rectEl;
+
+    function build(badge, w, h) {
+
+        if (svg) svg.remove();
+
+        svg = document.createElementNS(NS, "svg");
+        svg.setAttribute("class", "badge-snake");
+        svg.setAttribute("width", w);
+        svg.setAttribute("height", h);
+        svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+
+        const mk = function () {
+            const r = document.createElementNS(NS, "rect");
+            r.setAttribute("x", 1);
+            r.setAttribute("y", 1);
+            r.setAttribute("width", w - 2);
+            r.setAttribute("height", h - 2);
+            r.setAttribute("rx", (h - 2) / 2);
+            r.setAttribute("fill", "none");
+            r.setAttribute("stroke", "lime");
+            r.setAttribute("stroke-width", 2.5);
+            return r;
+        };
+
+        rectEl = mk();
+        total = rectEl.getTotalLength();
+
+        segs = [];
+        for (let i = 0; i < SEGMENTS; i++) {
+            const s = mk();
+            const segLen = (total * TAIL_FRACTION) / SEGMENTS;
+            s.setAttribute("stroke-dasharray", segLen + " " + (total - segLen));
+            s.setAttribute("stroke-opacity", 1 - i / SEGMENTS);
+            svg.appendChild(s);
+            segs.push({ el: s, len: segLen });
+        }
+
+        arrow = document.createElementNS(NS, "polygon");
+        arrow.setAttribute("points", "-9,-6 3,0 -9,6 -5,0");
+        arrow.setAttribute("fill", "lime");
+        svg.appendChild(arrow);
+
+        badge.appendChild(svg);
+
+        builtW = w;
+        builtH = h;
+    }
+
+    function frame(time) {
+
+        const badge = document.querySelector("#homePage .home-badge");
+
+        if (badge) {
+
+            const w = Math.round(badge.offsetWidth);
+            const h = Math.round(badge.offsetHeight);
+
+            if (w > 20 && h > 10) {
+
+                if (w !== builtW || h !== builtH || !svg) {
+                    build(badge, w, h);
+                }
+
+                const head = ((time / 1000) / LOOP_SECONDS * total) % total;
+
+                segs.forEach(function (s, i) {
+                    let start = head - (i + 1) * s.len;
+                    start = ((start % total) + total) % total;
+                    s.el.setAttribute("stroke-dashoffset", -start);
+                });
+
+                // Arrow sits on the head and turns with the border
+                const p1 = rectEl.getPointAtLength((head - 2 + total) % total);
+                const p2 = rectEl.getPointAtLength((head + 2) % total);
+                const p  = rectEl.getPointAtLength(head);
+                const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+
+                arrow.setAttribute(
+                    "transform",
+                    "translate(" + p.x + "," + p.y + ") rotate(" + angle + ")"
+                );
+            }
+        }
+
+        requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
+
+})();
+</script>
 </body>
 </html>
