@@ -1180,7 +1180,8 @@ body {
     .sos-card {
         border-color: rgba(255, 20, 147, .4);
         background:
-            black;
+            radial-gradient(circle at top right, rgba(255, 20, 147, .13), transparent 50%),
+            #111;
     }
 
     .sos-main-button {
@@ -1188,8 +1189,8 @@ body {
     height: 150px;
     min-height: 150px;
     border-radius: 50%;
-    border: 1px solid white;
-    background: orangered;
+    border: 1px solid red;
+    background: white;
     color: white;
     font-size: 20px;
     font-weight: 900;
@@ -4389,7 +4390,13 @@ align-items: flex-start;
 
 
 
-
+.home-actions .sos-main-button i.bi-heart-fill {
+    color: #ff0000 !important;
+    font-size: 105px !important;
+    line-height: 1 !important;
+    animation: none !important;
+    filter: none !important;
+}
 
 </style>
 <!-- LEAFLET MAP -->
@@ -4923,44 +4930,13 @@ align-items: flex-start;
         onclick="activateSOS()"
         title="Activate SOS"
     >
-                <svg class="sos-real-heart" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-
-            <!-- white outline behind the vessels -->
-            <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M46 38 C42 14 62 4 72 14 C78 20 76 30 74 40" stroke-width="13"/>
-                <path d="M37 36 C30 24 24 16 17 18" stroke-width="11"/>
-                <path d="M68 42 C76 33 84 28 86 12" stroke-width="10"/>
-            </g>
-
-            <!-- heart body -->
-            <path d="M50 30 C32 22 12 36 18 58 C23 76 40 88 52 96 C64 88 84 76 86 56 C88 38 70 22 50 30 Z"
-                  fill="#000000" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
-
-            <!-- left atrium shading -->
-            <path d="M30 34 C19 39 17 54 24 64 C30 53 34 44 39 36 Z" fill="#2b2b2b"/>
-
-            <!-- right side shading -->
-            <path d="M62 34 C78 36 84 48 80 62 C74 52 68 44 62 34 Z" fill="#161616"/>
-
-            <!-- vessels (red, on top) -->
-            <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M46 42 C42 14 62 4 72 14 C78 20 76 30 74 42" stroke="#1a1a1a" stroke-width="8"/>
-                <path d="M38 40 C30 25 24 16 17 18" stroke="#383838" stroke-width="6"/>
-                <path d="M68 44 C76 34 84 28 86 12" stroke="#050505" stroke-width="6"/>
-
-                <!-- septum (divides left and right ventricles) -->
-                <path d="M50 34 C47 56 49 76 54 91" stroke="#4a4a4a" stroke-width="2.2"/>
-
-                <!-- coronary vessels on the surface -->
-                <path d="M31 42 C28 56 36 72 48 84" stroke="#ffb3bd" stroke-width="1.8"/>
-                <path d="M72 44 C76 58 70 72 60 84" stroke="#ffb3bd" stroke-width="1.8"/>
-                <path d="M36 52 C40 58 44 62 46 70" stroke="#ffb3bd" stroke-width="1.4"/>
-            </g>
-
-            <!-- shine -->
-            <ellipse cx="34" cy="50" rx="4" ry="9" fill="#ffffff" opacity=".28" transform="rotate(18 34 50)"/>
-
-        </svg>
+               <button 
+    class="sos-main-button"
+    onclick="activateSOS()"
+    title="Activate SOS"
+>
+    <i class="bi bi-heart-fill"></i>
+</button>
     </button>
 
     <button 
