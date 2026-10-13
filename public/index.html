@@ -4395,13 +4395,41 @@ align-items: flex-start;
 }
 
 
-#homePage .home-actions {
-    margin-top: 20px !important;
-    margin-bottom: 0 !important;
+
+
+
+
+/* ===== BADGE: LIME RUNNING LINE WITH ARROW ===== */
+#homePage .home-badge {
+    position: relative;
+    border: 1px solid rgba(0, 255, 0, .35) !important;  /* dim lime track */
+    background: transparent !important;
+    color: #ffffff;
+    overflow: visible;
 }
 
-#homePage .guardian-compass-wrap {
-    margin-top: 8px !important;
+/* The running line + arrow at the front */
+#homePage .home-badge::after {
+    content: "━━━▶";
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: lime;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: -1px;
+    text-shadow: 0 0 6px lime;
+    pointer-events: none;
+
+    offset-path: inset(0 round 999px);   /* follows the badge border */
+    offset-rotate: auto;                 /* arrow turns around the corners */
+    offset-anchor: 50% 50%;
+    animation: badgeRun 3s linear infinite;
+}
+
+@keyframes badgeRun {
+    from { offset-distance: 0%; }
+    to   { offset-distance: 100%; }
 }
 </style>
 <!-- LEAFLET MAP -->
