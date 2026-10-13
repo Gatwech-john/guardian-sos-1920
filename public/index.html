@@ -4462,21 +4462,6 @@ align-items: flex-start;
     0%   { transform: scale(.6); opacity: .9; }
     100% { transform: scale(2.6); opacity: 0; }
 }
-
-
-@keyframes homeFadeUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-#homePage .home-inner > * {
-    animation: homeFadeUp .7s ease both;
-}
-#homePage .home-inner > :nth-child(2) { animation-delay: .1s; }
-#homePage .home-inner > :nth-child(3) { animation-delay: .2s; }
-#homePage .home-inner > :nth-child(4) { animation-delay: .3s; }
-#homePage .home-inner > :nth-child(5) { animation-delay: .4s; }
-#homePage .home-inner > :nth-child(6) { animation-delay: .5s; }
 </style>
 <!-- LEAFLET MAP -->
 <link
@@ -4990,8 +4975,6 @@ align-items: flex-start;
                     <div class="home-badge">
     <span class="live-shield">
         <i class="bi bi-shield-fill-check"></i>
-<div id="homeGreeting" style="color:#fff;font-size:15px;margin-bottom:12px;"></div>
-        
     </span>
     YOUR SAFETY COMES FIRST
 </div>
@@ -11217,8 +11200,6 @@ function updateHomeUser() {
         user.fullName ||
         "User";
 
-        const greet = document.getElementById("homeGreeting");
-if (greet) greet.textContent = "Hello, " + name.split(" ")[0] + " 👋";
     const dashboardName =
         document.getElementById("dashboardUserName");
 
