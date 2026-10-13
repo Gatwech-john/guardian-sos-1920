@@ -4414,6 +4414,54 @@ align-items: flex-start;
     pointer-events: none;
     overflow: visible;
 }
+
+#homePage .home-badge {
+    color: yellow !important;
+    font-weight: 900 !important;
+}
+
+
+
+/* ===== LIVE BLINKING GREEN SHIELD ===== */
+#homePage .home-badge .live-shield {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+#homePage .home-badge .live-shield i {
+    position: relative;
+    z-index: 2;
+    color: #00ff55 !important;
+    font-size: 16px;
+    line-height: 1;
+    animation: shieldBlink 1.4s ease-in-out infinite;
+}
+
+/* expanding ring, like the live location dot on a map */
+#homePage .home-badge .live-shield::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(0, 255, 85, .55);
+    animation: shieldPulse 1.4s ease-out infinite;
+}
+
+@keyframes shieldBlink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: .45; }
+}
+
+@keyframes shieldPulse {
+    0%   { transform: scale(.6); opacity: .9; }
+    100% { transform: scale(2.6); opacity: 0; }
+}
 </style>
 <!-- LEAFLET MAP -->
 <link
@@ -4925,8 +4973,11 @@ align-items: flex-start;
                 <div class="home-inner">
 
                     <div class="home-badge">
-                        🛡️ YOUR SAFETY COMES FIRST
-                    </div>
+    <span class="live-shield">
+        <i class="bi bi-shield-fill-check"></i>
+    </span>
+    YOUR SAFETY COMES FIRST
+</div>
 
                     <h1 class="home-title">
                         HELP WHEN<br>
