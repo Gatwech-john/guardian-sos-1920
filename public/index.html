@@ -4462,51 +4462,6 @@ align-items: flex-start;
     0%   { transform: scale(.6); opacity: .9; }
     100% { transform: scale(2.6); opacity: 0; }
 }
-
-/* ===== GUARDIAN RING ===== */
-.guardian-ring{
-  display:inline-flex;
-  padding:12px;
-  border-radius:50%;
-  border:4px solid var(--ring,#22e58a);
-  box-shadow:0 0 22px var(--ring,#22e58a);
-  transition:border-color .3s, box-shadow .3s;
-}
-.guardian-ring.safe{--ring:#22e58a;}
-.guardian-ring.watching{--ring:#ffb020;}
-.guardian-ring.danger{--ring:#ff3b4e;}
-
-/* ===== STATUS STRIP ===== */
-.guardian-status-strip{
-  display:flex; flex-wrap:wrap; justify-content:center; gap:8px;
-  margin:22px auto 0; max-width:560px;
-}
-.guardian-status-strip span{
-  padding:8px 12px; border-radius:999px;
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.1);
-  color:#fff; font-size:12px; font-weight:700; white-space:nowrap;
-}
-
-/* ===== TRUSTED CIRCLE ===== */
-.guardian-circle-row{
-  display:flex; justify-content:center; align-items:center;
-  gap:12px; margin:18px auto 0; flex-wrap:wrap;
-}
-.circle-avatar{
-  display:flex; flex-direction:column; align-items:center; gap:5px;
-  text-decoration:none; color:#fff; font-size:11px; max-width:62px;
-}
-.circle-avatar b{
-  width:48px; height:48px; border-radius:50%;
-  background:#ff1493; border:2px solid #fff;
-  display:flex; align-items:center; justify-content:center;
-  font-size:18px;
-}
-.circle-avatar span{
-  max-width:62px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-}
-.circle-avatar.add b{background:#111; color:#ff1493; border-color:#ff1493;}
 </style>
 <!-- LEAFLET MAP -->
 <link
@@ -5035,7 +4990,7 @@ align-items: flex-start;
                     </p>
 
                     <div class="home-actions">
-<div class="guardian-ring safe" id="guardianRing"></div>
+
     <button 
         class="sos-main-button"
         onclick="activateSOS()"
@@ -5080,7 +5035,7 @@ align-items: flex-start;
 
         </svg>
     </button>
-<div class="guardian-ring safe" id="guardianRing"></div>
+
     <button 
     class="secondary-button"
     onclick="navigateTo('dashboard')"
@@ -5121,14 +5076,7 @@ align-items: flex-start;
 </button>
 
 </div>
-<div class="guardian-status-strip" id="homeStatusStrip">
-    <span id="hsBattery">🔋 --</span>
-    <span id="hsConnection">📶 --</span>
-    <span id="hsGps">🎯 --</span>
-    <span id="hsJourney">🧭 No journey</span>
-</div>
 
-<div class="guardian-circle-row" id="homeCircle"></div>
                                                             <div class="guardian-compass-wrap">
 
                         <div class="compass-outer" id="compassOuter">
@@ -14623,8 +14571,6 @@ async function sendSOS(
 
         await loadHistory();
 
-        window.guardianRingRefresh && window.guardianRingRefresh();
-
 
        } catch (error) {
 
@@ -14942,7 +14888,7 @@ async function cancelSOS(id) {
 
 
         await loadHistory();
-window.guardianRingRefresh && window.guardianRingRefresh();
+
 
     } catch (error) {
 
@@ -14991,11 +14937,7 @@ async function resolveSOS(id) {
 
 
         await loadHistory();
-        showToast("SOS request cancelled.");
 
-        await loadHistory();
-
-        window.guardianRingRefresh && window.guardianRingRefresh();
 
     } catch (error) {
 
@@ -15035,11 +14977,6 @@ async function deleteSOS(id) {
         );
 
         await loadHistory();
-                showToast("SOS request cancelled.");
-
-        await loadHistory();
-
-        window.guardianRingRefresh && window.guardianRingRefresh();
 
     } catch (error) {
 
@@ -23483,159 +23420,6 @@ setInterval(
     }
 
     requestAnimationFrame(frame);
-
-})();
-</script>
-
-<script>
-(function(){
-
-  const $ = id => document.getElementById(id);
-  let sosActive = false;
-  let gpsAccuracy = null;
-  let gpsFailed = false;
-  let battery = null;
-
-  function homeIsOpen(){
-    const h = $('homePage');
-    return h && h.classList.contains('active');
-  }
-
-  function readJourney(){
-    try { return JSON.parse(localStorage.getItem('guardianJourney') || 'null'); }
-    catch(e){ return null; }
-  }
-
-  function checkInRunning(){
-    return Number(localStorage.getItem('guardianCheckInUntil') || 0) > Date.now();
-  }
-
-  /* ---------- RING + STRIP ---------- */
-  function render(){
-
-    const journey = readJourney();
-    const journeyActive = !!(journey && journey.active);
-    const checkIn = checkInRunning();
-
-    const ring = $('guardianRing');
-    if (ring){
-      ring.classList.remove('safe','watching','danger');
-      ring.classList.add(sosActive ? 'danger' : (journeyActive || checkIn) ? 'watching' : 'safe');
-    }
-
-    if ($('hsBattery')){
-      $('hsBattery').textContent = battery
-        ? '🔋 ' + Math.round(battery.level * 100) + '%' + (battery.charging ? ' ⚡' : '')
-        : '🔋 N/A';
-    }
-
-    if ($('hsConnection')){
-      $('hsConnection').textContent = navigator.onLine ? '📶 Online' : '📶 Offline';
-    }
-
-    if ($('hsGps')){
-      $('hsGps').textContent = gpsFailed
-        ? '🎯 GPS off'
-        : gpsAccuracy === null
-          ? '🎯 Locating…'
-          : '🎯 ±' + Math.round(gpsAccuracy) + ' m';
-    }
-
-    if ($('hsJourney')){
-      $('hsJourney').textContent = journeyActive
-        ? '🧭 Journey active'
-        : checkIn
-          ? '⏱️ Check-in running'
-          : '🧭 No journey';
-    }
-  }
-
-  /* ---------- SOS STATE (from server) ---------- */
-  async function loadSosState(){
-    if (!getToken()) return;
-    try {
-      const data = await api('/api/sos');
-      const events = Array.isArray(data.events) ? data.events : [];
-      sosActive = events.some(e => e.status === 'ACTIVE');
-      render();
-    } catch(e){}
-  }
-
-  /* ---------- GPS ---------- */
-  function loadGps(){
-    if (!navigator.geolocation) { gpsFailed = true; render(); return; }
-    navigator.geolocation.getCurrentPosition(
-      function(p){ gpsAccuracy = p.coords.accuracy; gpsFailed = false; render(); },
-      function(){ gpsFailed = true; render(); },
-      { enableHighAccuracy:true, timeout:10000, maximumAge:60000 }
-    );
-  }
-
-  /* ---------- TRUSTED CIRCLE ---------- */
-  async function loadCircle(){
-    const row = $('homeCircle');
-    if (!row || !getToken()) return;
-
-    try {
-      const data = await api('/api/contacts');
-      const contacts = Array.isArray(data.contacts) ? data.contacts : [];
-
-      row.innerHTML = '';
-
-      contacts.slice(0, 5).forEach(function(c){
-        const a = document.createElement('a');
-        a.className = 'circle-avatar';
-        a.href = 'tel:' + String(c.phone || '').replace(/[^\d+]/g, '');
-        a.title = 'Call ' + (c.name || '');
-
-        const b = document.createElement('b');
-        b.textContent = (c.name || '?').charAt(0).toUpperCase();
-
-        const s = document.createElement('span');
-        s.textContent = c.name || '';
-
-        a.appendChild(b);
-        a.appendChild(s);
-        row.appendChild(a);
-      });
-
-      const add = document.createElement('a');
-      add.className = 'circle-avatar add';
-      add.href = '#contacts';
-      add.title = 'Add trusted contact';
-      add.innerHTML = '<b>+</b><span>Add</span>';
-      row.appendChild(add);
-
-    } catch(e){}
-  }
-
-  /* ---------- START ---------- */
-  if (navigator.getBattery){
-    navigator.getBattery().then(function(b){
-      battery = b;
-      b.addEventListener('levelchange', render);
-      b.addEventListener('chargingchange', render);
-      render();
-    }).catch(function(){});
-  }
-
-  window.addEventListener('online', render);
-  window.addEventListener('offline', render);
-
-  function refreshAll(){
-    if (!homeIsOpen()) return;
-    render(); loadSosState(); loadCircle(); loadGps();
-  }
-
-  window.addEventListener('hashchange', function(){ setTimeout(refreshAll, 100); });
-  setTimeout(refreshAll, 800);
-
-  setInterval(function(){ if (homeIsOpen()) render(); }, 5000);
-  setInterval(function(){ if (homeIsOpen()) loadSosState(); }, 30000);
-  setInterval(function(){ if (homeIsOpen()) loadGps(); }, 60000);
-
-  /* lets other functions refresh the ring immediately (used in Step 5) */
-  window.guardianRingRefresh = function(){ loadSosState(); render(); };
 
 })();
 </script>
