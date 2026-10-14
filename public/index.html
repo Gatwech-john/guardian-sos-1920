@@ -4462,14 +4462,6 @@ align-items: flex-start;
     0%   { transform: scale(.6); opacity: .9; }
     100% { transform: scale(2.6); opacity: 0; }
 }
-
-/* ===== AUTH PAGES: LOGO + ICON INPUTS (like handbook) ===== */
-.auth-logo-wrap{text-align:center;margin-bottom:22px}
-.auth-logo-img{display:block;margin:0 auto;width:100%;max-width:210px;height:auto;mix-blend-mode:lighten}
-.input-icon-wrap{position:relative;width:100%}
-.input-icon-wrap>i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:#ff1493;font-size:17px;pointer-events:none;z-index:2}
-.form-group .input-icon-wrap input{padding-left:46px}
-@media (max-width:380px){.auth-logo-img{max-width:165px}}
 </style>
 <!-- LEAFLET MAP -->
 <link
@@ -4488,21 +4480,33 @@ align-items: flex-start;
 
     <section id="loginPage" class="page auth-page">
         <div class="auth-box">
-            <div class="auth-logo-wrap"><img src="/guardian-logo.png" alt="Guardian SOS" class="auth-logo-img"></div>
+            <div class="auth-logo">SOS GUARDIAN</div>
+            <div class="auth-subtitle">
+                Emergency Assistance & Personal Safety
+            </div>
+            <h2>Welcome Back</h2>
             <form id="loginForm">
                 <div class="form-group">
-<div class="input-icon-wrap">
-<i class="bi bi-envelope-fill"></i>
-<input type="email" id="loginEmail" required autocomplete="email" placeholder="Enter your email" aria-label="Email">
-</div>
-</div>
+                    <label for="loginEmail">Email</label>
+                    <input
+                        type="email"
+                        id="loginEmail"
+                        required
+                        autocomplete="email"
+                        placeholder="Enter your email"
+                    >
+                </div>
 
                 <div class="form-group">
-<div class="input-icon-wrap">
-<i class="bi bi-lock-fill"></i>
-<input type="password" id="loginPassword" required autocomplete="current-password" placeholder="Enter your password" aria-label="Password">
-</div>
-</div>
+                    <label for="loginPassword">Password</label>
+                    <input
+                        type="password"
+                        id="loginPassword"
+                        required
+                        autocomplete="current-password"
+                        placeholder="Enter your password"
+                    >
+                </div>
 
                 <div id="loginMessage" class="auth-message"></div>
 
@@ -4538,6 +4542,8 @@ align-items: flex-start;
             <div class="auth-links">
                 Don't have an account?
                 <a href="#register">Create Account</a>
+                <br>
+                <a href="#about">About Guardian SOS</a>
             </div>
 
         </div>
@@ -4551,11 +4557,18 @@ align-items: flex-start;
 <section
     id="forgotPasswordPage"
     class="page auth-page"
+   
 >
 
     <div class="auth-box">
 
-        <div class="auth-logo-wrap"><img src="/guardian-logo.png" alt="Guardian SOS" class="auth-logo-img"></div>
+        <div class="auth-logo">
+            SOS GUARDIAN
+        </div>
+
+        <div class="auth-subtitle">
+            Reset your Guardian SOS password
+        </div>
 
         <!-- EMAIL STEP -->
 
@@ -4573,11 +4586,20 @@ align-items: flex-start;
             </p>
 
             <div class="form-group">
-<div class="input-icon-wrap">
-<i class="bi bi-envelope-fill"></i>
-<input type="email" id="forgotPasswordEmail" required autocomplete="email" placeholder="Enter your account email" aria-label="Email">
-</div>
-</div>
+
+                <label for="forgotPasswordEmail">
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    id="forgotPasswordEmail"
+                    required
+                    autocomplete="email"
+                    placeholder="Enter your account email"
+                >
+
+            </div>
 
             <div
                 id="forgotPasswordMessage"
@@ -4614,30 +4636,62 @@ align-items: flex-start;
             </p>
 
             <div class="form-group">
-<div class="input-icon-wrap">
-<i class="bi bi-key-fill"></i>
-<input type="text" id="resetPasswordCode" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="Enter 6-digit code" aria-label="Reset Code">
-</div>
-</div>
+
+                <label for="resetPasswordCode">
+                    Reset Code
+                </label>
+
+                <input
+                    type="text"
+                    id="resetPasswordCode"
+                    maxlength="6"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    placeholder="Enter 6-digit code"
+                >
+
+            </div>
+
 
             <div class="form-group">
-<div class="input-icon-wrap">
-<i class="bi bi-lock-fill"></i>
-<input type="password" id="newPassword" minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters" aria-label="New Password">
-</div>
-</div>
+
+                <label for="newPassword">
+                    New Password
+                </label>
+
+                <input
+                    type="password"
+                    id="newPassword"
+                    minlength="8"
+                    autocomplete="new-password"
+                    placeholder="Minimum 8 characters"
+                >
+
+            </div>
+
 
             <div class="form-group">
-<div class="input-icon-wrap">
-<i class="bi bi-lock-fill"></i>
-<input type="password" id="confirmNewPassword" minlength="8" autocomplete="new-password" placeholder="Confirm new password" aria-label="Confirm New Password">
-</div>
-</div>
+
+                <label for="confirmNewPassword">
+                    Confirm New Password
+                </label>
+
+                <input
+                    type="password"
+                    id="confirmNewPassword"
+                    minlength="8"
+                    autocomplete="new-password"
+                    placeholder="Confirm new password"
+                >
+
+            </div>
+
 
             <div
                 id="resetPasswordMessage"
                 class="auth-message"
             ></div>
+
 
             <button
                 type="button"
@@ -4669,40 +4723,51 @@ align-items: flex-start;
 
         <div class="auth-box">
 
-            <div class="auth-logo-wrap"><img src="/guardian-logo.png" alt="Guardian SOS" class="auth-logo-img"></div>
+            <div class="auth-logo">SOS GUARDIAN</div>
+
+            <div class="auth-subtitle">
+                Create your emergency assistance account
+            </div>
 
             <h2>Create Account</h2>
 
             <form id="registerForm">
 
                 <div class="form-group">
-<div class="input-icon-wrap">
-<i class="bi bi-person-fill"></i>
-<input type="text" id="registerName" required placeholder="Enter your full name" aria-label="Full Name">
-</div>
-</div>
+                    <label for="registerName">Full Name</label>
+                    <input
+                        type="text"
+                        id="registerName"
+                        required
+                        placeholder="Enter your full name"
+                    >
+                </div>
 
                 <div class="form-group">
-<div class="input-icon-wrap">
-<i class="bi bi-envelope-fill"></i>
-<input type="email" id="registerEmail" required autocomplete="email" placeholder="Enter your email" aria-label="Email">
-</div>
-</div>
+                    <label for="registerEmail">Email</label>
+                    <input
+                        type="email"
+                        id="registerEmail"
+                        required
+                        autocomplete="email"
+                        placeholder="Enter your email"
+                    >
+                </div>
 
-                <div class="form-group">
+
+                                <div class="form-group">
+                    <label for="registerVerificationCode">Email Verification Code</label>
+
                     <div style="display:flex; gap:8px;">
-                        <div class="input-icon-wrap" style="flex:1;">
-                            <i class="bi bi-patch-check-fill"></i>
-                            <input
-                                type="text"
-                                id="registerVerificationCode"
-                                maxlength="6"
-                                inputmode="numeric"
-                                autocomplete="one-time-code"
-                                placeholder="6-digit code"
-                                aria-label="Email Verification Code"
-                            >
-                        </div>
+                        <input
+                            type="text"
+                            id="registerVerificationCode"
+                            maxlength="6"
+                            inputmode="numeric"
+                            autocomplete="one-time-code"
+                            placeholder="6-digit code"
+                            style="flex:1;"
+                        >
 
                         <button
                             type="button"
@@ -4716,32 +4781,52 @@ align-items: flex-start;
                 </div>
 
                 <div class="form-group">
-<div class="input-icon-wrap">
-<i class="bi bi-telephone-fill"></i>
-<input type="tel" id="registerPhone" required placeholder="Enter your phone number" aria-label="Phone">
-</div>
+                    <label for="registerPhone">Phone</label>
+                    <input
+                        type="tel"
+                        id="registerPhone"
+                        required
+                        placeholder="Enter your phone number"
+                    >
+                </div>
+
+                <div class="form-group">
+
+                     <label for="registerPhoto">
+                        Profile Picture
+                     </label>
+
+                     <input
+                     type="file"
+                     id="registerPhoto"
+                     accept="image/*"
+                      >
+
 </div>
 
                 <div class="form-group">
-<div class="input-icon-wrap">
-<i class="bi bi-camera-fill"></i>
-<input type="file" id="registerPhoto" accept="image/*" aria-label="Profile Picture" title="Profile Picture">
-</div>
-</div>
+                    <label for="registerPassword">Password</label>
+                    <input
+                        type="password"
+                        id="registerPassword"
+                        required
+                        minlength="8"
+                        autocomplete="new-password"
+                        placeholder="Minimum 8 characters"
+                    >
+                </div>
 
                 <div class="form-group">
-<div class="input-icon-wrap">
-<i class="bi bi-lock-fill"></i>
-<input type="password" id="registerPassword" required minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters" aria-label="Password">
-</div>
-</div>
-
-                <div class="form-group">
-<div class="input-icon-wrap">
-<i class="bi bi-lock-fill"></i>
-<input type="password" id="confirmPassword" required minlength="8" autocomplete="new-password" placeholder="Confirm your password" aria-label="Confirm Password">
-</div>
-</div>
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        required
+                        minlength="8"
+                        autocomplete="new-password"
+                        placeholder="Confirm your password"
+                    >
+                </div>
 
                 <div id="registerMessage" class="auth-message"></div>
 
