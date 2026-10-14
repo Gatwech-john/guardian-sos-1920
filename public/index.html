@@ -4485,6 +4485,47 @@ align-items: flex-start;
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 />
+
+<style>
+#profilePage .pf-wrap,
+#contactsPage .ec-wrap{max-width:520px;margin:0 auto;padding:0 16px 120px;text-align:left}
+.pg-topbar{display:flex;align-items:center;gap:14px;padding:14px 0;font-size:20px;font-weight:700;color:#fff}
+.pg-back{width:40px;height:40px;border-radius:50%;border:1px solid #2a2a2a;background:#111;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.pg-back:active{transform:scale(.94)}
+
+.pf-head{display:flex;align-items:center;gap:16px;background:#0b0b0b;border:1px solid #1f1f1f;border-radius:16px;padding:18px;margin-bottom:14px}
+.pf-avatar{width:72px;height:72px;min-width:72px;border-radius:50%;background:#ff1493;color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;overflow:hidden;cursor:pointer}
+.pf-info{min-width:0}
+.pf-name{font-size:19px;font-weight:700;color:#fff;word-break:break-word}
+.pf-email{font-size:13px;color:#aaa;margin-top:2px;word-break:break-all}
+.pf-phone{font-size:12px;color:#888;margin-top:4px}
+.pf-phone i{color:#ff1493;margin-right:4px}
+.pf-menu{background:#0b0b0b;border:1px solid #1f1f1f;border-radius:16px;overflow:hidden}
+.pf-row{width:100%;display:flex;align-items:center;gap:14px;padding:16px 18px;background:transparent;border:0;border-bottom:1px solid #1c1c1c;color:#fff;font-size:15px;font-weight:600;text-align:left;cursor:pointer}
+.pf-row:last-child{border-bottom:0}
+.pf-row:active{background:#161616}
+.pf-row span{flex:1}
+.pf-row-icon{color:#ff1493;font-size:18px;width:22px;text-align:center}
+.pf-row-arrow{color:#555;font-size:13px}
+.pf-logout,.pf-logout .pf-row-icon{color:#ff4d4d}
+
+.ec-add{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;border:0;border-radius:14px;background:#ff1493;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:14px}
+.ec-add:active{transform:scale(.98)}
+.ec-form{background:#0b0b0b;border:1px solid #ff1493;border-radius:14px;padding:16px;margin-bottom:14px}
+.ec-form[hidden]{display:none}
+.ec-list{display:grid;gap:10px}
+.ec-item{display:flex;align-items:center;gap:12px;background:#0b0b0b;border:1px solid #1f1f1f;border-radius:14px;padding:12px 14px}
+.ec-avatar{width:42px;height:42px;min-width:42px;border-radius:50%;background:#1b66d6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.ec-info{flex:1;min-width:0}
+.ec-name{font-weight:700;color:#fff;font-size:15px}
+.ec-phone{color:#ddd;font-size:13px;margin-top:1px}
+.ec-meta{color:#888;font-size:11px;margin-top:2px}
+.ec-call{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ff1493;font-size:18px;text-decoration:none;border:1px solid #2a2a2a;background:#111}
+.ec-call:active{background:#ff1493;color:#fff}
+.ec-delete{width:36px;height:36px;border-radius:50%;border:1px solid #2a2a2a;background:#111;color:#888;cursor:pointer;padding:0}
+.ec-delete:hover{color:#ff4444;border-color:#ff4444}
+@media(max-width:600px){#contactsPage .form-row{grid-template-columns:1fr}}
+</style>
 </head>
 
 <body>
@@ -4528,7 +4569,7 @@ align-items: flex-start;
                 </div>
             </form>
 
-            <div class="auth-links">
+            <div class="auth-links" style="color:#fff">
                 Don't have an account?
                 <a href="#register">Create Account</a>
             </div>
@@ -5616,127 +5657,66 @@ align-items: flex-start;
          CONTACTS PAGE
     ====================================================== -->
 
-    <section id="contactsPage" class="page protected-page">
+   <section id="contactsPage" class="page protected-page">
 
-        <div class="page-content">
+    <div class="page-content">
 
-            <div class="container">
+        <div class="ec-wrap">
 
-                <h1 class="section-title">
-                    Emergency Contacts
-                </h1>
+            <div class="pg-topbar">
+                <button type="button" class="pg-back" onclick="navigateTo('profile')" aria-label="Back">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+                <span>Emergency Contacts</span>
+            </div>
 
-                <p class="section-subtitle">
-                    Add and manage people you trust.
-                </p>
+            <button type="button" class="ec-add" onclick="toggleContactForm()">
+                <i class="bi bi-plus-lg"></i> Add Contact
+            </button>
 
-                <div class="form-card card">
+            <div id="contactFormPanel" class="ec-form" hidden>
 
-                    <h3>
-                        Add Emergency Contact
-                    </h3>
-
-                    <br>
-
-                    <div class="form-row">
-
-                        <div class="form-group">
-                            <label for="contactName">
-                                Contact Name
-                            </label>
-
-                            <input
-                                type="text"
-                                id="contactName"
-                                placeholder="Enter contact name"
-                            >
-                        </div>
-
-                        <div class="form-group">
-                            <label for="contactPhone">
-                                Phone Number
-                            </label>
-
-                            <input
-                                type="tel"
-                                id="contactPhone"
-                                placeholder="Enter phone number"
-                            >
-                        </div>
-
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contactName">Contact Name</label>
+                        <input type="text" id="contactName" placeholder="Enter contact name">
                     </div>
-
-                    <div class="form-row">
-
-                        <div class="form-group">
-                            <label for="relationship">
-                                Relationship
-                            </label>
-
-                            <input
-                                type="text"
-                                id="relationship"
-                                placeholder="e.g.Guardian, Brother, Mother, Friend"
-                            >
-                        </div>
-
-                        <div class="form-group">
-
-                            <label for="priority">
-                                Priority
-                            </label>
-
-                            <select id="priority">
-
-                                <option value="1">
-                                    Priority 1
-                                </option>
-
-                                <option value="2">
-                                    Priority 2
-                                </option>
-
-                                <option value="3">
-                                    Priority 3
-                                </option>
-
-                            </select>
-
-                        </div>
-
+                    <div class="form-group">
+                        <label for="contactPhone">Phone Number</label>
+                        <input type="tel" id="contactPhone" placeholder="Enter phone number">
                     </div>
-
-                    <div
-                        id="contactStatus"
-                        class="status-box"
-                    ></div>
-
-                    <button
-                        class="primary-button"
-                        onclick="addContact()"
-                    >
-                        ADD CONTACT
-                    </button>
-
                 </div>
 
-                <br><br>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="relationship">Relationship</label>
+                        <input type="text" id="relationship" placeholder="e.g. Guardian, Brother, Mother, Friend">
+                    </div>
+                    <div class="form-group">
+                        <label for="priority">Priority</label>
+                        <select id="priority">
+                            <option value="1">Priority 1</option>
+                            <option value="2">Priority 2</option>
+                            <option value="3">Priority 3</option>
+                        </select>
+                    </div>
+                </div>
 
-                <h2 style="margin-bottom:15px;">
-                    My Emergency Contacts
-                </h2>
+                <div id="contactStatus" class="status-box"></div>
 
-                <div
-                    id="contactsList"
-                    class="list"
-                ></div>
+                <button type="button" class="primary-button" onclick="addContact()">
+                    SAVE CONTACT
+                </button>
 
             </div>
 
+            <div id="contactsList" class="ec-list"></div>
+
         </div>
 
-    </section>
+    </div>
 
+</section>
 
     <!-- =====================================================
          LOCATION PAGE
@@ -5907,91 +5887,81 @@ align-items: flex-start;
 
     <section id="profilePage" class="page protected-page">
 
-        <div class="page-content">
+    <div class="page-content">
 
-            <div class="container">
+        <div class="pf-wrap">
 
-                <h1 class="section-title">
-                    My Profile
-                </h1>
+            <div class="pg-topbar">
+                <button type="button" class="pg-back" onclick="navigateTo('home')" aria-label="Back">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+                <span>Profile</span>
+            </div>
 
-                <p class="section-subtitle">
-                    Your Guardian SOS account information.
-                </p>
+            <div class="pf-head">
 
-                <div class="card profile-card">
+                <div id="profileAvatar" class="pf-avatar" onclick="changeProfilePicture()">U</div>
 
-                    <div 
-    id="profileAvatar" 
-    class="profile-avatar" 
-    onclick="changeProfilePicture()"
-    style="cursor: pointer;"
->
-    U 
-</div>
+                <input
+                    type="file"
+                    id="profilePictureInput"
+                    accept="image/*"
+                    style="display: none;"
+                    onchange="uploadProfilePicture(this)"
+                >
 
-<input
-    type="file"
-    id="profilePictureInput"
-    accept="image/*"
-    style="display: none;"
-    onchange="uploadProfilePicture(this)"
->
-
-                    <div class="profile-row">
-
-                        <div class="profile-label">
-                            Full Name
-                        </div>
-
-                        <div id="profileName">
-                            Loading...
-                        </div>
-
+                <div class="pf-info">
+                    <div id="profileName" class="pf-name">Loading...</div>
+                    <div id="profileEmail" class="pf-email">Loading...</div>
+                    <div class="pf-phone">
+                        <i class="bi bi-telephone-fill"></i>
+                        <span id="profilePhone">Loading...</span>
                     </div>
+                </div>
 
-                    <div class="profile-row">
+            </div>
 
-                        <div class="profile-label">
-                            Email
-                        </div>
+            <div class="pf-menu">
 
-                        <div id="profileEmail">
-                            Loading...
-                        </div>
+                <button type="button" class="pf-row" onclick="profileMenuAction('edit')">
+                    <i class="bi bi-pencil-fill pf-row-icon"></i><span>Edit Profile</span><i class="bi bi-chevron-right pf-row-arrow"></i>
+                </button>
 
-                    </div>
+                <button type="button" class="pf-row" onclick="navigateTo('forgotPassword')">
+                    <i class="bi bi-lock-fill pf-row-icon"></i><span>Change Password</span><i class="bi bi-chevron-right pf-row-arrow"></i>
+                </button>
 
-                    <div class="profile-row">
-    <div class="profile-label">
-        Phone
+                <button type="button" class="pf-row" onclick="changeProfilePicture()">
+                    <i class="bi bi-person-bounding-box pf-row-icon"></i><span>Profile Photo</span><i class="bi bi-chevron-right pf-row-arrow"></i>
+                </button>
+
+                <button type="button" class="pf-row" onclick="navigateTo('contacts')">
+                    <i class="bi bi-people-fill pf-row-icon"></i><span>Emergency Contacts</span><i class="bi bi-chevron-right pf-row-arrow"></i>
+                </button>
+
+                <button type="button" class="pf-row" onclick="navigateTo('safety')">
+                    <i class="bi bi-gear-fill pf-row-icon"></i><span>Settings</span><i class="bi bi-chevron-right pf-row-arrow"></i>
+                </button>
+
+                <button type="button" class="pf-row" onclick="navigateTo('about')">
+                    <i class="bi bi-question-circle-fill pf-row-icon"></i><span>Help</span><i class="bi bi-chevron-right pf-row-arrow"></i>
+                </button>
+
+                <button type="button" class="pf-row" onclick="navigateTo('about')">
+                    <i class="bi bi-info-circle-fill pf-row-icon"></i><span>About</span><i class="bi bi-chevron-right pf-row-arrow"></i>
+                </button>
+
+                <button type="button" class="pf-row pf-logout" onclick="logout()">
+                    <i class="bi bi-box-arrow-right pf-row-icon"></i><span>Logout</span><i class="bi bi-chevron-right pf-row-arrow"></i>
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
 
-    <div id="profilePhone">
-        Loading...
-    </div>
-</div>
-
-<div class="profile-logout-container">
-    <button
-        type="button"
-        class="profile-logout-button"
-        onclick="logout()"
-        title="Logout"
-    >
-        🚪
-    </button>
-
-    <div class="profile-logout-label">
-        LOGOUT
-    </div>
-</div>
-
-</div>
-</div>
-</div>
 </section>
-
 
     
 <!-- =====================================================
@@ -12092,6 +12062,23 @@ async function loadProfile() {
     }
 }
 
+
+function toggleContactForm(forceOpen) {
+    const panel = document.getElementById("contactFormPanel");
+    if (!panel) return;
+    const open = (typeof forceOpen === "boolean") ? forceOpen : panel.hidden;
+    panel.hidden = !open;
+    if (open) {
+        const n = document.getElementById("contactName");
+        if (n) n.focus();
+    }
+}
+
+function profileMenuAction(action) {
+    if (action === "edit") {
+        showToast("Edit Profile is not available yet.");
+    }
+}
 /* =========================================================
    ADD CONTACT
 ========================================================= */
@@ -12185,7 +12172,7 @@ async function addContact() {
             "relationship"
         ).value = "";
 
-
+   toggleContactForm(false);
         await loadContacts();
 
 
@@ -12250,50 +12237,46 @@ async function loadContacts() {
         }
 
 
-        list.innerHTML =
-            contacts.map(function(contact) {
+       list.innerHTML =
+    contacts.map(function(contact) {
 
-                return `
-                    <div class="list-item">
+        const name = contact.name || "Contact";
+        const phone = String(contact.phone || "");
+        const telNumber = phone.replace(/[^\d+]/g, "");
 
-                        <div class="list-item-header">
+        return `
+            <div class="ec-item">
 
-                            <div class="list-item-title">
-                                ${escapeHTML(contact.name)}
-                            </div>
+                <div class="ec-avatar">
+                    ${escapeHTML(name.charAt(0).toUpperCase())}
+                </div>
 
-                            <button
-                                class="delete-button"
-                                onclick="deleteContact('${escapeHTML(contact._id)}')"
-                            >
-                                Delete
-                            </button>
-
-                        </div>
-
-                        <p>
-                            📞 ${escapeHTML(contact.phone)}
-                        </p>
-
-                        <p>
-                            👤 ${escapeHTML(
-                                contact.relationship ||
-                                "Emergency Contact"
-                            )}
-                        </p>
-
-                        <p>
-                            ⭐ Priority:
-                            ${escapeHTML(
-                                contact.priority ||
-                                1
-                            )}
-                        </p>
-
+                <div class="ec-info">
+                    <div class="ec-name">${escapeHTML(name)}</div>
+                    <div class="ec-phone">${escapeHTML(phone)}</div>
+                    <div class="ec-meta">
+                        ${escapeHTML(contact.relationship || "Emergency Contact")}
+                        &bull; Priority ${escapeHTML(contact.priority || 1)}
                     </div>
-                `;
+                </div>
 
-            }).join("");
+                <a class="ec-call" href="tel:${escapeHTML(telNumber)}" title="Call">
+                    <i class="bi bi-telephone-fill"></i>
+                </a>
+
+                <button
+                    type="button"
+                    class="ec-delete"
+                    title="Delete"
+                    onclick="deleteContact('${escapeHTML(contact._id)}')"
+                >
+                    <i class="bi bi-trash3"></i>
+                </button>
+
+            </div>
+        `;
+
+    }).join("");
 
 
     } catch (error) {
