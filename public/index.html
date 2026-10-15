@@ -4608,6 +4608,51 @@ body.light-mode #callScreen, body.light-mode #incomingCallScreen{ background:#ff
 body.light-mode #callScreen .wa-call-avatar, body.light-mode #incomingCallScreen .wa-incoming-avatar{ border:3px solid #000 !important; }
 body.light-mode #callScreen .wa-call-controls button::after{ color:#000; }
 body.light-mode #callScreen .wa-call-controls .wa-end-call, body.light-mode #incomingCallScreen .reject-call{ background-color:#e5222b !important; border-color:#e5222b !important; color:#fff !important; }
+
+
+
+/* ===== LIGHT MODE FIX: HOME WATCH + COMPASS (black & white) ===== */
+
+/* Watch */
+body.light-mode button.secondary-button:has(.live-watch){ background-color: transparent !important; border-color: transparent !important; }
+body.light-mode .live-watch{ background-image: none !important; background-color: #000 !important; animation: none !important; }
+body.light-mode .live-watch .watch-face{ background-color: #fff !important; border: 2px solid #000 !important; }
+body.light-mode .live-watch .watch-number{ color: #000 !important; background-color: transparent !important; }
+body.light-mode .live-watch .watch-hand{ background-image: none !important; background-color: #000 !important; }
+body.light-mode .live-watch .watch-center{ background-color: #fff !important; border: 2px solid #000 !important; }
+body.light-mode .live-watch .watch-digital{ color: #000 !important; background-color: #fff !important; border: 1px solid #000 !important; }
+body.light-mode .live-watch .watch-date{ color: #000 !important; background-color: transparent !important; }
+
+/* Compass */
+body.light-mode .compass-ring{ background-color: #fff !important; border: 1px solid #000 !important; }
+body.light-mode .compass-rose{ background-color: #000 !important; opacity: .75; }
+body.light-mode .compass-mark::before{ background-color: #000 !important; }
+body.light-mode .compass-mark span,
+body.light-mode .compass-mark.cardinal.north span,
+body.light-mode .compass-degrees,
+body.light-mode .compass-direction{ color: #000 !important; text-shadow: none !important; }
+body.light-mode .compass-pointer{
+    background-color: transparent !important;
+    border-left-color: transparent !important; border-right-color: transparent !important;
+    border-top-color: #000 !important;
+}
+body.light-mode .compass-north-arrow{
+    background-color: transparent !important; filter: none !important;
+    border-left-color: transparent !important; border-right-color: transparent !important;
+    border-bottom-color: #000 !important;
+}
+body.light-mode .compass-north-arrow::after{ border-top-color: #9a9a9a !important; }
+body.light-mode .compass-hub{ background-color: #fff !important; border-color: #000 !important; }
+
+/* Home page: text, badge, heart */
+body.light-mode #homePage .home-description{ color: #000 !important; }
+body.light-mode #homePage .home-badge{ color: #000 !important; border-color: #000 !important; background-color: transparent !important; }
+body.light-mode #homePage .home-badge .live-shield i{ color: #000 !important; }
+body.light-mode #homePage .home-badge .live-shield::before{ background: rgba(0,0,0,.35) !important; }
+body.light-mode #homePage .home-badge .badge-snake *{ stroke: #000 !important; }
+body.light-mode #homePage .home-badge .badge-snake polygon{ fill: #000 !important; }
+body.light-mode #journeyArrival{ color: #000 !important; border-color: #000 !important; }
+body.light-mode .sos-real-heart [stroke="#ffb3bd"]{ stroke: #fff !important; }
 </style>
 </head>
 
