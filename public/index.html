@@ -4700,6 +4700,136 @@ body.light-mode #callScreen .wa-call-controls .wa-end-call {
 }
 
 
+
+
+/* ===== GUARDIAN SOS CALL SCREEN LIGHT/DARK FIX ===== */
+
+/* Dark mode: full-width black panels */
+#callScreen {
+    background: #000 !important;
+}
+
+#callScreen .wa-call-info {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background: #000 !important;
+    color: #fff !important;
+    text-align: center !important;
+}
+
+#callScreen .wa-call-controls {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    transform: none !important;
+    background: #000 !important;
+}
+
+/* Light mode: white call screen and full-width panels */
+body.light-mode #callScreen {
+    background: #fff !important;
+    color: #000 !important;
+}
+
+body.light-mode #callScreen .wa-call-info,
+body.light-mode #callScreen .wa-call-controls {
+    background: #fff !important;
+    color: #000 !important;
+}
+
+body.light-mode #callScreen .wa-call-info #callUserName,
+body.light-mode #callScreen #callStatus,
+body.light-mode #callScreen .wa-call-timer {
+    background: transparent !important;
+    color: #000 !important;
+}
+
+/* Black circular call controls in light mode */
+body.light-mode #callScreen .wa-call-controls button:not(.wa-end-call) {
+    background: #000 !important;
+    border: 1px solid #000 !important;
+    border-radius: 50% !important;
+    color: #fff !important;
+}
+
+body.light-mode #callScreen .wa-call-controls button:not(.wa-end-call) i {
+    color: #fff !important;
+}
+
+/* Keep end-call button red */
+body.light-mode #callScreen .wa-call-controls .wa-end-call {
+    background: #e5222b !important;
+    border-color: #e5222b !important;
+    border-radius: 50% !important;
+    color: #fff !important;
+}
+
+/* ===== VOICE RECORDER LIGHT MODE FIX ===== */
+
+body.light-mode #voiceRecordScreen .voice-rec-card {
+    background: #fff !important;
+    color: #000 !important;
+    border: 2px solid #000 !important;
+    border-radius: 26px !important;
+}
+
+body.light-mode #voiceRecordScreen .voice-rec-status,
+body.light-mode #voiceRecordScreen .voice-rec-timer {
+    background: transparent !important;
+    color: #000 !important;
+}
+
+/* Make Cancel and Stop & Send remain circular */
+body.light-mode #voiceRecordScreen .voice-rec-circle {
+    width: 66px !important;
+    height: 66px !important;
+    min-width: 66px !important;
+    min-height: 66px !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Cancel circle */
+body.light-mode #voiceRecordScreen .voice-rec-circle.cancel {
+    background: #000 !important;
+    border: 2px solid #000 !important;
+    color: #fff !important;
+}
+
+/* Stop & Send circle */
+body.light-mode #voiceRecordScreen .voice-rec-circle.stop {
+    background: #000 !important;
+    border: 2px solid #000 !important;
+    color: #fff !important;
+}
+
+/* Visible white icons inside the black circles */
+body.light-mode #voiceRecordScreen .voice-rec-circle i {
+    background: transparent !important;
+    color: #fff !important;
+}
+
+/* Visible recording microphone */
+body.light-mode #voiceRecordScreen .voice-rec-mic {
+    background: #ff1493 !important;
+    border: 2px solid #000 !important;
+    color: #fff !important;
+    border-radius: 50% !important;
+}
+
+body.light-mode #voiceRecordScreen .voice-rec-mic i {
+    background: transparent !important;
+    color: #fff !important;
+}
+
+
 </style>
 </head>
 
