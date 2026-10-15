@@ -4479,345 +4479,6 @@ align-items: flex-start;
 @media (max-width:380px){.auth-logo-img{max-width:75px}}
 
 
-
-
-/* =========================================================
-   GUARDIAN SOS — CALL SCREEN + VOICE RECORDER THEME FIX
-   Paste immediately before the final </style> tag.
-========================================================= */
-
-/* ---------- CALL SCREEN: FULL-SCREEN THEME ---------- */
-
-#callScreen {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
-    z-index: 99999 !important;
-    background: #000 !important;
-}
-
-/* Keep video calls working without covering call controls */
-#callScreen .wa-remote-video {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    z-index: 1 !important;
-}
-
-#callScreen .wa-local-video {
-    z-index: 5 !important;
-}
-
-/* Full-width name, status and timer panel */
-#callScreen .wa-call-info {
-    position: absolute !important;
-    top: calc(13vh + 132px) !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    padding: 5px 12px 7px !important;
-    text-align: center !important;
-    z-index: 8 !important;
-    background: #000 !important;
-    color: #fff !important;
-}
-
-#callScreen .wa-call-info #callUserName,
-#callScreen #callStatus,
-#callScreen .wa-call-timer {
-    background: transparent !important;
-    color: #fff !important;
-}
-
-/* Full-width panel behind the bottom call buttons */
-#callScreen .wa-call-controls {
-    position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    padding: 18px 12px
-        calc(40px + env(safe-area-inset-bottom, 0px)) !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    gap: 34px 8px !important;
-    justify-items: center !important;
-    background: #000 !important;
-    z-index: 10 !important;
-}
-
-#callScreen .wa-call-controls button {
-    width: 60px !important;
-    height: 60px !important;
-    min-width: 60px !important;
-    min-height: 60px !important;
-    padding: 0 !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    background: #fff !important;
-    border: 2px solid #fff !important;
-    color: #000 !important;
-    box-shadow: none !important;
-}
-
-#callScreen .wa-call-controls button i {
-    color: #000 !important;
-    background: transparent !important;
-}
-
-#callScreen .wa-call-controls button::after {
-    color: #fff !important;
-}
-
-/* Keep the end-call button red and circular */
-#callScreen .wa-call-controls .wa-end-call {
-    grid-column: 1 / -1 !important;
-    width: 72px !important;
-    height: 72px !important;
-    min-width: 72px !important;
-    min-height: 72px !important;
-    border-radius: 50% !important;
-    background: #e5222b !important;
-    border: 2px solid #e5222b !important;
-    color: #fff !important;
-}
-
-#callScreen .wa-call-controls .wa-end-call i {
-    color: #fff !important;
-}
-
-/* ---------- LIGHT MODE: CALL SCREEN ---------- */
-
-body.light-mode #callScreen {
-    background: #fff !important;
-    background-image: none !important;
-}
-
-body.light-mode #callScreen .wa-call-info {
-    background: #fff !important;
-    color: #000 !important;
-}
-
-body.light-mode #callScreen .wa-call-info #callUserName,
-body.light-mode #callScreen #callStatus,
-body.light-mode #callScreen .wa-call-timer {
-    background: transparent !important;
-    color: #000 !important;
-}
-
-body.light-mode #callScreen .wa-call-avatar {
-    background: #fff !important;
-    color: #000 !important;
-    border: 3px solid #000 !important;
-}
-
-body.light-mode #callScreen .wa-call-controls {
-    background: #fff !important;
-}
-
-body.light-mode #callScreen .wa-call-controls button {
-    background: #000 !important;
-    border: 2px solid #000 !important;
-    color: #fff !important;
-}
-
-body.light-mode #callScreen .wa-call-controls button i {
-    color: #fff !important;
-}
-
-body.light-mode #callScreen .wa-call-controls button::after {
-    color: #000 !important;
-}
-
-body.light-mode #callScreen .wa-call-controls .wa-end-call {
-    background: #e5222b !important;
-    border-color: #e5222b !important;
-    color: #fff !important;
-}
-
-body.light-mode #callScreen .wa-call-controls .wa-end-call i {
-    color: #fff !important;
-}
-
-/* ---------- INCOMING CALL: LIGHT MODE ---------- */
-
-body.light-mode #incomingCallScreen {
-    background: #fff !important;
-    background-image: none !important;
-    color: #000 !important;
-}
-
-body.light-mode #incomingCallScreen h2,
-body.light-mode #incomingCallScreen p {
-    color: #000 !important;
-    background: transparent !important;
-}
-
-body.light-mode #incomingCallScreen .wa-incoming-avatar {
-    background: #fff !important;
-    color: #000 !important;
-    border: 3px solid #000 !important;
-}
-
-body.light-mode #incomingCallScreen .accept-call {
-    background: #159447 !important;
-    border-color: #159447 !important;
-    color: #fff !important;
-    border-radius: 50% !important;
-}
-
-body.light-mode #incomingCallScreen .reject-call {
-    background: #e5222b !important;
-    border-color: #e5222b !important;
-    color: #fff !important;
-    border-radius: 50% !important;
-}
-
-/* ---------- VOICE RECORDING SCREEN ---------- */
-
-/* Preserve the recorder as a centered modal */
-.voice-rec-overlay {
-    box-sizing: border-box !important;
-    padding: 20px !important;
-}
-
-.voice-rec-card {
-    width: 100% !important;
-    max-width: 380px !important;
-    box-sizing: border-box !important;
-    border-radius: 26px !important;
-}
-
-/* Keep the microphone visible and circular */
-.voice-rec-mic {
-    width: 110px !important;
-    height: 110px !important;
-    min-width: 110px !important;
-    min-height: 110px !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    background: #ff1493 !important;
-    color: #fff !important;
-    border: 2px solid #fff !important;
-}
-
-.voice-rec-mic i {
-    color: #fff !important;
-    background: transparent !important;
-}
-
-/* Prevent Cancel and Stop buttons from becoming rectangles */
-.voice-rec-actions {
-    display: flex !important;
-    align-items: flex-start !important;
-    justify-content: center !important;
-    gap: 36px !important;
-}
-
-.voice-rec-cancel,
-.voice-rec-stop {
-    flex: 0 0 auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-.voice-rec-circle {
-    width: 66px !important;
-    height: 66px !important;
-    min-width: 66px !important;
-    min-height: 66px !important;
-    aspect-ratio: 1 / 1 !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-}
-
-/* ---------- VOICE RECORDER: LIGHT MODE ---------- */
-
-body.light-mode .voice-rec-overlay {
-    background: rgba(255, 255, 255, .94) !important;
-    background-image: none !important;
-}
-
-body.light-mode .voice-rec-card {
-    background: #fff !important;
-    background-image: none !important;
-    color: #000 !important;
-    border: 2px solid #000 !important;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, .15) !important;
-}
-
-body.light-mode .voice-rec-status,
-body.light-mode .voice-rec-timer {
-    color: #000 !important;
-    background: transparent !important;
-}
-
-body.light-mode .voice-rec-dot {
-    background: #e5222b !important;
-}
-
-body.light-mode .voice-rec-wave span {
-    background: #000 !important;
-}
-
-/* Black circular Cancel button */
-body.light-mode .voice-rec-circle.cancel {
-    background: #000 !important;
-    border: 2px solid #000 !important;
-    color: #fff !important;
-    border-radius: 50% !important;
-}
-
-/* Black circular Stop/Send button */
-body.light-mode .voice-rec-circle.stop {
-    background: #000 !important;
-    border: 2px solid #000 !important;
-    color: #fff !important;
-    border-radius: 50% !important;
-}
-
-/* Ensure icons remain visible */
-body.light-mode .voice-rec-circle i {
-    color: #fff !important;
-    background: transparent !important;
-}
-
-body.light-mode .voice-rec-cancel,
-body.light-mode .voice-rec-stop {
-    background: transparent !important;
-    color: #000 !important;
-}
-
-body.light-mode .voice-rec-cancel *,
-body.light-mode .voice-rec-stop * {
-    background-color: transparent !important;
-}
-
-body.light-mode .voice-rec-cancel .voice-rec-circle,
-body.light-mode .voice-rec-stop .voice-rec-circle {
-    background-color: #000 !important;
-}
-
 </style>
 
 
@@ -5002,6 +4663,41 @@ body.light-mode .compass-mark span,
 body.light-mode .compass-dial{ background-color: transparent !important; }
 
 
+
+/* CALL SCREEN THEME FIX */
+#callScreen {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+#callScreen .wa-call-info,
+#callScreen .wa-call-controls {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+body.light-mode #callScreen {
+    background: #fff !important;
+    color: #000 !important;
+}
+
+body.light-mode #callScreen .wa-call-info,
+body.light-mode #callScreen .wa-call-controls {
+    background: #fff !important;
+    color: #000 !important;
+}
+
+body.light-mode #callScreen .wa-call-controls button:not(.wa-end-call) {
+    background: #000 !important;
+    color: #fff !important;
+    border-radius: 50% !important;
+}
+
+body.light-mode #callScreen .wa-call-controls .wa-end-call {
+    background: #e5222b !important;
+    color: #fff !important;
+    border-radius: 50% !important;
+}
 
 
 </style>
