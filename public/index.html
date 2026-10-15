@@ -4662,59 +4662,51 @@ body.light-mode .compass-dial{ background-color: transparent !important; }
 
 
 
-/* =========================================================
-   GUARDIAN SOS — TARGETED LIGHT-MODE CORRECTION
-   Preserve the existing call screen and all its controls.
-========================================================= */
+/* ===== FIX: FULL WHITE VOICE-CALL SCREEN ===== */
 
-/* 1. Extend the existing white call background to the full screen */
-html.light-mode #callScreen,
+/* Make the whole call screen one continuous white background */
 body.light-mode #callScreen {
     position: fixed !important;
     inset: 0 !important;
-    width: 100vw !important;
-    height: 100% !important;
-    height: 100% !important;
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
     background: #fff !important;
+    overflow: hidden !important;
 }
 
-/* Keep the existing incoming-call screen full-screen too */
-html.light-mode #incomingCallScreen,
-body.light-mode #incomingCallScreen {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100% !important;
-    height: 100% !important;
+/* Hide the remote video image during voice calls only.
+   Video calls keep their video when .wa-video-call is present. */
+body.light-mode #callScreen:not(.wa-video-call) #remoteVideo,
+body.light-mode #callScreen:not(.wa-video-call) #localVideo {
+    display: none !important;
+}
+
+/* Remove separate panel backgrounds so the screen looks continuous */
+body.light-mode #callScreen .wa-call-info,
+body.light-mode #callScreen .wa-call-controls {
     background: #fff !important;
+    background-image: none !important;
+    box-shadow: none !important;
 }
 
-/* Preserve the existing video and call buttons.
-   For voice calls, let the full-screen white background show behind them. */
-body.light-mode #callScreen:not(.wa-video-call) .wa-remote-video {
-    background: transparent !important;
+/* Keep caller name and call status readable */
+body.light-mode #callScreen .wa-call-info,
+body.light-mode #callScreen .wa-call-info #callUserName,
+body.light-mode #callScreen #callStatus,
+body.light-mode #callScreen .wa-call-timer {
+    color: #000 !important;
 }
 
-/* 2. Keep the live recording indicator visible in light mode */
-body.light-mode #voiceRecordScreen .voice-rec-dot {
-    background-color: #ff1493 !important;
-    opacity: 1 !important;
-    animation: voiceRecBlink 1s infinite !important;
-    box-shadow: 0 0 8px rgba(255, 20, 147, 0.8) !important;
+/* Keep control labels visible */
+body.light-mode #callScreen .wa-call-controls button::after {
+    color: #000 !important;
 }
 
-/* Keep the animated recording waveform visible */
-body.light-mode #voiceRecordScreen .voice-rec-wave span {
-    background-color: #ff1493 !important;
-    opacity: 1 !important;
-    animation: voiceRecWave 1s ease-in-out infinite !important;
-}
-
-/* Preserve the existing pink recording microphone pulse */
-body.light-mode #voiceRecordScreen .voice-rec-mic {
-    background-color: #ff1493 !important;
+/* Keep the end-call button red with its white icon */
+body.light-mode #callScreen .wa-call-controls .wa-end-call {
+    background: #e5222b !important;
     color: #fff !important;
-    animation: voiceRecPulse 1.4s infinite !important;
 }
 </style>
 </head>
