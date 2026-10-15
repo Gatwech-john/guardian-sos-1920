@@ -4526,27 +4526,6 @@ align-items: flex-start;
 .ec-delete:hover{color:#ff4444;border-color:#ff4444}
 @media(max-width:600px){#contactsPage .form-row{grid-template-columns:1fr}}
 </style>
-
-<style id="gs-redesign">
-/* =====================================================================
-   2) LIVE MAP PAGE  (full screen, no pink borders)
-===================================================================== */
-#mapsPage .page-content{padding:70px 0 clamp(54px,15vw,68px) !important;overflow:hidden !important}
-@media (max-width:760px){#mapsPage .page-content{padding-top:62px !important}}
-#mapsPage .container{height:100%;max-width:100% !important;display:flex;flex-direction:column}
-#mapsPage .section-title{font-size:18px;margin:0;padding:8px 14px 0}
-#mapsPage .section-subtitle{font-size:12px;margin:0;padding:0 14px 8px}
-#mapsPage .card{flex:1 1 auto;min-height:0;position:relative;display:flex;flex-direction:column;padding:0 !important;border:none !important;border-radius:0;background:transparent !important}
-#mapsPage .guardian-google-map{flex:1 1 auto;height:auto !important;min-height:0 !important;margin:0 !important;border:none !important;border-radius:0 !important}
-#mapsPage .guardian-map-info{border:none !important}
-#mapsPage .status-box:empty,
-#mapsPage .guardian-map-info:empty{display:none}
-#mapsPage .panel-actions{position:absolute;left:0;right:0;bottom:16px;margin:0 !important;justify-content:center;gap:14px;z-index:1000;pointer-events:none}
-#mapsPage .panel-actions button{pointer-events:auto;width:54px;height:54px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 14px rgba(0,0,0,.45)}
-    </style>
-
-
-
 </head>
 
 <body>
@@ -5863,7 +5842,9 @@ align-items: flex-start;
                 <div
                     id="guardianMapStatus"
                     class="status-box"
-                ></div>
+                >
+                    Checking live journey access...
+                </div>
 
                 <div
                     id="guardianMapInfo"
@@ -5883,20 +5864,19 @@ align-items: flex-start;
                     <button
                         class="guardian-primary"
                         onclick="loadGuardianMapPage()"
-                        title="Refresh Map"
-                        aria-label="Refresh Map"
                     >
                         <i class="bi bi-arrow-clockwise"></i>
+                        Refresh Map
                     </button>
-
-                    <button
+                                        <button
                         class="guardian-secondary"
                         onclick="followGuardianTraveler()"
-                        title="Follow Traveler"
-                        aria-label="Follow Traveler"
                     >
                         <i class="bi bi-crosshair"></i>
+                        Follow Traveler
                     </button>
+
+
 
                 </div>
 
@@ -12598,7 +12578,7 @@ async function loadGuardianMapPage() {
     if (status) {
 
         status.textContent =
-            "";
+            "Map available. Waiting for a live journey...";
 
         status.style.color =
             "#ff1493";
@@ -12609,7 +12589,7 @@ async function loadGuardianMapPage() {
     if (info) {
 
         info.innerHTML =
-            "";
+            "The map is active. Live movement will appear here when a traveler starts a journey.";
 
     }
 
@@ -12657,8 +12637,8 @@ if (
     if (status) {
 
         status.textContent =
-            "";
- 
+            "MAP ACTIVE — No live journey is currently active.";
+
         status.style.color =
             "#ff1493";
 
@@ -12667,7 +12647,7 @@ if (
     if (info) {
 
         info.innerHTML =
-            "";
+            "The map is ready. When a traveler starts a journey, their live movement will appear here.";
 
     }
 
