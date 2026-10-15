@@ -4662,16 +4662,7 @@ body.light-mode .compass-dial{ background-color: transparent !important; }
 
 
 
-/* ===== CALL SCREEN: WHOLE BACKGROUND SOLID (black in dark mode, white in light mode) ===== */
-#callScreen, #incomingCallScreen{
-    top: 0; left: 0; right: 0; bottom: 0;
-    width: 100vw; height: 100vh; height: 100dvh;
-    background: #000 !important;
-}
-/* voice calls: the (audio-only) remote video element must not paint a black box. It stays active so sound keeps playing. */
-#callScreen:not(.wa-video-call) .wa-remote-video{ opacity: 0; }
-body.light-mode #callScreen,
-body.light-mode #incomingCallScreen{ background: #fff !important; }
+
 </style>
 </head>
 
@@ -6666,6 +6657,44 @@ body.light-mode #incomingCallScreen{ background: #fff !important; }
 <script src="/socket.io/socket.io.js"></script>
 <script>
     
+
+/* ---------- LIGHT / DARK MODE ---------- */
+function toggleLightMode() {
+    var isLight = document.documentElement.classList.toggle('light-mode');
+    try { localStorage.setItem('guardianTheme', isLight ? 'light' : 'dark'); } catch (e) {}
+}
+
+/* ---------- CALL SCREEN: avatar letter + hide avatar during remote video (design only) ---------- */
+(function () {
+    var nameEl = document.getElementById('callUserName');
+    var avatar = document.getElementById('callAvatar');
+    var screen = document.getElementById('callScreen');
+    var remote = document.getElementById('remoteVideo');
+
+    function syncAvatar() {
+        if (!nameEl || !avatar) return;
+        var m = (nameEl.textContent || '').trim().match(/[\p{L}\p{N}]/u);
+        if (m) { avatar.textContent = m[0].toUpperCase(); }
+        else { avatar.innerHTML = '<i class="bi bi-person-fill"></i>'; }
+    }
+    if (nameEl) {
+        new MutationObserver(syncAvatar).observe(nameEl, {childList: true, characterData: true, subtree: true});
+        syncAvatar();
+    }
+
+    function syncVideo() {
+        if (!screen || !remote) return;
+        screen.classList.toggle('has-remote-video', remote.videoWidth > 0);
+    }
+    if (remote) {
+        ['loadedmetadata', 'resize', 'playing', 'emptied'].forEach(function (ev) {
+            remote.addEventListener(ev, syncVideo);
+        });
+    }
+})();
+
+
+
 
 /* =========================================================
    CONFIGURATION
