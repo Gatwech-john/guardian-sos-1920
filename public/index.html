@@ -4659,6 +4659,19 @@ body.light-mode .compass-marks,
 body.light-mode .compass-mark,
 body.light-mode .compass-mark span,
 body.light-mode .compass-dial{ background-color: transparent !important; }
+
+
+
+/* ===== CALL SCREEN: WHOLE BACKGROUND SOLID (black in dark mode, white in light mode) ===== */
+#callScreen, #incomingCallScreen{
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw; height: 100vh; height: 100dvh;
+    background: #000 !important;
+}
+/* voice calls: the (audio-only) remote video element must not paint a black box. It stays active so sound keeps playing. */
+#callScreen:not(.wa-video-call) .wa-remote-video{ opacity: 0; }
+body.light-mode #callScreen,
+body.light-mode #incomingCallScreen{ background: #fff !important; }
 </style>
 </head>
 
