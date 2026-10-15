@@ -4477,188 +4477,6 @@ align-items: flex-start;
 .input-icon-wrap>i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:#ff1493;font-size:17px;pointer-events:none;z-index:2}
 .form-group .input-icon-wrap input{padding-left:46px}
 @media (max-width:380px){.auth-logo-img{max-width:75px}}
-</style>
-
-
-<!-- LEAFLET MAP -->
-<link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
-
-<style>
-#profilePage .pf-wrap,
-#contactsPage .ec-wrap{max-width:520px;margin:0 auto;padding:0 16px 120px;text-align:left}
-.pg-topbar{display:flex;align-items:center;gap:14px;padding:14px 0;font-size:20px;font-weight:700;color:#fff}
-.pg-back{width:40px;height:40px;border-radius:50%;border:1px solid #2a2a2a;background:#111;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
-.pg-back:active{transform:scale(.94)}
-
-.pf-head{display:flex;align-items:center;gap:16px;background:#0b0b0b;border:1px solid #1f1f1f;border-radius:16px;padding:18px;margin-bottom:14px}
-.pf-avatar{width:72px;height:72px;min-width:72px;border-radius:50%;background:#ff1493;color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;overflow:hidden;cursor:pointer}
-.pf-info{min-width:0}
-.pf-name{font-size:19px;font-weight:700;color:#fff;word-break:break-word}
-.pf-email{font-size:13px;color:#aaa;margin-top:2px;word-break:break-all}
-.pf-phone{font-size:12px;color:#888;margin-top:4px}
-.pf-phone i{color:#ff1493;margin-right:4px}
-.pf-menu{background:#0b0b0b;border:1px solid #1f1f1f;border-radius:16px;overflow:hidden}
-.pf-row{width:100%;display:flex;align-items:center;gap:14px;padding:16px 18px;background:transparent;border:0;border-bottom:1px solid #1c1c1c;color:#fff;font-size:15px;font-weight:600;text-align:left;cursor:pointer}
-.pf-row:last-child{border-bottom:0}
-.pf-row:active{background:#161616}
-.pf-row span{flex:1}
-.pf-row-icon{color:#ff1493;font-size:18px;width:22px;text-align:center}
-.pf-row-arrow{color:#555;font-size:13px}
-.pf-logout,.pf-logout .pf-row-icon{color:#ff4d4d}
-
-.ec-add{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;border:0;border-radius:14px;background:#ff1493;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:14px}
-.ec-add:active{transform:scale(.98)}
-.ec-form{background:#0b0b0b;border:1px solid #ff1493;border-radius:14px;padding:16px;margin-bottom:14px}
-.ec-form[hidden]{display:none}
-.ec-list{display:grid;gap:10px}
-.ec-item{display:flex;align-items:center;gap:12px;background:#0b0b0b;border:1px solid #1f1f1f;border-radius:14px;padding:12px 14px}
-.ec-avatar{width:42px;height:42px;min-width:42px;border-radius:50%;background:#1b66d6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
-.ec-info{flex:1;min-width:0}
-.ec-name{font-weight:700;color:#fff;font-size:15px}
-.ec-phone{color:#ddd;font-size:13px;margin-top:1px}
-.ec-meta{color:#888;font-size:11px;margin-top:2px}
-.ec-call{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ff1493;font-size:18px;text-decoration:none;border:1px solid #2a2a2a;background:#111}
-.ec-call:active{background:#ff1493;color:#fff}
-.ec-delete{width:36px;height:36px;border-radius:50%;border:1px solid #2a2a2a;background:#111;color:#888;cursor:pointer;padding:0}
-.ec-delete:hover{color:#ff4444;border-color:#ff4444}
-@media(max-width:600px){#contactsPage .form-row{grid-template-columns:1fr}}
-
-
-
-
-/* ===== GUARDIAN SOS — REDESIGN PATCH ===== */
-
-/* 1. CALL SCREEN (PDF page 13) */
-#callScreen{ background: radial-gradient(circle at 50% 20%, #3d0027 0%, #0a0a0a 55%, #000 100%) !important; }
-#callScreen .wa-remote-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:transparent !important; z-index:1; }
-#callScreen .wa-local-video{ z-index:5; }
-#callScreen:not(.wa-video-call) .wa-local-video{ display:none; }
-#callScreen .wa-call-avatar{ position:absolute; top:13vh; left:50%; transform:translateX(-50%); width:112px; height:112px; border-radius:50%; background:#1b1b1b; color:#fff; border:3px solid #ff1493; font-size:46px; font-weight:700; display:flex; align-items:center; justify-content:center; z-index:3; overflow:hidden; }
-#callScreen .wa-call-info{ top:calc(13vh + 132px); z-index:4; }
-#callScreen .wa-call-info #callUserName{ font-size:24px; font-weight:700; color:#fff; }
-#callScreen #callStatus{ font-size:14px; color:#aaa; margin-top:4px; }
-#callScreen .wa-call-timer{ font-size:14px; color:#ccc; margin-top:2px; }
-#callScreen.wa-video-call .wa-call-avatar{ display:none; }
-#callScreen.wa-video-call .wa-call-info{ top:30px; }
-#callScreen .wa-call-controls{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:min(360px,94vw); display:grid; grid-template-columns:repeat(4,1fr); gap:34px 10px; justify-items:center; padding-bottom:calc(40px + env(safe-area-inset-bottom,0px)); z-index:10; }
-#callScreen .wa-call-controls button{ position:relative; width:60px; height:60px; border-radius:50%; border:none; background:#262626; color:#fff; font-size:24px; display:flex; align-items:center; justify-content:center; overflow:visible; }
-#callScreen .wa-call-controls button::after{ content:attr(title); position:absolute; top:calc(100% + 7px); left:50%; transform:translateX(-50%); font-size:11px; font-weight:400; color:#bbb; white-space:nowrap; }
-#callScreen .wa-call-controls button.active{ background:#ff1493; }
-#callScreen .wa-call-controls .wa-end-call{ grid-column:1 / -1; width:72px; height:72px; background:#e5222b; border:none; color:#fff; font-size:30px; }
-#callScreen .wa-call-controls .wa-end-call::after{ content:none; }
-#incomingCallScreen{ background: radial-gradient(circle at 50% 25%, #3d0027 0%, #0a0a0a 55%, #000 100%); }
-#incomingCallScreen .reject-call{ background:#e5222b; color:#fff; }
-
-/* 2. LIVE MAP PAGE (PDF page 9) */
-#mapsPage .page-content{ padding:0 !important; overflow:hidden !important; }
-#mapsPage .container{ max-width:none !important; margin:0; }
-#mapsPage .card{ background:transparent !important; border:none !important; padding:0 !important; border-radius:0 !important; box-shadow:none !important; }
-#mapsPage .guardian-google-map{ position:fixed; top:70px; left:0; right:0; bottom:clamp(54px,15vw,68px); width:100% !important; height:auto !important; min-height:0 !important; margin:0 !important; border:none !important; border-radius:0 !important; z-index:1; }
-#mapsPage .section-title{ position:fixed; top:78px; left:50%; transform:translateX(-50%); z-index:6; margin:0; padding:6px 14px; font-size:13px; background:rgba(0,0,0,.72); color:#fff; border-radius:20px; white-space:nowrap; }
-#mapsPage .section-subtitle{ position:fixed; top:112px; left:50%; transform:translateX(-50%); z-index:6; margin:0; padding:4px 12px; font-size:11px; background:rgba(0,0,0,.72); color:#fff !important; border-radius:20px; white-space:nowrap; }
-#mapsPage #guardianMapStatus{ position:fixed; top:146px; left:50%; transform:translateX(-50%); z-index:6; margin:0; min-height:0; max-width:92vw; padding:6px 12px; border-radius:20px; background:rgba(0,0,0,.75); font-weight:700; }
-#mapsPage #guardianMapInfo{ position:fixed; left:10px; right:78px; bottom:calc(clamp(54px,15vw,68px) + 14px); z-index:6; margin:0; padding:10px 12px; border:none !important; border-radius:12px; background:rgba(0,0,0,.78); color:#fff; font-size:13px; }
-#mapsPage #guardianMapInfo strong{ color:#fff; }
-#mapsPage #guardianMapStatus:empty, #mapsPage #guardianMapInfo:empty{ display:none; }
-#mapsPage .panel-actions{ position:fixed; right:14px; bottom:calc(clamp(54px,15vw,68px) + 34px); z-index:6; margin:0 !important; display:flex; flex-direction:column; gap:12px; }
-#mapsPage .panel-actions button{ width:50px; height:50px; padding:0; border-radius:50%; border:none !important; color:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.4); }
-#mapsPage .panel-actions button i{ font-size:22px; margin:0; }
-#mapsPage .panel-actions .guardian-secondary{ background:rgba(20,120,70,.95); }
-body:has(#mapsPage.active) .mobile-nav{ border-top:none; }
-@media (max-width:760px){
-  #mapsPage .guardian-google-map{ top:62px; }
-  #mapsPage .section-title{ top:70px; }
-  #mapsPage .section-subtitle{ top:104px; }
-  #mapsPage #guardianMapStatus{ top:138px; }
-}
-
-/* 3. LIGHT MODE (black & white) */
-html.light-mode, body.light-mode{ background:#fff !important; color:#000 !important; }
-body.light-mode :where(*:not(.leaflet-container):not(.leaflet-container *):not(video):not(img):not(svg):not(svg *):not(canvas)){
-  background-color:#fff !important; color:#000 !important; border-color:#000 !important;
-  box-shadow:none !important; text-shadow:none !important; -webkit-text-stroke-color:#000 !important;
-}
-body.light-mode :where(*:not(.leaflet-container):not(.leaflet-container *):not([style*="url("])){ background-image:none !important; }
-body.light-mode button, body.light-mode .primary-button, body.light-mode .secondary-button, body.light-mode .card-button,
-body.light-mode .sos-main-button, body.light-mode .guardian-primary, body.light-mode .guardian-secondary,
-body.light-mode .guardian-danger, body.light-mode .guardian-ghost, body.light-mode .guardian-mini-button,
-body.light-mode input[type="button"], body.light-mode input[type="submit"]{ background-color:#000 !important; color:#fff !important; border-color:#000 !important; }
-body.light-mode button *, body.light-mode .primary-button *, body.light-mode .secondary-button *, body.light-mode .card-button *{ color:#fff !important; background-color:transparent !important; }
-body.light-mode .mobile-nav button{ background-color:transparent !important; color:#000 !important; }
-body.light-mode .mobile-nav-icon{ background-color:#000 !important; border-color:#000 !important; }
-body.light-mode .mobile-nav-icon i{ color:#fff !important; }
-body.light-mode .mobile-nav{ border-top-color:#000 !important; }
-body.light-mode input, body.light-mode textarea, body.light-mode select{ background-color:#fff !important; color:#000 !important; border:1px solid #000 !important; }
-body.light-mode ::placeholder{ color:#555 !important; opacity:1; }
-body.light-mode img[src*="logo"]{ filter:brightness(0); }
-body.light-mode .guardian-status-icon, body.light-mode .feature-icon, body.light-mode .chat-empty-icon{ filter:grayscale(1) contrast(1.4); }
-body.light-mode .wa-message.mine, body.light-mode .wa-message.mine *{ background-color:#000 !important; color:#fff !important; }
-body.light-mode .wa-message.theirs{ border:1px solid #000; }
-body.light-mode #mapsPage .section-title, body.light-mode #mapsPage .section-subtitle,
-body.light-mode #mapsPage #guardianMapStatus, body.light-mode #mapsPage #guardianMapInfo{ border:1px solid #000 !important; }
-body.light-mode #mapsPage .section-title, body.light-mode #mapsPage .section-subtitle,
-body.light-mode #mapsPage #guardianMapStatus, body.light-mode #mapsPage #guardianMapInfo,
-body.light-mode #mapsPage #guardianMapInfo strong{ color:#000 !important; }
-body.light-mode #mapsPage .card{ background-color:transparent !important; }
-body.light-mode:has(#mapsPage.active) .mobile-nav{ border-top:none !important; }
-body.light-mode #callScreen, body.light-mode #incomingCallScreen{ background:#fff !important; }
-body.light-mode #callScreen .wa-call-avatar, body.light-mode #incomingCallScreen .wa-incoming-avatar{ border:3px solid #000 !important; }
-body.light-mode #callScreen .wa-call-controls button::after{ color:#000; }
-body.light-mode #callScreen .wa-call-controls .wa-end-call, body.light-mode #incomingCallScreen .reject-call{ background-color:#e5222b !important; border-color:#e5222b !important; color:#fff !important; }
-
-
-
-/* ===== LIGHT MODE FIX: HOME WATCH + COMPASS (black & white) ===== */
-
-/* Watch */
-body.light-mode button.secondary-button:has(.live-watch){ background-color: transparent !important; border-color: transparent !important; }
-body.light-mode .live-watch{ background-image: none !important; background-color: #000 !important; animation: none !important; }
-body.light-mode .live-watch .watch-face{ background-color: #fff !important; border: 2px solid #000 !important; }
-body.light-mode .live-watch .watch-number{ color: #000 !important; background-color: transparent !important; }
-body.light-mode .live-watch .watch-hand{ background-image: none !important; background-color: #000 !important; }
-body.light-mode .live-watch .watch-center{ background-color: #fff !important; border: 2px solid #000 !important; }
-body.light-mode .live-watch .watch-digital{ color: #000 !important; background-color: #fff !important; border: 1px solid #000 !important; }
-body.light-mode .live-watch .watch-date{ color: #000 !important; background-color: transparent !important; }
-
-/* Compass */
-body.light-mode .compass-ring{ background-color: #fff !important; border: 1px solid #000 !important; }
-body.light-mode .compass-rose{ background-color: #000 !important; opacity: .75; }
-body.light-mode .compass-mark::before{ background-color: #000 !important; }
-body.light-mode .compass-mark span,
-body.light-mode .compass-mark.cardinal.north span,
-body.light-mode .compass-degrees,
-body.light-mode .compass-direction{ color: #000 !important; text-shadow: none !important; }
-body.light-mode .compass-pointer{
-    background-color: transparent !important;
-    border-left-color: transparent !important; border-right-color: transparent !important;
-    border-top-color: #000 !important;
-}
-body.light-mode .compass-north-arrow{
-    background-color: transparent !important; filter: none !important;
-    border-left-color: transparent !important; border-right-color: transparent !important;
-    border-bottom-color: #000 !important;
-}
-body.light-mode .compass-north-arrow::after{ border-top-color: #9a9a9a !important; }
-body.light-mode .compass-hub{ background-color: #fff !important; border-color: #000 !important; }
-
-/* Home page: text, badge, heart */
-body.light-mode #homePage .home-description{ color: #000 !important; }
-body.light-mode #homePage .home-badge{ color: #000 !important; border-color: #000 !important; background-color: transparent !important; }
-body.light-mode #homePage .home-badge .live-shield i{ color: #000 !important; }
-body.light-mode #homePage .home-badge .live-shield::before{ background: rgba(0,0,0,.35) !important; }
-body.light-mode #homePage .home-badge .badge-snake *{ stroke: #000 !important; }
-body.light-mode #homePage .home-badge .badge-snake polygon{ fill: #000 !important; }
-body.light-mode #journeyArrival{ color: #000 !important; border-color: #000 !important; }
-body.light-mode .sos-real-heart [stroke="#ffb3bd"]{ stroke: #fff !important; }
-
-/* Compass ticks + N/E/S/W: the mark layers must stay transparent */
-body.light-mode .compass-marks,
-body.light-mode .compass-mark,
-body.light-mode .compass-mark span,
-body.light-mode .compass-dial{ background-color: transparent !important; }
 
 
 
@@ -4999,6 +4817,192 @@ body.light-mode .voice-rec-cancel .voice-rec-circle,
 body.light-mode .voice-rec-stop .voice-rec-circle {
     background-color: #000 !important;
 }
+
+</style>
+
+
+<!-- LEAFLET MAP -->
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<style>
+#profilePage .pf-wrap,
+#contactsPage .ec-wrap{max-width:520px;margin:0 auto;padding:0 16px 120px;text-align:left}
+.pg-topbar{display:flex;align-items:center;gap:14px;padding:14px 0;font-size:20px;font-weight:700;color:#fff}
+.pg-back{width:40px;height:40px;border-radius:50%;border:1px solid #2a2a2a;background:#111;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.pg-back:active{transform:scale(.94)}
+
+.pf-head{display:flex;align-items:center;gap:16px;background:#0b0b0b;border:1px solid #1f1f1f;border-radius:16px;padding:18px;margin-bottom:14px}
+.pf-avatar{width:72px;height:72px;min-width:72px;border-radius:50%;background:#ff1493;color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;overflow:hidden;cursor:pointer}
+.pf-info{min-width:0}
+.pf-name{font-size:19px;font-weight:700;color:#fff;word-break:break-word}
+.pf-email{font-size:13px;color:#aaa;margin-top:2px;word-break:break-all}
+.pf-phone{font-size:12px;color:#888;margin-top:4px}
+.pf-phone i{color:#ff1493;margin-right:4px}
+.pf-menu{background:#0b0b0b;border:1px solid #1f1f1f;border-radius:16px;overflow:hidden}
+.pf-row{width:100%;display:flex;align-items:center;gap:14px;padding:16px 18px;background:transparent;border:0;border-bottom:1px solid #1c1c1c;color:#fff;font-size:15px;font-weight:600;text-align:left;cursor:pointer}
+.pf-row:last-child{border-bottom:0}
+.pf-row:active{background:#161616}
+.pf-row span{flex:1}
+.pf-row-icon{color:#ff1493;font-size:18px;width:22px;text-align:center}
+.pf-row-arrow{color:#555;font-size:13px}
+.pf-logout,.pf-logout .pf-row-icon{color:#ff4d4d}
+
+.ec-add{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;border:0;border-radius:14px;background:#ff1493;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:14px}
+.ec-add:active{transform:scale(.98)}
+.ec-form{background:#0b0b0b;border:1px solid #ff1493;border-radius:14px;padding:16px;margin-bottom:14px}
+.ec-form[hidden]{display:none}
+.ec-list{display:grid;gap:10px}
+.ec-item{display:flex;align-items:center;gap:12px;background:#0b0b0b;border:1px solid #1f1f1f;border-radius:14px;padding:12px 14px}
+.ec-avatar{width:42px;height:42px;min-width:42px;border-radius:50%;background:#1b66d6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.ec-info{flex:1;min-width:0}
+.ec-name{font-weight:700;color:#fff;font-size:15px}
+.ec-phone{color:#ddd;font-size:13px;margin-top:1px}
+.ec-meta{color:#888;font-size:11px;margin-top:2px}
+.ec-call{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ff1493;font-size:18px;text-decoration:none;border:1px solid #2a2a2a;background:#111}
+.ec-call:active{background:#ff1493;color:#fff}
+.ec-delete{width:36px;height:36px;border-radius:50%;border:1px solid #2a2a2a;background:#111;color:#888;cursor:pointer;padding:0}
+.ec-delete:hover{color:#ff4444;border-color:#ff4444}
+@media(max-width:600px){#contactsPage .form-row{grid-template-columns:1fr}}
+
+
+
+
+/* ===== GUARDIAN SOS — REDESIGN PATCH ===== */
+
+/* 1. CALL SCREEN (PDF page 13) */
+#callScreen{ background: radial-gradient(circle at 50% 20%, #3d0027 0%, #0a0a0a 55%, #000 100%) !important; }
+#callScreen .wa-remote-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:transparent !important; z-index:1; }
+#callScreen .wa-local-video{ z-index:5; }
+#callScreen:not(.wa-video-call) .wa-local-video{ display:none; }
+#callScreen .wa-call-avatar{ position:absolute; top:13vh; left:50%; transform:translateX(-50%); width:112px; height:112px; border-radius:50%; background:#1b1b1b; color:#fff; border:3px solid #ff1493; font-size:46px; font-weight:700; display:flex; align-items:center; justify-content:center; z-index:3; overflow:hidden; }
+#callScreen .wa-call-info{ top:calc(13vh + 132px); z-index:4; }
+#callScreen .wa-call-info #callUserName{ font-size:24px; font-weight:700; color:#fff; }
+#callScreen #callStatus{ font-size:14px; color:#aaa; margin-top:4px; }
+#callScreen .wa-call-timer{ font-size:14px; color:#ccc; margin-top:2px; }
+#callScreen.wa-video-call .wa-call-avatar{ display:none; }
+#callScreen.wa-video-call .wa-call-info{ top:30px; }
+#callScreen .wa-call-controls{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:min(360px,94vw); display:grid; grid-template-columns:repeat(4,1fr); gap:34px 10px; justify-items:center; padding-bottom:calc(40px + env(safe-area-inset-bottom,0px)); z-index:10; }
+#callScreen .wa-call-controls button{ position:relative; width:60px; height:60px; border-radius:50%; border:none; background:#262626; color:#fff; font-size:24px; display:flex; align-items:center; justify-content:center; overflow:visible; }
+#callScreen .wa-call-controls button::after{ content:attr(title); position:absolute; top:calc(100% + 7px); left:50%; transform:translateX(-50%); font-size:11px; font-weight:400; color:#bbb; white-space:nowrap; }
+#callScreen .wa-call-controls button.active{ background:#ff1493; }
+#callScreen .wa-call-controls .wa-end-call{ grid-column:1 / -1; width:72px; height:72px; background:#e5222b; border:none; color:#fff; font-size:30px; }
+#callScreen .wa-call-controls .wa-end-call::after{ content:none; }
+#incomingCallScreen{ background: radial-gradient(circle at 50% 25%, #3d0027 0%, #0a0a0a 55%, #000 100%); }
+#incomingCallScreen .reject-call{ background:#e5222b; color:#fff; }
+
+/* 2. LIVE MAP PAGE (PDF page 9) */
+#mapsPage .page-content{ padding:0 !important; overflow:hidden !important; }
+#mapsPage .container{ max-width:none !important; margin:0; }
+#mapsPage .card{ background:transparent !important; border:none !important; padding:0 !important; border-radius:0 !important; box-shadow:none !important; }
+#mapsPage .guardian-google-map{ position:fixed; top:70px; left:0; right:0; bottom:clamp(54px,15vw,68px); width:100% !important; height:auto !important; min-height:0 !important; margin:0 !important; border:none !important; border-radius:0 !important; z-index:1; }
+#mapsPage .section-title{ position:fixed; top:78px; left:50%; transform:translateX(-50%); z-index:6; margin:0; padding:6px 14px; font-size:13px; background:rgba(0,0,0,.72); color:#fff; border-radius:20px; white-space:nowrap; }
+#mapsPage .section-subtitle{ position:fixed; top:112px; left:50%; transform:translateX(-50%); z-index:6; margin:0; padding:4px 12px; font-size:11px; background:rgba(0,0,0,.72); color:#fff !important; border-radius:20px; white-space:nowrap; }
+#mapsPage #guardianMapStatus{ position:fixed; top:146px; left:50%; transform:translateX(-50%); z-index:6; margin:0; min-height:0; max-width:92vw; padding:6px 12px; border-radius:20px; background:rgba(0,0,0,.75); font-weight:700; }
+#mapsPage #guardianMapInfo{ position:fixed; left:10px; right:78px; bottom:calc(clamp(54px,15vw,68px) + 14px); z-index:6; margin:0; padding:10px 12px; border:none !important; border-radius:12px; background:rgba(0,0,0,.78); color:#fff; font-size:13px; }
+#mapsPage #guardianMapInfo strong{ color:#fff; }
+#mapsPage #guardianMapStatus:empty, #mapsPage #guardianMapInfo:empty{ display:none; }
+#mapsPage .panel-actions{ position:fixed; right:14px; bottom:calc(clamp(54px,15vw,68px) + 34px); z-index:6; margin:0 !important; display:flex; flex-direction:column; gap:12px; }
+#mapsPage .panel-actions button{ width:50px; height:50px; padding:0; border-radius:50%; border:none !important; color:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.4); }
+#mapsPage .panel-actions button i{ font-size:22px; margin:0; }
+#mapsPage .panel-actions .guardian-secondary{ background:rgba(20,120,70,.95); }
+body:has(#mapsPage.active) .mobile-nav{ border-top:none; }
+@media (max-width:760px){
+  #mapsPage .guardian-google-map{ top:62px; }
+  #mapsPage .section-title{ top:70px; }
+  #mapsPage .section-subtitle{ top:104px; }
+  #mapsPage #guardianMapStatus{ top:138px; }
+}
+
+/* 3. LIGHT MODE (black & white) */
+html.light-mode, body.light-mode{ background:#fff !important; color:#000 !important; }
+body.light-mode :where(*:not(.leaflet-container):not(.leaflet-container *):not(video):not(img):not(svg):not(svg *):not(canvas)){
+  background-color:#fff !important; color:#000 !important; border-color:#000 !important;
+  box-shadow:none !important; text-shadow:none !important; -webkit-text-stroke-color:#000 !important;
+}
+body.light-mode :where(*:not(.leaflet-container):not(.leaflet-container *):not([style*="url("])){ background-image:none !important; }
+body.light-mode button, body.light-mode .primary-button, body.light-mode .secondary-button, body.light-mode .card-button,
+body.light-mode .sos-main-button, body.light-mode .guardian-primary, body.light-mode .guardian-secondary,
+body.light-mode .guardian-danger, body.light-mode .guardian-ghost, body.light-mode .guardian-mini-button,
+body.light-mode input[type="button"], body.light-mode input[type="submit"]{ background-color:#000 !important; color:#fff !important; border-color:#000 !important; }
+body.light-mode button *, body.light-mode .primary-button *, body.light-mode .secondary-button *, body.light-mode .card-button *{ color:#fff !important; background-color:transparent !important; }
+body.light-mode .mobile-nav button{ background-color:transparent !important; color:#000 !important; }
+body.light-mode .mobile-nav-icon{ background-color:#000 !important; border-color:#000 !important; }
+body.light-mode .mobile-nav-icon i{ color:#fff !important; }
+body.light-mode .mobile-nav{ border-top-color:#000 !important; }
+body.light-mode input, body.light-mode textarea, body.light-mode select{ background-color:#fff !important; color:#000 !important; border:1px solid #000 !important; }
+body.light-mode ::placeholder{ color:#555 !important; opacity:1; }
+body.light-mode img[src*="logo"]{ filter:brightness(0); }
+body.light-mode .guardian-status-icon, body.light-mode .feature-icon, body.light-mode .chat-empty-icon{ filter:grayscale(1) contrast(1.4); }
+body.light-mode .wa-message.mine, body.light-mode .wa-message.mine *{ background-color:#000 !important; color:#fff !important; }
+body.light-mode .wa-message.theirs{ border:1px solid #000; }
+body.light-mode #mapsPage .section-title, body.light-mode #mapsPage .section-subtitle,
+body.light-mode #mapsPage #guardianMapStatus, body.light-mode #mapsPage #guardianMapInfo{ border:1px solid #000 !important; }
+body.light-mode #mapsPage .section-title, body.light-mode #mapsPage .section-subtitle,
+body.light-mode #mapsPage #guardianMapStatus, body.light-mode #mapsPage #guardianMapInfo,
+body.light-mode #mapsPage #guardianMapInfo strong{ color:#000 !important; }
+body.light-mode #mapsPage .card{ background-color:transparent !important; }
+body.light-mode:has(#mapsPage.active) .mobile-nav{ border-top:none !important; }
+body.light-mode #callScreen, body.light-mode #incomingCallScreen{ background:#fff !important; }
+body.light-mode #callScreen .wa-call-avatar, body.light-mode #incomingCallScreen .wa-incoming-avatar{ border:3px solid #000 !important; }
+body.light-mode #callScreen .wa-call-controls button::after{ color:#000; }
+body.light-mode #callScreen .wa-call-controls .wa-end-call, body.light-mode #incomingCallScreen .reject-call{ background-color:#e5222b !important; border-color:#e5222b !important; color:#fff !important; }
+
+
+
+/* ===== LIGHT MODE FIX: HOME WATCH + COMPASS (black & white) ===== */
+
+/* Watch */
+body.light-mode button.secondary-button:has(.live-watch){ background-color: transparent !important; border-color: transparent !important; }
+body.light-mode .live-watch{ background-image: none !important; background-color: #000 !important; animation: none !important; }
+body.light-mode .live-watch .watch-face{ background-color: #fff !important; border: 2px solid #000 !important; }
+body.light-mode .live-watch .watch-number{ color: #000 !important; background-color: transparent !important; }
+body.light-mode .live-watch .watch-hand{ background-image: none !important; background-color: #000 !important; }
+body.light-mode .live-watch .watch-center{ background-color: #fff !important; border: 2px solid #000 !important; }
+body.light-mode .live-watch .watch-digital{ color: #000 !important; background-color: #fff !important; border: 1px solid #000 !important; }
+body.light-mode .live-watch .watch-date{ color: #000 !important; background-color: transparent !important; }
+
+/* Compass */
+body.light-mode .compass-ring{ background-color: #fff !important; border: 1px solid #000 !important; }
+body.light-mode .compass-rose{ background-color: #000 !important; opacity: .75; }
+body.light-mode .compass-mark::before{ background-color: #000 !important; }
+body.light-mode .compass-mark span,
+body.light-mode .compass-mark.cardinal.north span,
+body.light-mode .compass-degrees,
+body.light-mode .compass-direction{ color: #000 !important; text-shadow: none !important; }
+body.light-mode .compass-pointer{
+    background-color: transparent !important;
+    border-left-color: transparent !important; border-right-color: transparent !important;
+    border-top-color: #000 !important;
+}
+body.light-mode .compass-north-arrow{
+    background-color: transparent !important; filter: none !important;
+    border-left-color: transparent !important; border-right-color: transparent !important;
+    border-bottom-color: #000 !important;
+}
+body.light-mode .compass-north-arrow::after{ border-top-color: #9a9a9a !important; }
+body.light-mode .compass-hub{ background-color: #fff !important; border-color: #000 !important; }
+
+/* Home page: text, badge, heart */
+body.light-mode #homePage .home-description{ color: #000 !important; }
+body.light-mode #homePage .home-badge{ color: #000 !important; border-color: #000 !important; background-color: transparent !important; }
+body.light-mode #homePage .home-badge .live-shield i{ color: #000 !important; }
+body.light-mode #homePage .home-badge .live-shield::before{ background: rgba(0,0,0,.35) !important; }
+body.light-mode #homePage .home-badge .badge-snake *{ stroke: #000 !important; }
+body.light-mode #homePage .home-badge .badge-snake polygon{ fill: #000 !important; }
+body.light-mode #journeyArrival{ color: #000 !important; border-color: #000 !important; }
+body.light-mode .sos-real-heart [stroke="#ffb3bd"]{ stroke: #fff !important; }
+
+/* Compass ticks + N/E/S/W: the mark layers must stay transparent */
+body.light-mode .compass-marks,
+body.light-mode .compass-mark,
+body.light-mode .compass-mark span,
+body.light-mode .compass-dial{ background-color: transparent !important; }
+
+
+
 
 </style>
 </head>
