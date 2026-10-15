@@ -4525,6 +4525,89 @@ align-items: flex-start;
 .ec-delete{width:36px;height:36px;border-radius:50%;border:1px solid #2a2a2a;background:#111;color:#888;cursor:pointer;padding:0}
 .ec-delete:hover{color:#ff4444;border-color:#ff4444}
 @media(max-width:600px){#contactsPage .form-row{grid-template-columns:1fr}}
+
+
+
+
+/* ===== GUARDIAN SOS — REDESIGN PATCH ===== */
+
+/* 1. CALL SCREEN (PDF page 13) */
+#callScreen{ background: radial-gradient(circle at 50% 20%, #3d0027 0%, #0a0a0a 55%, #000 100%) !important; }
+#callScreen .wa-remote-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:transparent !important; z-index:1; }
+#callScreen .wa-local-video{ z-index:5; }
+#callScreen:not(.wa-video-call) .wa-local-video{ display:none; }
+#callScreen .wa-call-avatar{ position:absolute; top:13vh; left:50%; transform:translateX(-50%); width:112px; height:112px; border-radius:50%; background:#1b1b1b; color:#fff; border:3px solid #ff1493; font-size:46px; font-weight:700; display:flex; align-items:center; justify-content:center; z-index:3; overflow:hidden; }
+#callScreen .wa-call-info{ top:calc(13vh + 132px); z-index:4; }
+#callScreen .wa-call-info #callUserName{ font-size:24px; font-weight:700; color:#fff; }
+#callScreen #callStatus{ font-size:14px; color:#aaa; margin-top:4px; }
+#callScreen .wa-call-timer{ font-size:14px; color:#ccc; margin-top:2px; }
+#callScreen.wa-video-call .wa-call-avatar{ display:none; }
+#callScreen.wa-video-call .wa-call-info{ top:30px; }
+#callScreen .wa-call-controls{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:min(360px,94vw); display:grid; grid-template-columns:repeat(4,1fr); gap:34px 10px; justify-items:center; padding-bottom:calc(40px + env(safe-area-inset-bottom,0px)); z-index:10; }
+#callScreen .wa-call-controls button{ position:relative; width:60px; height:60px; border-radius:50%; border:none; background:#262626; color:#fff; font-size:24px; display:flex; align-items:center; justify-content:center; overflow:visible; }
+#callScreen .wa-call-controls button::after{ content:attr(title); position:absolute; top:calc(100% + 7px); left:50%; transform:translateX(-50%); font-size:11px; font-weight:400; color:#bbb; white-space:nowrap; }
+#callScreen .wa-call-controls button.active{ background:#ff1493; }
+#callScreen .wa-call-controls .wa-end-call{ grid-column:1 / -1; width:72px; height:72px; background:#e5222b; border:none; color:#fff; font-size:30px; }
+#callScreen .wa-call-controls .wa-end-call::after{ content:none; }
+#incomingCallScreen{ background: radial-gradient(circle at 50% 25%, #3d0027 0%, #0a0a0a 55%, #000 100%); }
+#incomingCallScreen .reject-call{ background:#e5222b; color:#fff; }
+
+/* 2. LIVE MAP PAGE (PDF page 9) */
+#mapsPage .page-content{ padding:0 !important; overflow:hidden !important; }
+#mapsPage .container{ max-width:none !important; margin:0; }
+#mapsPage .card{ background:transparent !important; border:none !important; padding:0 !important; border-radius:0 !important; box-shadow:none !important; }
+#mapsPage .guardian-google-map{ position:fixed; top:70px; left:0; right:0; bottom:clamp(54px,15vw,68px); width:100% !important; height:auto !important; min-height:0 !important; margin:0 !important; border:none !important; border-radius:0 !important; z-index:1; }
+#mapsPage .section-title{ position:fixed; top:78px; left:50%; transform:translateX(-50%); z-index:6; margin:0; padding:6px 14px; font-size:13px; background:rgba(0,0,0,.72); color:#fff; border-radius:20px; white-space:nowrap; }
+#mapsPage .section-subtitle{ position:fixed; top:112px; left:50%; transform:translateX(-50%); z-index:6; margin:0; padding:4px 12px; font-size:11px; background:rgba(0,0,0,.72); color:#fff !important; border-radius:20px; white-space:nowrap; }
+#mapsPage #guardianMapStatus{ position:fixed; top:146px; left:50%; transform:translateX(-50%); z-index:6; margin:0; min-height:0; max-width:92vw; padding:6px 12px; border-radius:20px; background:rgba(0,0,0,.75); font-weight:700; }
+#mapsPage #guardianMapInfo{ position:fixed; left:10px; right:78px; bottom:calc(clamp(54px,15vw,68px) + 14px); z-index:6; margin:0; padding:10px 12px; border:none !important; border-radius:12px; background:rgba(0,0,0,.78); color:#fff; font-size:13px; }
+#mapsPage #guardianMapInfo strong{ color:#fff; }
+#mapsPage #guardianMapStatus:empty, #mapsPage #guardianMapInfo:empty{ display:none; }
+#mapsPage .panel-actions{ position:fixed; right:14px; bottom:calc(clamp(54px,15vw,68px) + 34px); z-index:6; margin:0 !important; display:flex; flex-direction:column; gap:12px; }
+#mapsPage .panel-actions button{ width:50px; height:50px; padding:0; border-radius:50%; border:none !important; color:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.4); }
+#mapsPage .panel-actions button i{ font-size:22px; margin:0; }
+#mapsPage .panel-actions .guardian-secondary{ background:rgba(20,120,70,.95); }
+body:has(#mapsPage.active) .mobile-nav{ border-top:none; }
+@media (max-width:760px){
+  #mapsPage .guardian-google-map{ top:62px; }
+  #mapsPage .section-title{ top:70px; }
+  #mapsPage .section-subtitle{ top:104px; }
+  #mapsPage #guardianMapStatus{ top:138px; }
+}
+
+/* 3. LIGHT MODE (black & white) */
+html.light-mode, body.light-mode{ background:#fff !important; color:#000 !important; }
+body.light-mode :where(*:not(.leaflet-container):not(.leaflet-container *):not(video):not(img):not(svg):not(svg *):not(canvas)){
+  background-color:#fff !important; color:#000 !important; border-color:#000 !important;
+  box-shadow:none !important; text-shadow:none !important; -webkit-text-stroke-color:#000 !important;
+}
+body.light-mode :where(*:not(.leaflet-container):not(.leaflet-container *):not([style*="url("])){ background-image:none !important; }
+body.light-mode button, body.light-mode .primary-button, body.light-mode .secondary-button, body.light-mode .card-button,
+body.light-mode .sos-main-button, body.light-mode .guardian-primary, body.light-mode .guardian-secondary,
+body.light-mode .guardian-danger, body.light-mode .guardian-ghost, body.light-mode .guardian-mini-button,
+body.light-mode input[type="button"], body.light-mode input[type="submit"]{ background-color:#000 !important; color:#fff !important; border-color:#000 !important; }
+body.light-mode button *, body.light-mode .primary-button *, body.light-mode .secondary-button *, body.light-mode .card-button *{ color:#fff !important; background-color:transparent !important; }
+body.light-mode .mobile-nav button{ background-color:transparent !important; color:#000 !important; }
+body.light-mode .mobile-nav-icon{ background-color:#000 !important; border-color:#000 !important; }
+body.light-mode .mobile-nav-icon i{ color:#fff !important; }
+body.light-mode .mobile-nav{ border-top-color:#000 !important; }
+body.light-mode input, body.light-mode textarea, body.light-mode select{ background-color:#fff !important; color:#000 !important; border:1px solid #000 !important; }
+body.light-mode ::placeholder{ color:#555 !important; opacity:1; }
+body.light-mode img[src*="logo"]{ filter:brightness(0); }
+body.light-mode .guardian-status-icon, body.light-mode .feature-icon, body.light-mode .chat-empty-icon{ filter:grayscale(1) contrast(1.4); }
+body.light-mode .wa-message.mine, body.light-mode .wa-message.mine *{ background-color:#000 !important; color:#fff !important; }
+body.light-mode .wa-message.theirs{ border:1px solid #000; }
+body.light-mode #mapsPage .section-title, body.light-mode #mapsPage .section-subtitle,
+body.light-mode #mapsPage #guardianMapStatus, body.light-mode #mapsPage #guardianMapInfo{ border:1px solid #000 !important; }
+body.light-mode #mapsPage .section-title, body.light-mode #mapsPage .section-subtitle,
+body.light-mode #mapsPage #guardianMapStatus, body.light-mode #mapsPage #guardianMapInfo,
+body.light-mode #mapsPage #guardianMapInfo strong{ color:#000 !important; }
+body.light-mode #mapsPage .card{ background-color:transparent !important; }
+body.light-mode:has(#mapsPage.active) .mobile-nav{ border-top:none !important; }
+body.light-mode #callScreen, body.light-mode #incomingCallScreen{ background:#fff !important; }
+body.light-mode #callScreen .wa-call-avatar, body.light-mode #incomingCallScreen .wa-incoming-avatar{ border:3px solid #000 !important; }
+body.light-mode #callScreen .wa-call-controls button::after{ color:#000; }
+body.light-mode #callScreen .wa-call-controls .wa-end-call, body.light-mode #incomingCallScreen .reject-call{ background-color:#e5222b !important; border-color:#e5222b !important; color:#fff !important; }
 </style>
 </head>
 
@@ -5824,68 +5907,31 @@ align-items: flex-start;
 ====================================================== -->
 
 <section id="mapsPage" class="page protected-page">
-
     <div class="page-content">
-
         <div class="container">
 
-            <h1 class="section-title">
-                Live Journey Map
-            </h1>
-
-            <p class="section-subtitle">
-                Guardian-only live journey tracking.
-            </p>
+            <h1 class="section-title">Live Journey Map</h1>
+            <p class="section-subtitle">Guardian-only live journey tracking.</p>
 
             <div class="card">
 
-                <div
-                    id="guardianMapStatus"
-                    class="status-box"
-                >
-                    Checking live journey access...
-                </div>
+                <div id="guardianMapStatus" class="status-box"></div>
+                <div id="guardianMapInfo" class="guardian-map-info"></div>
 
-                <div
-                    id="guardianMapInfo"
-                    class="guardian-map-info"
-                ></div>
+                <div id="guardianMap" class="guardian-google-map"></div>
 
-                <div
-                    id="guardianMap"
-                    class="guardian-google-map"
-                ></div>
-
-                <div
-                    class="panel-actions"
-                    style="margin-top:15px;"
-                >
-
-                    <button
-                        class="guardian-primary"
-                        onclick="loadGuardianMapPage()"
-                    >
+                <div class="panel-actions" style="margin-top:15px;">
+                    <button class="guardian-primary" onclick="loadGuardianMapPage()" title="Refresh Map" aria-label="Refresh Map">
                         <i class="bi bi-arrow-clockwise"></i>
-                        Refresh Map
                     </button>
-                                        <button
-                        class="guardian-secondary"
-                        onclick="followGuardianTraveler()"
-                    >
+                    <button class="guardian-secondary" onclick="followGuardianTraveler()" title="Follow Traveler" aria-label="Follow Traveler">
                         <i class="bi bi-crosshair"></i>
-                        Follow Traveler
                     </button>
-
-
-
                 </div>
 
             </div>
-
         </div>
-
     </div>
-
 </section>
     <!-- =====================================================
          HISTORY PAGE
@@ -6282,7 +6328,15 @@ align-items: flex-start;
                         <span id="globalSafetyText">I'M SAFE</span>
                     </div>
                 </div>
-
+                <div class="guardian-status-card" style="margin-bottom:14px;">
+                    <div class="guardian-status-icon">☀️</div>
+                    <div class="guardian-status-copy">
+                        <span class="small-label">APPEARANCE</span>
+                        <strong id="themeModeLabel">Dark mode</strong>
+                        <span>Switch to a black &amp; white light theme</span>
+                    </div>
+                    <button id="lightModeToggle" class="guardian-mini-button" type="button" onclick="toggleLightMode()">Switch to light</button>
+                </div>
                 <div class="guardian-status-grid">
                     <div class="guardian-status-card status-main">
                         <div class="guardian-status-icon">🛡️</div>
@@ -12578,7 +12632,7 @@ async function loadGuardianMapPage() {
     if (status) {
 
         status.textContent =
-            "Map available. Waiting for a live journey...";
+            "";
 
         status.style.color =
             "#ff1493";
@@ -12589,7 +12643,7 @@ async function loadGuardianMapPage() {
     if (info) {
 
         info.innerHTML =
-            "The map is active. Live movement will appear here when a traveler starts a journey.";
+            "";
 
     }
 
@@ -12637,7 +12691,7 @@ if (
     if (status) {
 
         status.textContent =
-            "MAP ACTIVE — No live journey is currently active.";
+            "";
 
         status.style.color =
             "#ff1493";
@@ -12647,7 +12701,7 @@ if (
     if (info) {
 
         info.innerHTML =
-            "The map is ready. When a traveler starts a journey, their live movement will appear here.";
+            "";
 
     }
 
@@ -22969,7 +23023,7 @@ setInterval(
         muted
         playsinline>
     </video>
-
+    <div id="callAvatar" class="wa-call-avatar">G</div>
     <div class="wa-call-info">
 
         <div
@@ -23241,6 +23295,44 @@ setInterval(
 
     requestAnimationFrame(frame);
 
+})();
+</script>
+
+<script>
+(function () {
+    var KEY = "guardianLightMode";
+    function applyLightMode(on) {
+        document.documentElement.classList.toggle("light-mode", on);
+        document.body.classList.toggle("light-mode", on);
+        var label = document.getElementById("themeModeLabel");
+        var btn = document.getElementById("lightModeToggle");
+        if (label) label.textContent = on ? "Light mode" : "Dark mode";
+        if (btn) btn.textContent = on ? "Switch to dark" : "Switch to light";
+    }
+    window.toggleLightMode = function () {
+        var on = !document.body.classList.contains("light-mode");
+        try { localStorage.setItem(KEY, on ? "1" : "0"); } catch (e) {}
+        applyLightMode(on);
+    };
+    var saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (e) {}
+    applyLightMode(saved === "1");
+
+    setInterval(function () {
+        try {
+            var screen = document.getElementById("callScreen");
+            if (!screen || screen.style.display === "none") return;
+            var nameEl = document.getElementById("callUserName");
+            var avatar = document.getElementById("callAvatar");
+            if (nameEl && avatar) {
+                var n = (nameEl.textContent || "").trim();
+                avatar.textContent = n ? n.charAt(0).toUpperCase() : "G";
+            }
+            var lv = document.getElementById("localVideo");
+            var hasVideo = !!(lv && lv.srcObject && lv.srcObject.getVideoTracks && lv.srcObject.getVideoTracks().length);
+            screen.classList.toggle("wa-video-call", hasVideo);
+        } catch (e) {}
+    }, 500);
 })();
 </script>
 </body>
