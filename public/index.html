@@ -4659,6 +4659,145 @@ body.light-mode .compass-marks,
 body.light-mode .compass-mark,
 body.light-mode .compass-mark span,
 body.light-mode .compass-dial{ background-color: transparent !important; }
+
+
+
+
+
+/* =====================================================================
+   FIX 1: CALL SCREEN - full width and height, no video picture
+===================================================================== */
+
+/* the call screen always covers the whole phone screen */
+#callScreen{
+  position:fixed !important;
+  top:0 !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:0 !important;
+  width:100vw !important;
+  height:100vh !important;
+  height:100dvh !important;
+  max-width:none !important;
+  max-height:none !important;
+}
+
+/* the button area is now full width (it was only 360px wide) */
+#callScreen .wa-call-controls{
+  left:0 !important;
+  right:0 !important;
+  transform:none !important;
+  width:100% !important;
+  max-width:100% !important;
+  padding-left:16px !important;
+  padding-right:16px !important;
+  box-sizing:border-box !important;
+}
+
+/* voice call: hide the video picture (grey box with ring and triangle).
+   "visibility" is used so the call sound keeps working */
+#callScreen:not(.wa-video-call) .wa-remote-video{
+  visibility:hidden !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+}
+
+/* never show the phone's default play button on call videos */
+#callScreen video::-webkit-media-controls,
+#callScreen video::-webkit-media-controls-panel,
+#callScreen video::-webkit-media-controls-overlay-play-button,
+#callScreen video::-webkit-media-controls-start-playback-button{
+  display:none !important;
+  -webkit-appearance:none !important;
+}
+
+/* LIGHT MODE: one white background over the whole call screen */
+body.light-mode #callScreen{
+  background:#fff !important;
+}
+body.light-mode #callScreen .wa-call-info,
+body.light-mode #callScreen .wa-call-info *,
+body.light-mode #callScreen .wa-call-controls{
+  background:transparent !important;
+  background-color:transparent !important;
+  border:none !important;
+}
+
+/* LIGHT MODE + VIDEO CALL: black screen, white text over the video */
+body.light-mode #callScreen.wa-video-call{
+  background:#000 !important;
+}
+body.light-mode #callScreen.wa-video-call .wa-call-info,
+body.light-mode #callScreen.wa-video-call .wa-call-info *{
+  color:#fff !important;
+  text-shadow:0 1px 4px rgba(0,0,0,.85) !important;
+}
+body.light-mode #callScreen.wa-video-call .wa-call-controls button::after{
+  color:#fff !important;
+}
+
+
+/* =====================================================================
+   FIX 2: VOICE RECORDING SCREEN - everything visible in light mode
+===================================================================== */
+
+body.light-mode .voice-rec-overlay{
+  background:rgba(255,255,255,.97) !important;
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+}
+body.light-mode .voice-rec-overlay .voice-rec-card{
+  background:#fff !important;
+  border:2px solid #000 !important;
+}
+
+/* "RECORDING VOICE MESSAGE" text and blinking dot */
+body.light-mode .voice-rec-overlay .voice-rec-status{ color:#000 !important; }
+body.light-mode .voice-rec-overlay .voice-rec-dot{ background:#e5222b !important; }
+
+/* big mic circle (black circle, white mic) and pulse */
+body.light-mode .voice-rec-overlay .voice-rec-mic{
+  background:#000 !important;
+  color:#fff !important;
+  animation:voiceRecPulseLight 1.4s infinite !important;
+}
+body.light-mode .voice-rec-overlay .voice-rec-mic i{
+  color:#fff !important;
+  background:transparent !important;
+}
+@keyframes voiceRecPulseLight{
+  0%,100%{ transform:scale(1); }
+  50%    { transform:scale(1.07); }
+}
+
+/* timer and moving sound bars */
+body.light-mode .voice-rec-overlay .voice-rec-timer{ color:#000 !important; }
+body.light-mode .voice-rec-overlay .voice-rec-wave span{ background:#000 !important; }
+
+/* Cancel and Stop & Send buttons and their labels */
+body.light-mode .voice-rec-overlay .voice-rec-cancel,
+body.light-mode .voice-rec-overlay .voice-rec-stop{
+  background:transparent !important;
+  background-color:transparent !important;
+  border:none !important;
+  color:#000 !important;
+}
+body.light-mode .voice-rec-overlay .voice-rec-circle.cancel{
+  background:#fff !important;
+  border:2px solid #000 !important;
+  color:#000 !important;
+}
+body.light-mode .voice-rec-overlay .voice-rec-circle.cancel i{
+  color:#000 !important;
+}
+body.light-mode .voice-rec-overlay .voice-rec-circle.stop{
+  background:#000 !important;
+  border:2px solid #000 !important;
+  color:#fff !important;
+}
+body.light-mode .voice-rec-overlay .voice-rec-circle.stop i{
+  color:#fff !important;
+}
 </style>
 </head>
 
