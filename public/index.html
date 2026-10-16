@@ -4798,6 +4798,65 @@ body.light-mode .voice-rec-overlay .voice-rec-circle.stop{
 body.light-mode .voice-rec-overlay .voice-rec-circle.stop i{
   color:#fff !important;
 }
+
+
+
+
+
+
+/* =====================================================================
+   CHAT HEADER (light mode): round black buttons + round black avatar
+===================================================================== */
+
+/* back arrow, call, video and three dots become black circles */
+body.light-mode .wa-chat-header .wa-back,
+body.light-mode .wa-chat-header .wa-call-actions button{
+  width:36px !important;
+  height:36px !important;
+  min-width:36px !important;
+  min-height:36px !important;
+  padding:0 !important;
+  border-radius:50% !important;
+  background:#000 !important;
+  background-color:#000 !important;
+  border:none !important;
+  color:#fff !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex-shrink:0 !important;
+}
+
+/* arrow, phone, video and dots icons are white */
+body.light-mode .wa-chat-header .wa-back,
+body.light-mode .wa-chat-header .wa-back *,
+body.light-mode .wa-chat-header .wa-call-actions button,
+body.light-mode .wa-chat-header .wa-call-actions button *{
+  color:#fff !important;
+  background-color:transparent !important;
+}
+body.light-mode .wa-chat-header .wa-back{
+  font-size:20px !important;
+}
+body.light-mode .wa-chat-header .wa-call-actions button{
+  font-size:16px !important;
+}
+
+/* a little space between the circles */
+body.light-mode .wa-chat-header .wa-call-actions{
+  gap:6px !important;
+}
+
+/* the letter between the back arrow and the user name:
+   black circle, white letter */
+body.light-mode .wa-chat-header .wa-avatar{
+  background:#000 !important;
+  background-color:#000 !important;
+  color:#fff !important;
+  border:none !important;
+  border-radius:50% !important;
+  overflow:hidden;
+}
 </style>
 </head>
 
