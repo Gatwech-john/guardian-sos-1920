@@ -4531,26 +4531,7 @@ align-items: flex-start;
 
 /* ===== GUARDIAN SOS — REDESIGN PATCH ===== */
 
-/* 1. CALL SCREEN (PDF page 13) */
-#callScreen{ background: radial-gradient(circle at 50% 20%, #3d0027 0%, #0a0a0a 55%, #000 100%) !important; }
-#callScreen .wa-remote-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:transparent !important; z-index:1; }
-#callScreen .wa-local-video{ z-index:5; }
-#callScreen:not(.wa-video-call) .wa-local-video{ display:none; }
-#callScreen .wa-call-avatar{ position:absolute; top:13vh; left:50%; transform:translateX(-50%); width:112px; height:112px; border-radius:50%; background:#1b1b1b; color:#fff; border:3px solid #ff1493; font-size:46px; font-weight:700; display:flex; align-items:center; justify-content:center; z-index:3; overflow:hidden; }
-#callScreen .wa-call-info{ top:calc(13vh + 132px); z-index:4; }
-#callScreen .wa-call-info #callUserName{ font-size:24px; font-weight:700; color:#fff; }
-#callScreen #callStatus{ font-size:14px; color:#aaa; margin-top:4px; }
-#callScreen .wa-call-timer{ font-size:14px; color:#ccc; margin-top:2px; }
-#callScreen.wa-video-call .wa-call-avatar{ display:none; }
-#callScreen.wa-video-call .wa-call-info{ top:30px; }
-#callScreen .wa-call-controls{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:min(360px,94vw); display:grid; grid-template-columns:repeat(4,1fr); gap:34px 10px; justify-items:center; padding-bottom:calc(40px + env(safe-area-inset-bottom,0px)); z-index:10; }
-#callScreen .wa-call-controls button{ position:relative; width:60px; height:60px; border-radius:50%; border:none; background:#262626; color:#fff; font-size:24px; display:flex; align-items:center; justify-content:center; overflow:visible; }
-#callScreen .wa-call-controls button::after{ content:attr(title); position:absolute; top:calc(100% + 7px); left:50%; transform:translateX(-50%); font-size:11px; font-weight:400; color:#bbb; white-space:nowrap; }
-#callScreen .wa-call-controls button.active{ background:#ff1493; }
-#callScreen .wa-call-controls .wa-end-call{ grid-column:1 / -1; width:72px; height:72px; background:#e5222b; border:none; color:#fff; font-size:30px; }
-#callScreen .wa-call-controls .wa-end-call::after{ content:none; }
-#incomingCallScreen{ background: radial-gradient(circle at 50% 25%, #3d0027 0%, #0a0a0a 55%, #000 100%); }
-#incomingCallScreen .reject-call{ background:#e5222b; color:#fff; }
+
 
 /* 2. LIVE MAP PAGE (PDF page 9) */
 #mapsPage .page-content{ padding:0 !important; overflow:hidden !important; }
