@@ -4927,6 +4927,37 @@ body.light-mode .vr-title{ color:#000 !important; }
 body.light-mode .vr-text{ color:#444 !important; }
 body.light-mode .vr-actions .vr-decline{ background:#e5222b !important; color:#fff !important; border:none !important; }
 body.light-mode .vr-actions .vr-accept{ background:#000 !important; color:#fff !important; border:none !important; }
+
+
+/* =====================================================================
+   HOME PAGE: bottom of the text no longer cut off
+===================================================================== */
+
+/* more room between the two title lines, nothing clipped */
+.home-title{
+  line-height:1.15 !important;
+  padding-bottom:6px !important;
+  overflow:visible !important;
+}
+
+/* the span around "YOU NEED IT." must never paint a box over line one */
+.home-title span,
+body.light-mode .home-title,
+body.light-mode .home-title span{
+  background:transparent !important;
+  background-color:transparent !important;
+}
+
+/* home page fits the visible screen and scrolls past the bottom bar */
+#homePage{
+  height:100vh;
+  height:100dvh;
+}
+#homePage .page-content{
+  padding-bottom:calc(clamp(54px, 15vw, 68px) + 28px) !important;
+  overflow-y:auto !important;
+}
+
 </style>
 </head>
 
