@@ -2062,6 +2062,43 @@ socket.on(
 
     }
 );
+
+
+    /*
+     * VIDEO UPGRADE REQUESTS
+     * (a voice call asks to become a video call)
+     */
+    [
+        "video_request",
+        "video_accept",
+        "video_decline",
+        "video_cancel"
+    ].forEach(function(eventName) {
+
+        socket.on(
+            eventName,
+            function(data) {
+
+                if (
+                    !data ||
+                    !data.userId
+                ) {
+                    return;
+                }
+
+                io.to(
+                    "user:" +
+                    data.userId
+                ).emit(
+                    eventName,
+                    {
+                        userId:
+                            socket.userId
+                    }
+                );
+            }
+        );
+    });
     /*
      * DISCONNECT
      */

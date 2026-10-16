@@ -4885,6 +4885,48 @@ body.light-mode #mapsPage .panel-actions{
   box-shadow:none !important;
   padding:0 !important;
 }
+
+
+
+
+/* =====================================================================
+   VIDEO REQUEST BOX (voice call -> video call)
+===================================================================== */
+
+.vr-overlay{
+  position:fixed; inset:0; z-index:1000003;
+  display:flex; align-items:center; justify-content:center;
+  padding:20px; background:rgba(0,0,0,.75);
+}
+.vr-box{
+  width:100%; max-width:340px; text-align:center; color:#fff;
+  background:#111; border:1px solid #ff1493; border-radius:20px;
+  padding:26px 22px 22px;
+}
+.vr-icon{
+  width:64px; height:64px; margin:0 auto 14px; border-radius:50%;
+  background:#ff1493; color:#fff; font-size:28px;
+  display:flex; align-items:center; justify-content:center;
+}
+.vr-title{ font-size:20px; font-weight:900; margin-bottom:6px; }
+.vr-text{ font-size:14px; color:#bbb; margin-bottom:22px; }
+.vr-actions{ display:flex; gap:12px; }
+.vr-actions button{
+  flex:1; height:48px; border:none; border-radius:12px;
+  font-size:15px; font-weight:900; color:#fff; cursor:pointer;
+}
+.vr-decline{ background:#e5222b; }
+.vr-accept{ background:#1aa84f; }
+
+/* light mode */
+body.light-mode .vr-overlay{ background:rgba(255,255,255,.9) !important; }
+body.light-mode .vr-box{ background:#fff !important; border:2px solid #000 !important; }
+body.light-mode .vr-icon{ background:#000 !important; color:#fff !important; }
+body.light-mode .vr-icon i{ color:#fff !important; background:transparent !important; }
+body.light-mode .vr-title{ color:#000 !important; }
+body.light-mode .vr-text{ color:#444 !important; }
+body.light-mode .vr-actions .vr-decline{ background:#e5222b !important; color:#fff !important; border:none !important; }
+body.light-mode .vr-actions .vr-accept{ background:#000 !important; color:#fff !important; border:none !important; }
 </style>
 </head>
 
@@ -22040,6 +22082,132 @@ chatSocket.on(
 }
 
 
+/* ============================================================
+   VOICE CALL -> VIDEO CALL (the other person must accept)
+============================================================ */
+
+let videoUpgradeWaiting = false;
+let videoUpgradeApproved = false;
+let videoUpgradeTimer = null;
+let incomingVideoTimer = null;
+
+function getCallPeerName() {
+    const el = document.getElementById("callUserName");
+    const name = el ? (el.textContent || "").trim() : "";
+    return name || "The other person";
+}
+
+/* Person who WANTS video: send the request */
+function requestVideoUpgrade() {
+    if (!chatSocket || !chatSocket.connected || !activeCallUserId) {
+        showToast("Call is not connected.");
+        return;
+    }
+    if (videoUpgradeWaiting) {
+        showToast("Video request already sent.");
+        return;
+    }
+    videoUpgradeWaiting = true;
+    chatSocket.emit("video_request", { userId: activeCallUserId });
+    setCallStatus("Waiting for " + getCallPeerName() + " to accept video...");
+    showToast("Video request sent.");
+    clearTimeout(videoUpgradeTimer);
+    videoUpgradeTimer = setTimeout(function () {
+        if (!videoUpgradeWaiting) { return; }
+        videoUpgradeWaiting = false;
+        if (chatSocket && activeCallUserId) {
+            chatSocket.emit("video_cancel", { userId: activeCallUserId });
+        }
+        setCallStatus("Connected");
+        showToast("No answer to the video request.");
+    }, 30000);
+}
+
+/* Person who RECEIVES the request: Accept / Decline box */
+function closeVideoRequestDialog() {
+    clearTimeout(incomingVideoTimer);
+    const dialog = document.getElementById("videoRequestDialog");
+    if (dialog) { dialog.remove(); }
+}
+
+function showVideoRequestDialog(fromName) {
+    closeVideoRequestDialog();
+
+    const overlay = document.createElement("div");
+    overlay.id = "videoRequestDialog";
+    overlay.className = "vr-overlay";
+    overlay.innerHTML =
+        '<div class="vr-box">' +
+            '<div class="vr-icon"><i class="bi bi-camera-video-fill"></i></div>' +
+            '<div class="vr-title"></div>' +
+            '<div class="vr-text">wants to switch this call to video.</div>' +
+            '<div class="vr-actions">' +
+                '<button type="button" class="vr-decline">Decline</button>' +
+                '<button type="button" class="vr-accept">Accept</button>' +
+            '</div>' +
+        '</div>';
+    overlay.querySelector(".vr-title").textContent = fromName;
+    document.body.appendChild(overlay);
+
+    function answer(accepted) {
+        closeVideoRequestDialog();
+        if (!chatSocket || !activeCallUserId) { return; }
+        chatSocket.emit(accepted ? "video_accept" : "video_decline", { userId: activeCallUserId });
+        if (accepted) { setCallStatus("Switching to video..."); }
+    }
+
+    overlay.querySelector(".vr-accept").onclick = function () { answer(true); };
+    overlay.querySelector(".vr-decline").onclick = function () { answer(false); };
+
+    /* no answer after 30 seconds = decline */
+    incomingVideoTimer = setTimeout(function () { answer(false); }, 30000);
+}
+
+/* Listen for the video events (also re-attaches after the socket reconnects) */
+function bindVideoRequestEvents() {
+    if (!chatSocket || chatSocket.__videoRequestBound) { return; }
+    chatSocket.__videoRequestBound = true;
+
+    chatSocket.on("video_request", function () {
+        if (!peerConnection || !activeCallUserId) { return; }
+        if (activeCallType === "video") {
+            chatSocket.emit("video_accept", { userId: activeCallUserId });
+            return;
+        }
+        showVideoRequestDialog(getCallPeerName());
+    });
+
+    chatSocket.on("video_accept", function () {
+        if (!videoUpgradeWaiting) { return; }
+        videoUpgradeWaiting = false;
+        clearTimeout(videoUpgradeTimer);
+        videoUpgradeApproved = true;
+        toggleCallCamera();
+    });
+
+    chatSocket.on("video_decline", function () {
+        if (!videoUpgradeWaiting) { return; }
+        videoUpgradeWaiting = false;
+        clearTimeout(videoUpgradeTimer);
+        setCallStatus("Connected");
+        showToast(getCallPeerName() + " declined the video request.");
+    });
+
+    chatSocket.on("video_cancel", function () {
+        closeVideoRequestDialog();
+    });
+}
+
+setInterval(function () {
+    bindVideoRequestEvents();
+    const screen = document.getElementById("callScreen");
+    if (!screen || screen.style.display === "none") {
+        videoUpgradeWaiting = false;
+        closeVideoRequestDialog();
+    }
+}, 1000);
+
+
 function showCallScreen() {
 
     const screen =
@@ -22274,11 +22442,19 @@ async function toggleCallCamera() {
         return;
     }
 
-    /*
+       /*
      * NO CAMERA TRACK YET.
      *
      * Upgrade voice call to video.
      */
+    if (
+        activeCallType !== "video" &&
+        !videoUpgradeApproved
+    ) {
+        requestVideoUpgrade();
+        return;
+    }
+    videoUpgradeApproved = false;
     try {
 
         const cameraStream =
