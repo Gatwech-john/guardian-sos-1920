@@ -2332,11 +2332,45 @@ align-items: flex-start;
     text-overflow: ellipsis;
 }
 
+
 .wa-user-status {
     color: #999;
     font-size: 11px;
     margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
+
+.wa-user-status.online {
+    color: #00ff88;
+}
+
+.wa-user-status.offline {
+    color: #999;
+}
+
+.wa-user-status.online::before {
+    content: "";
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    min-width: 9px;
+    background: #00ff88;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 255, 136, 0.6);
+}
+
+.wa-user-status.offline::before {
+    content: "";
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    min-width: 9px;
+    background: #888;
+    border-radius: 50%;
+}
+
 
 .wa-call-actions {
     display: flex;
