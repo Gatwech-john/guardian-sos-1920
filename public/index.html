@@ -4958,6 +4958,91 @@ body.light-mode .home-title span{
   overflow-y:auto !important;
 }
 
+
+
+
+/* GUARDIAN SOS CHAT - FULL-SCREEN IMAGE ZOOM */
+#chatImageViewer {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.97);
+    overflow: hidden;
+    touch-action: none;
+}
+
+#chatImageViewer.open {
+    display: flex;
+}
+
+#chatImageViewerImage {
+    display: block;
+    max-width: 96vw;
+    max-height: 88vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    transform: scale(1);
+    transform-origin: center center;
+    cursor: zoom-in;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.chat-image-viewer-controls {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chat-image-viewer-controls button {
+    width: 44px;
+    height: 44px;
+    border: 1px solid #ff1493;
+    border-radius: 50%;
+    background: #080808;
+    color: white;
+    font-size: 23px;
+    cursor: pointer;
+}
+
+.chat-image-viewer-controls button:hover {
+    background: #ff1493;
+}
+
+#chatImageZoomLevel {
+    color: white;
+    font-size: 13px;
+    background: #171717;
+    border-radius: 20px;
+    padding: 8px 10px;
+}
+
+@media (max-width: 600px) {
+    #chatImageViewerImage {
+        max-width: 100vw;
+        max-height: 90vh;
+    }
+
+    .chat-image-viewer-controls {
+        top: 10px;
+        right: 10px;
+        gap: 6px;
+    }
+
+    .chat-image-viewer-controls button {
+        width: 40px;
+        height: 40px;
+    }
+}
+
 </style>
 </head>
 
@@ -19564,15 +19649,21 @@ if (message.replyTo) {
     "
 >
 
-    <img
-        src="${escapeHTML(imageUrl)}"
-        style="
-            max-width:260px;
-            border-radius:9px;
-            display:block;
-        "
-        alt="Photo"
-    >
+    
+<img
+    src="${escapeHTML(imageUrl)}"
+    style="
+        max-width:260px;
+        max-height:350px;
+        border-radius:9px;
+        display:block;
+        cursor:zoom-in;
+        object-fit:contain;
+    "
+    alt="Photo"
+    onclick="event.stopPropagation(); openChatImageViewer(this.src);"
+>
+
 
     <button
         type="button"
@@ -23819,5 +23910,143 @@ setInterval(
     }, 500);
 })();
 </script>
+
+
+
+<!-- GUARDIAN SOS FULL-SCREEN CHAT IMAGE VIEWER -->
+<div
+    id="chatImageViewer"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Full-screen picture viewer"
+    onclick="if (event.target === this) closeChatImageViewer();"
+>
+    <div class="chat-image-viewer-controls">
+        <span id="chatImageZoomLevel">100%</span>
+
+        <button
+            type="button"
+            aria-label="Zoom out"
+            onclick="event.stopPropagation(); changeChatImageZoom(-0.25);"
+        >−</button>
+
+        <button
+            type="button"
+            aria-label="Zoom in"
+            onclick="event.stopPropagation(); changeChatImageZoom(0.25);"
+        >+</button>
+
+        <button
+            type="button"
+            aria-label="Reset zoom"
+            onclick="event.stopPropagation(); resetChatImageZoom();"
+        >↺</button>
+
+        <button
+            type="button"
+            aria-label="Close picture"
+            onclick="event.stopPropagation(); closeChatImageViewer();"
+        >×</button>
+    </div>
+
+    <img
+        id="chatImageViewerImage"
+        src=""
+        alt="Full-screen chat picture"
+        onclick="event.stopPropagation(); toggleChatImageZoom();"
+    >
+</div>
+
+
+<script>
+let chatImageZoom = 1;
+
+function openChatImageViewer(imageUrl) {
+    const viewer = document.getElementById("chatImageViewer");
+    const image = document.getElementById("chatImageViewerImage");
+
+    if (!viewer || !image || !imageUrl) return;
+
+    image.src = imageUrl;
+    chatImageZoom = 1;
+    updateChatImageZoom();
+
+    viewer.classList.add("open");
+    document.body.style.overflow = "hidden";
+}
+
+function closeChatImageViewer() {
+    const viewer = document.getElementById("chatImageViewer");
+    const image = document.getElementById("chatImageViewerImage");
+
+    if (!viewer) return;
+
+    viewer.classList.remove("open");
+    document.body.style.overflow = "";
+
+    if (image) {
+        image.src = "";
+    }
+
+    chatImageZoom = 1;
+}
+
+function changeChatImageZoom(amount) {
+    chatImageZoom = Math.max(
+        1,
+        Math.min(4, chatImageZoom + amount)
+    );
+
+    updateChatImageZoom();
+}
+
+function resetChatImageZoom() {
+    chatImageZoom = 1;
+    updateChatImageZoom();
+}
+
+function toggleChatImageZoom() {
+    chatImageZoom = chatImageZoom > 1 ? 1 : 2;
+    updateChatImageZoom();
+}
+
+function updateChatImageZoom() {
+    const image = document.getElementById("chatImageViewerImage");
+    const level = document.getElementById("chatImageZoomLevel");
+
+    if (image) {
+        image.style.transform = `scale(${chatImageZoom})`;
+        image.style.cursor = chatImageZoom > 1 ? "zoom-out" : "zoom-in";
+    }
+
+    if (level) {
+        level.textContent = Math.round(chatImageZoom * 100) + "%";
+    }
+}
+
+document.addEventListener("keydown", function(event) {
+    const viewer = document.getElementById("chatImageViewer");
+
+    if (!viewer || !viewer.classList.contains("open")) return;
+
+    if (event.key === "Escape") {
+        closeChatImageViewer();
+    } else if (event.key === "+" || event.key === "=") {
+        changeChatImageZoom(0.25);
+    } else if (event.key === "-") {
+        changeChatImageZoom(-0.25);
+    }
+});
+
+document.getElementById("chatImageViewer")?.addEventListener(
+    "wheel",
+    function(event) {
+        event.preventDefault();
+        changeChatImageZoom(event.deltaY < 0 ? 0.25 : -0.25);
+    },
+    { passive: false }
+);
+</script>
+
 </body>
 </html>
