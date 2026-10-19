@@ -8471,17 +8471,12 @@ chatSocket = io({
         }
     );
 
-    chatSocket.on(
-        "disconnect",
-        function(reason) {
-
-            console.log(
-                "Guardian SOS chat disconnected:",
-                reason
-            );
-
-        }
-    );
+    chatSocket.on("disconnect", function(reason) {
+    console.log("Guardian SOS chat disconnected:", reason);
+    if (reason === "io server disconnect") {
+        chatSocket.connect(); // the server closed it, so the client won't retry by itself
+    }
+});
 
 /* =========================================================
    ONLINE / OFFLINE STATUS
@@ -8629,13 +8624,31 @@ function guardianRefreshOpenChatStatus() {
 
 }
 
+let guardianHiddenAt = 0;
+
 function guardianWakeChat() {
 
-    guardianEnsureChatConnection();
+    if (!getToken()) {
+        return;
+    }
+
+    const away = guardianHiddenAt ? Date.now() - guardianHiddenAt : 0;
+    guardianHiddenAt = 0;
+
+    if (!chatSocket) {
+        connectChatSocket();
+    } else if (chatSocket.connected && away > 10000) {
+        // After a long absence the socket may be dead without the page knowing.
+        // Force a fresh connection so the server marks you online again.
+        chatSocket.disconnect();
+        chatSocket.connect();
+    } else if (!chatSocket.connected) {
+        chatSocket.connect();
+    }
 
     setTimeout(
         guardianRefreshOpenChatStatus,
-        800
+        1500
     );
 
 }
@@ -8644,7 +8657,9 @@ document.addEventListener(
     "visibilitychange",
     function() {
 
-        if (document.visibilityState === "visible") {
+        if (document.visibilityState === "hidden") {
+            guardianHiddenAt = Date.now();
+        } else {
             guardianWakeChat();
         }
 
@@ -15911,12 +15926,27 @@ document.addEventListener(
             update(); ['levelchange','chargingchange'].forEach(e=>b.addEventListener(e,update));
         }).catch(()=>{level.textContent='Unavailable';state.textContent='Battery permission unavailable';});
     }
-    function renderConnection(){
-        const online=navigator.onLine; const state=$('connectionState'),detail=$('connectionDetail'); if(!state)return;
-        state.textContent=online?'Online':'Offline'; detail.textContent=online?'Connected to the internet':'No internet connection';
-        const c=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
-        if(c){const type=c.effectiveType||c.type||'network'; detail.textContent=online?'Online • '+type.toUpperCase():'No internet connection';}
+    async function renderConnection(){
+    const state=$('connectionState'),detail=$('connectionDetail'); if(!state)return;
+
+    async function ping(){
+        try{
+            const ctrl=new AbortController();
+            const t=setTimeout(()=>ctrl.abort(),5000);
+            await fetch('/?ping='+Date.now(),{method:'HEAD',cache:'no-store',signal:ctrl.signal});
+            clearTimeout(t);
+            return true;
+        }catch(e){ return false; }
     }
+
+    let online = await ping();
+    if(!online){ await new Promise(r=>setTimeout(r,1500)); online = await ping(); } // avoid flicker
+
+    state.textContent=online?'Online':'Offline';
+    detail.textContent=online?'Connected to the internet':'No internet connection';
+    const c=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+    if(c&&online){detail.textContent='Online • '+(c.effectiveType||c.type||'network').toUpperCase();}
+}
 
     window.startCheckIn=function(minutes){
         GS.checkInUntil=Date.now()+minutes*60000; localStorage.setItem('guardianCheckInUntil',String(GS.checkInUntil)); updateCheckIn(); showToast('Check on me started for '+minutes+' minutes.');
@@ -16850,10 +16880,18 @@ async function restoreActiveJourney() {
     function applyLanguage(){const t=translations[GS.world.language]||translations.en;document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t[k])el.textContent=t[k];});}
 
     function initializeSafety(){
-        renderBattery();renderConnection();setStatus(GS.status.key,GS.status.label);renderSocialProfile();renderJourney();loadPrivacy();loadWorldwide();updateCheckIn();restoreActiveJourney();
-        window.addEventListener('online',renderConnection);window.addEventListener('offline',renderConnection);applyLanguage();
-    }
-    document.addEventListener('DOMContentLoaded',()=>setTimeout(initializeSafety,150));
+    renderBattery();renderConnection();setStatus(GS.status.key,GS.status.label);renderSocialProfile();renderJourney();loadPrivacy();loadWorldwide();updateCheckIn();restoreActiveJourney();
+
+    window.addEventListener('online',renderConnection);
+    window.addEventListener('offline',renderConnection);
+    window.addEventListener('focus',renderConnection);
+    window.addEventListener('pageshow',renderConnection);
+    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') renderConnection(); });
+    setInterval(()=>{ if(document.visibilityState==='visible') renderConnection(); },15000);
+
+    applyLanguage();
+}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(initializeSafety,150));
 })();
 </script>
 
