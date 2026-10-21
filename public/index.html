@@ -5382,130 +5382,223 @@ iframe {
 }
 
 
-/* =====================================================
-   GUARDIAN SOS — CLEAR, HIGH-CONTRAST LIGHT MODE
-   Preserve the Michael Jackson animation and pink accents
-===================================================== */
+/* =========================================
+   GUARDIAN SOS — PURE BLACK & WHITE LIGHT MODE
+   ========================================= */
 
 html.light-mode,
 body.light-mode {
     background: #FFFFFF !important;
+    background-image: none !important;
     color: #000000 !important;
 }
 
-/* Keep panels white with visible black borders */
+/* Make page backgrounds white and text black */
+html.light-mode *,
+body.light-mode * {
+    text-shadow: none !important;
+    -webkit-text-stroke-color: #000000 !important;
+}
+
+/* Main containers and cards */
+html.light-mode .page,
+body.light-mode .page,
 body.light-mode .card,
-body.light-mode .list-item,
 body.light-mode .dashboard-card,
 body.light-mode .auth-box,
+body.light-mode .modal,
 body.light-mode .modal-box,
-body.light-mode .guardian-status-card {
-    background: #FFFFFF !important;
+body.light-mode .list-item,
+body.light-mode .guardian-status-card,
+body.light-mode .section,
+body.light-mode .panel {
+    background-color: #FFFFFF !important;
+    background-image: none !important;
     color: #000000 !important;
-    border: 1px solid #000000 !important;
+    border-color: #000000 !important;
     box-shadow: none !important;
 }
 
-/* Clear text and headings */
+/* All normal text */
+html.light-mode h1,
+html.light-mode h2,
+html.light-mode h3,
+html.light-mode h4,
+html.light-mode p,
+html.light-mode span,
+html.light-mode label,
+html.light-mode strong,
+html.light-mode small,
+html.light-mode li,
+html.light-mode a,
 body.light-mode h1,
 body.light-mode h2,
 body.light-mode h3,
+body.light-mode h4,
 body.light-mode p,
+body.light-mode span,
 body.light-mode label,
-body.light-mode .section-title,
-body.light-mode .section-subtitle,
-body.light-mode .home-description,
-body.light-mode .profile-row,
-body.light-mode .list-item-title {
+body.light-mode strong,
+body.light-mode small,
+body.light-mode li,
+body.light-mode a {
     color: #000000 !important;
     text-shadow: none !important;
+    -webkit-text-fill-color: #000000 !important;
 }
 
-/* Keep deep pink as the Guardian SOS accent */
-body.light-mode .pink,
-body.light-mode .logo,
-body.light-mode .auth-logo,
-body.light-mode .home-title span,
-body.light-mode .mj-song,
-body.light-mode .mj-artist,
-body.light-mode .mj-hint {
-    color: #FF1493 !important;
-}
-
-/* Inputs must remain easy to read */
+/* Inputs and form fields */
+html.light-mode input,
+html.light-mode textarea,
+html.light-mode select,
 body.light-mode input,
 body.light-mode textarea,
 body.light-mode select {
     background: #FFFFFF !important;
+    background-image: none !important;
     color: #000000 !important;
-    border: 2px solid #000000 !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    -webkit-text-fill-color: #000000 !important;
 }
 
+html.light-mode input::placeholder,
+html.light-mode textarea::placeholder,
 body.light-mode input::placeholder,
 body.light-mode textarea::placeholder {
     color: #555555 !important;
+    -webkit-text-fill-color: #555555 !important;
     opacity: 1 !important;
 }
 
-/* Keep action buttons visible */
+/* All buttons: black background and white text */
+html.light-mode button,
+html.light-mode .primary-button,
+html.light-mode .secondary-button,
+html.light-mode .card-button,
+html.light-mode .sos-main-button,
+html.light-mode .guardian-mini-button,
+body.light-mode button,
 body.light-mode .primary-button,
 body.light-mode .secondary-button,
 body.light-mode .card-button,
 body.light-mode .sos-main-button,
 body.light-mode .guardian-mini-button {
     background: #000000 !important;
+    background-image: none !important;
     color: #FFFFFF !important;
-    border: 2px solid #000000 !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    -webkit-text-fill-color: #FFFFFF !important;
 }
 
-/* Michael Jackson: retain the black stage in both themes */
-body.light-mode #mjNeon {
-    background: #000000 !important;
-    color: #FF1493 !important;
-    border: 2px solid #000000 !important;
+/* Icons */
+html.light-mode i,
+html.light-mode svg,
+body.light-mode i,
+body.light-mode svg {
+    filter: none !important;
+    text-shadow: none !important;
 }
 
-body.light-mode #mjNeon .mj-song,
-body.light-mode #mjNeon .mj-artist,
-body.light-mode #mjNeon .mj-hint {
-    color: #FF1493 !important;
-}
-
-body.light-mode #mjNeon .mj-controls button {
-    background: transparent !important;
-    color: #FF1493 !important;
-    border-color: #FF1493 !important;
-}
-
-body.light-mode #mjNeon .mj-play svg,
-body.light-mode #mjNeon .mj-skip svg {
-    fill: #FF1493 !important;
-}
-
-/* Preserve pink navigation accents */
-body.light-mode .mobile-nav {
-    background: #FFFFFF !important;
-    border-top: 2px solid #000000 !important;
-}
-
-body.light-mode .mobile-nav button {
+html.light-mode svg,
+body.light-mode svg {
     color: #000000 !important;
 }
 
-body.light-mode .mobile-nav-icon {
+/* Navigation */
+html.light-mode .mobile-nav,
+html.light-mode .top-nav,
+html.light-mode .navbar,
+html.light-mode nav,
+body.light-mode .mobile-nav,
+body.light-mode .top-nav,
+body.light-mode .navbar,
+body.light-mode nav {
     background: #FFFFFF !important;
-    border: 2px solid #000000 !important;
+    background-image: none !important;
+    color: #000000 !important;
+    border-color: #000000 !important;
+    box-shadow: none !important;
 }
 
-body.light-mode .mobile-nav-icon i {
-    color: #FF1493 !important;
+/* Navigation buttons and labels */
+html.light-mode .mobile-nav button,
+html.light-mode .top-nav button,
+body.light-mode .mobile-nav button,
+body.light-mode .top-nav button {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    border-color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
 }
 
-/* Never fade the dancer */
-#mjFig {
-    opacity: 1 !important;
+/* Guardian SOS logo and branding become black */
+html.light-mode .logo,
+html.light-mode .auth-logo,
+html.light-mode .pink,
+html.light-mode .gradient-text,
+html.light-mode .home-title span,
+body.light-mode .logo,
+body.light-mode .auth-logo,
+body.light-mode .pink,
+body.light-mode .gradient-text,
+body.light-mode .home-title span {
+    color: #000000 !important;
+    background: none !important;
+    background-image: none !important;
+    -webkit-text-fill-color: #000000 !important;
+    text-shadow: none !important;
 }
 
+/* Michael Jackson animation: keep the animation background black
+   so the figure remains visible, but remove pink styling from its text */
+html.light-mode #mjNeon,
+body.light-mode #mjNeon {
+    background: #000000 !important;
+    background-image: none !important;
+    color: #FFFFFF !important;
+    border-color: #000000 !important;
+    box-shadow: none !important;
+}
+
+html.light-mode #mjNeon .mj-song,
+html.light-mode #mjNeon .mj-artist,
+html.light-mode #mjNeon .mj-hint,
+html.light-mode #mjNeon .mj-controls,
+body.light-mode #mjNeon .mj-song,
+body.light-mode #mjNeon .mj-artist,
+body.light-mode #mjNeon .mj-hint,
+body.light-mode #mjNeon .mj-controls {
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+}
+
+html.light-mode #mjNeon .mj-controls button,
+body.light-mode #mjNeon .mj-controls button {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+    border-color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+}
+
+/* Keep maps, videos and images working */
+html.light-mode img,
+html.light-mode video,
+html.light-mode canvas,
+body.light-mode img,
+body.light-mode video,
+body.light-mode canvas {
+    filter: none !important;
+}
+
+/* Remove decorative gradients and pink glows from light mode */
+html.light-mode *,
+body.light-mode * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
 </style>
 </head>
 
@@ -5901,22 +5994,7 @@ body.light-mode .mobile-nav-icon i {
 .mj-neon{container-type:inline-size;position:relative;width:100%;max-width:440px;margin:18px auto 0;padding:6px 0 14px;background:#000;border-radius:26px;color:#f5027d;font-family:Roboto,"Segoe UI",system-ui,-apple-system,sans-serif;text-align:center;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none}
 .mj-stage{position:relative;width:100%;aspect-ratio:670/600}
 .mj-stage canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
-/* MICHAEL JACKSON: SHARP, CLEAN EDGES */
-#mjFig {
-    filter: drop-shadow(0 0 2px rgba(245, 2, 125, 0.25));
-    image-rendering: auto;
-    opacity: 1;
-}
-
-.mj-stage canvas {
-    image-rendering: auto;
-    -webkit-font-smoothing: antialiased;
-}
-
-.mj-neon {
-    background: #000000 !important;
-    color: #ff1493;
-}
+#mjFig{filter:url(#mjSmooth) drop-shadow(0 0 3px rgba(245,2,125,.55))}
 .mj-song{margin-top:-34px;display:flex;align-items:center;justify-content:center;gap:10px;color:#ff2d9a;font-size:clamp(24px,7vw,30px);font-weight:600;line-height:1.1;position:relative}
 .mj-song svg{width:30px;height:30px;fill:#f5027d;flex:none}
 .mj-artist{margin-top:6px;color:#f5027d;font-size:clamp(16px,4.6vw,19px)}
@@ -6003,27 +6081,7 @@ body.light-mode .mobile-nav-icon i {
       var wHead = sm((18 - r) / 8) * sm((c - 20) / 6) * sm((46 - c) / 6);
       var legScale = cl((r - 44) / 40);
       var side = Math.max(-1, Math.min(1, (c - 28) / 3));                      // -1 left leg, +1 right leg
-      var outfitColor = "#000000";
-
-/* Deep-pink inner shirt: approximate torso region */
-if (r >= 27 && r <= 47 && c >= 23 && c <= 36) {
-    outfitColor = "#FF1493";
-}
-
-/* Deep-pink shoes: bottom of the dancer */
-if (r >= 76) {
-    outfitColor = "#FF1493";
-}
-
-cells.push({
-    r: r,
-    c: c,
-    col: KEY.indexOf(ch),
-    color: outfitColor,
-    wLean: wLean,
-    wUp: wUp,
-    wL: wL,
-    wR: wR,
+      cells.push({ r: r, c: c, col: KEY.indexOf(ch), wLean: wLean, wUp: wUp, wL: wL, wR: wR,
                    wHead: wHead, leg: legScale, side: side });
     }
   }
@@ -6138,7 +6196,7 @@ cells.push({
              + nod * q.wHead
              - (q.side < 0 ? Math.max(0, leg) : Math.max(0, -leg)) * 1.3 * q.leg * (Math.abs(q.side) > 0.6 ? 1 : 0.3);
       var ox = dx + glide, oy = dy;
-      fctx.fillStyle = q.color || "#000000";
+      if (q.col !== lastCol) { fctx.fillStyle = PAL[q.col]; lastCol = q.col; }
       rectO(fctx, X0 + (q.c + ox) * CELL, Y0 + (q.r + oy) * CELL, CELL, CELL);
     }
 
