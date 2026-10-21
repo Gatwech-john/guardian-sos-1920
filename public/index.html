@@ -5390,9 +5390,17 @@ body.light-mode #homePage #mjNeon {
 }
 
 /* Convert deep pink dancer pixels to black */
+
+/* Light-mode dancer: preserve different clothing and body colors */
 body.light-mode #homePage #mjFig {
-    filter: grayscale(1) brightness(0) !important;
+    filter: none !important;
 }
+
+/* Black outlines around the dancer */
+body.light-mode #homePage #mjFig {
+    filter: grayscale(1) contrast(1.4) !important;
+}
+
 
 /* Keep the animation stage white in light mode */
 body.light-mode #homePage #mjStage,
