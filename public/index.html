@@ -5381,334 +5381,6 @@ iframe {
     }
 }
 
-
-/* ===============================================
-   GUARDIAN SOS — RETRO NOKIA PIXEL DANCE
-   BLACK + DEEP PINK
-=============================================== */
-
-#homePage .dangerous-retro {
-    position: relative;
-    width: 100%;
-    max-width: 460px;
-    margin: 25px auto 110px;
-    padding: 18px 12px 20px;
-    overflow: hidden;
-    box-sizing: border-box;
-    color: #ff1493;
-    text-align: center;
-    background: #000000;
-    border: 1px solid #ff1493;
-    border-radius: 20px;
-    box-shadow: 0 0 20px rgba(255, 20, 147, .12);
-}
-
-#homePage .retro-heading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 7px;
-    font-size: clamp(9px, 2.6vw, 12px);
-    font-weight: 900;
-    letter-spacing: 2px;
-    color: #ff1493;
-}
-
-#homePage .retro-dot {
-    width: 5px;
-    height: 5px;
-    flex: 0 0 5px;
-    background: #ff1493;
-    box-shadow: 0 0 8px #ff1493;
-}
-
-#homePage .retro-separator {
-    opacity: .6;
-}
-
-#homePage .retro-stage {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: clamp(250px, 76vw, 330px);
-    max-height: 330px;
-    margin-top: 12px;
-    overflow: hidden;
-    background: #000000;
-}
-
-#homePage .retro-dancer {
-    position: relative;
-    z-index: 3;
-    width: min(67%, 225px);
-    aspect-ratio: 160 / 220;
-    animation: retroDancerBounce .55s steps(2, end) infinite;
-    filter: drop-shadow(0 0 8px rgba(255, 20, 147, .5));
-}
-
-#homePage .retro-pose {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    image-rendering: pixelated;
-}
-
-#homePage .retro-pose-one {
-    animation: retroPoseOne .7s steps(1, end) infinite;
-}
-
-#homePage .retro-pose-two {
-    animation: retroPoseTwo .7s steps(1, end) infinite;
-}
-
-@keyframes retroPoseOne {
-    0%, 49.99% { opacity: 1; }
-    50%, 100% { opacity: 0; }
-}
-
-@keyframes retroPoseTwo {
-    0%, 49.99% { opacity: 0; }
-    50%, 100% { opacity: 1; }
-}
-
-@keyframes retroDancerBounce {
-    0%, 100% { transform: translateY(2px); }
-    50% { transform: translateY(-7px); }
-}
-
-/* Equalizer bars */
-#homePage .retro-bars {
-    position: absolute;
-    z-index: 1;
-    top: 43%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    height: 80px;
-}
-
-#homePage .retro-bars-left {
-    left: 3px;
-}
-
-#homePage .retro-bars-right {
-    right: 3px;
-}
-
-#homePage .retro-bars i {
-    display: block;
-    width: 4px;
-    height: 15px;
-    background: #ff1493;
-    box-shadow: 0 0 7px rgba(255, 20, 147, .6);
-    animation: retroBarsMove .5s steps(3, end) infinite alternate;
-}
-
-#homePage .retro-bars i:nth-child(2) {
-    animation-delay: -.2s;
-}
-
-#homePage .retro-bars i:nth-child(3) {
-    animation-delay: -.4s;
-}
-
-#homePage .retro-bars i:nth-child(4) {
-    animation-delay: -.1s;
-}
-
-#homePage .retro-bars i:nth-child(5) {
-    animation-delay: -.3s;
-}
-
-@keyframes retroBarsMove {
-    from { height: 10px; }
-    to { height: 65px; }
-}
-
-/* Pink oval stage */
-#homePage .retro-platform {
-    position: absolute;
-    z-index: 2;
-    bottom: 20px;
-    left: 24%;
-    width: 52%;
-    height: 18px;
-    border: 2px dashed #ff1493;
-    border-radius: 50%;
-    box-shadow: 0 0 12px rgba(255, 20, 147, .55);
-    animation: retroPlatformPulse 1s steps(2, end) infinite;
-}
-
-#homePage .retro-floor-line {
-    position: absolute;
-    bottom: 13px;
-    left: 13%;
-    width: 74%;
-    height: 1px;
-    background: #ff1493;
-    opacity: .55;
-}
-
-@keyframes retroPlatformPulse {
-    0%, 100% {
-        opacity: .55;
-        transform: scaleX(.92);
-    }
-    50% {
-        opacity: 1;
-        transform: scaleX(1);
-    }
-}
-
-/* Song title */
-#homePage .retro-song {
-    position: relative;
-    z-index: 4;
-    margin-top: 16px;
-    line-height: 1.5;
-}
-
-#homePage .retro-song-title {
-    font-size: clamp(22px, 6vw, 31px);
-    font-weight: 900;
-    letter-spacing: 2px;
-    color: #ff1493;
-    text-shadow: 0 0 10px rgba(255, 20, 147, .4);
-}
-
-#homePage .retro-song-artist {
-    margin-top: 5px;
-    font-size: clamp(12px, 3.6vw, 15px);
-    font-weight: 900;
-    letter-spacing: 3px;
-    color: #ff1493;
-}
-
-#homePage .retro-song-caption {
-    margin-top: 7px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    color: #ff1493;
-    opacity: .8;
-}
-
-/* Bottom pixel equalizer */
-#homePage .retro-bottom-bars {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    height: 30px;
-    margin: 13px auto 0;
-}
-
-#homePage .retro-bottom-bars i {
-    width: 4px;
-    height: 9px;
-    background: #ff1493;
-    animation: retroBarsMove .55s steps(3, end) infinite alternate;
-}
-
-#homePage .retro-bottom-bars i:nth-child(3n) {
-    animation-delay: -.3s;
-}
-
-#homePage .retro-bottom-bars i:nth-child(3n + 1) {
-    animation-delay: -.15s;
-}
-
-/* Fixed SOS button above bottom navigation */
-#homePage .retro-sos-button {
-    position: fixed;
-    z-index: 1001;
-    right: 15px;
-    bottom: calc(82px + env(safe-area-inset-bottom, 0px));
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    width: 66px;
-    height: 66px;
-    padding: 0;
-    border: 2px solid #ff1493;
-    border-radius: 50%;
-    color: #ff1493;
-    background: #000000;
-    font-size: 15px;
-    font-weight: 900;
-    box-shadow: 0 0 15px rgba(255, 20, 147, .35);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-}
-
-#homePage .retro-sos-symbol {
-    display: grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    border: 2px solid #ff1493;
-    border-radius: 50%;
-    font-size: 15px;
-    line-height: 1;
-}
-
-/* Small phone adjustments */
-@media (max-width: 380px) {
-    #homePage .dangerous-retro {
-        margin-top: 15px;
-        padding: 15px 7px 17px;
-        border-radius: 16px;
-    }
-
-    #homePage .retro-stage {
-        height: 245px;
-    }
-
-    #homePage .retro-dancer {
-        width: 64%;
-    }
-
-    #homePage .retro-bars {
-        gap: 3px;
-    }
-
-    #homePage .retro-bars i {
-        width: 3px;
-    }
-
-    #homePage .retro-sos-button {
-        right: 10px;
-        bottom: calc(78px + env(safe-area-inset-bottom, 0px));
-        width: 58px;
-        height: 58px;
-    }
-}
-
-/* Reduced-motion accessibility */
-@media (prefers-reduced-motion: reduce) {
-    #homePage .retro-dancer,
-    #homePage .retro-pose-one,
-    #homePage .retro-pose-two,
-    #homePage .retro-bars i,
-    #homePage .retro-platform,
-    #homePage .retro-bottom-bars i {
-        animation: none !important;
-    }
-
-    #homePage .retro-pose-one {
-        opacity: 1;
-    }
-
-    #homePage .retro-pose-two {
-        opacity: 0;
-    }
-}
 </style>
 </head>
 
@@ -6104,166 +5776,72 @@ iframe {
                        supports journey tracking, chat, calls, and weather.
                     </p>
 
-                   <!-- RETRO NOKIA-STYLE DANCER -->
-<div class="dangerous-retro">
+                    
+<!-- GUARDIAN SOS RETRO MUSIC HOME -->
+<div class="retro-home-screen">
 
-    <div class="retro-heading">
-        <span class="retro-dot"></span>
-        GUARDIAN SOS
-        <span class="retro-separator">/</span>
-        RETRO DANCE
-        <span class="retro-dot"></span>
-    </div>
-
-    <div class="retro-stage">
-
-        <!-- Animated pixel equalizer on the left -->
-        <div class="retro-bars retro-bars-left" aria-hidden="true">
-            <i></i><i></i><i></i><i></i><i></i>
+    <div class="retro-home-heading">
+        <div class="retro-brand-shield">
+            <i class="bi bi-shield-fill-check"></i>
         </div>
 
-        <!-- Original pixel-art dancer: alternating dance poses -->
-        <div class="retro-dancer" role="img"
-             aria-label="Original animated pink pixel-art dancer">
-
-            <svg class="retro-pose retro-pose-one"
-                 viewBox="0 0 160 220"
-                 aria-hidden="true">
-                <g fill="#ff1493" shape-rendering="crispEdges">
-                    <!-- Hair and head -->
-                    <rect x="67" y="13" width="31" height="7"/>
-                    <rect x="60" y="20" width="38" height="7"/>
-                    <rect x="60" y="27" width="7" height="14"/>
-                    <rect x="67" y="27" width="31" height="21"/>
-                    <rect x="98" y="20" width="7" height="14"/>
-                    <!-- Eyes -->
-                    <rect x="74" y="34" width="5" height="5" fill="#000000"/>
-                    <rect x="88" y="34" width="5" height="5" fill="#000000"/>
-
-                    <!-- Neck and jacket -->
-                    <rect x="74" y="48" width="17" height="7"/>
-                    <rect x="67" y="55" width="31" height="35"/>
-                    <rect x="60" y="62" width="7" height="21"/>
-                    <rect x="98" y="62" width="7" height="21"/>
-                    <rect x="74" y="55" width="7" height="28" fill="#000000"/>
-                    <rect x="88" y="55" width="7" height="28" fill="#000000"/>
-                    <rect x="74" y="83" width="24" height="7"/>
-
-                    <!-- Raised left arm -->
-                    <rect x="46" y="55" width="14" height="7"/>
-                    <rect x="39" y="48" width="7" height="14"/>
-                    <rect x="32" y="34" width="7" height="14"/>
-                    <rect x="25" y="20" width="7" height="14"/>
-                    <rect x="18" y="13" width="14" height="7"/>
-
-                    <!-- Extended right arm -->
-                    <rect x="105" y="62" width="14" height="7"/>
-                    <rect x="119" y="55" width="14" height="7"/>
-                    <rect x="133" y="48" width="14" height="7"/>
-                    <rect x="140" y="41" width="7" height="7"/>
-
-                    <!-- Left leg bent outwards -->
-                    <rect x="60" y="90" width="17" height="14"/>
-                    <rect x="53" y="104" width="17" height="14"/>
-                    <rect x="39" y="118" width="21" height="7"/>
-                    <rect x="32" y="125" width="7" height="21"/>
-                    <rect x="25" y="146" width="21" height="7"/>
-                    <rect x="18" y="153" width="28" height="7"/>
-
-                    <!-- Right leg -->
-                    <rect x="84" y="90" width="17" height="21"/>
-                    <rect x="91" y="111" width="17" height="21"/>
-                    <rect x="98" y="132" width="17" height="21"/>
-                    <rect x="105" y="153" width="17" height="7"/>
-                    <rect x="105" y="160" width="28" height="7"/>
-                </g>
-            </svg>
-
-            <svg class="retro-pose retro-pose-two"
-                 viewBox="0 0 160 220"
-                 aria-hidden="true">
-                <g fill="#ff1493" shape-rendering="crispEdges">
-                    <!-- Head tilted into the next dance move -->
-                    <rect x="60" y="20" width="31" height="7"/>
-                    <rect x="53" y="27" width="38" height="7"/>
-                    <rect x="53" y="34" width="38" height="14"/>
-                    <rect x="60" y="13" width="24" height="7"/>
-                    <rect x="67" y="34" width="5" height="5" fill="#000000"/>
-                    <rect x="81" y="34" width="5" height="5" fill="#000000"/>
-
-                    <!-- Jacket and torso -->
-                    <rect x="60" y="48" width="31" height="35"/>
-                    <rect x="53" y="55" width="7" height="21"/>
-                    <rect x="91" y="55" width="7" height="21"/>
-                    <rect x="67" y="55" width="7" height="28" fill="#000000"/>
-                    <rect x="81" y="55" width="7" height="28" fill="#000000"/>
-                    <rect x="67" y="83" width="24" height="7"/>
-
-                    <!-- Left arm angled out -->
-                    <rect x="39" y="55" width="14" height="7"/>
-                    <rect x="32" y="62" width="7" height="14"/>
-                    <rect x="25" y="76" width="7" height="14"/>
-                    <rect x="18" y="83" width="14" height="7"/>
-
-                    <!-- Right arm raised -->
-                    <rect x="98" y="55" width="14" height="7"/>
-                    <rect x="112" y="48" width="7" height="14"/>
-                    <rect x="119" y="34" width="7" height="14"/>
-                    <rect x="126" y="20" width="7" height="14"/>
-                    <rect x="126" y="13" width="14" height="7"/>
-
-                    <!-- Left leg -->
-                    <rect x="53" y="90" width="17" height="21"/>
-                    <rect x="46" y="111" width="17" height="21"/>
-                    <rect x="39" y="132" width="17" height="21"/>
-                    <rect x="32" y="153" width="17" height="7"/>
-                    <rect x="25" y="160" width="28" height="7"/>
-
-                    <!-- Right leg kicked outward -->
-                    <rect x="77" y="90" width="17" height="14"/>
-                    <rect x="91" y="104" width="17" height="14"/>
-                    <rect x="108" y="118" width="17" height="7"/>
-                    <rect x="118" y="125" width="7" height="21"/>
-                    <rect x="118" y="146" width="21" height="7"/>
-                    <rect x="118" y="153" width="28" height="7"/>
-                </g>
-            </svg>
-
+        <div class="retro-brand-copy">
+            <h1>GUARDIAN SOS</h1>
+            <p>Your Safety <span>•</span> Our Priority</p>
         </div>
 
-        <!-- Animated pixel equalizer on the right -->
-        <div class="retro-bars retro-bars-right" aria-hidden="true">
-            <i></i><i></i><i></i><i></i><i></i>
+        <div class="retro-header-icons">
+            <i class="bi bi-bell-fill"></i>
+            <i class="bi bi-three-dots-vertical"></i>
         </div>
-
-        <!-- Glowing retro stage -->
-        <div class="retro-platform" aria-hidden="true"></div>
-        <div class="retro-floor-line" aria-hidden="true"></div>
-
     </div>
 
-    <div class="retro-song">
-        <div class="retro-song-title">♪ DANGEROUS ♪</div>
-        <div class="retro-song-artist">MICHAEL JACKSON</div>
-        <div class="retro-song-caption">A RETRO PIXEL DANCE</div>
+    <div class="retro-dance-stage">
+        <img
+            src="/guardian-retro-dancer.png"
+            class="retro-dancer-image"
+            alt="Neon pink retro pixel dancer"
+        >
+
+        <div class="retro-stage-glow"></div>
     </div>
 
-    <div class="retro-bottom-bars" aria-hidden="true">
-        <i></i><i></i><i></i><i></i><i></i>
-        <i></i><i></i><i></i><i></i><i></i>
-        <i></i><i></i><i></i>
+    <div class="retro-track-info">
+        <h2><i class="bi bi-music-note-beamed"></i> Dangerous</h2>
+        <p>Michael Jackson</p>
     </div>
+
+    <div class="retro-player-controls" aria-label="Decorative music player">
+        <i class="bi bi-skip-start-fill"></i>
+        <span class="retro-pause-circle">
+            <i class="bi bi-pause-fill"></i>
+        </span>
+        <i class="bi bi-skip-end-fill"></i>
+    </div>
+
+    <div class="retro-page-dots" aria-hidden="true">
+        <span class="selected"></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <p class="retro-sos-caption">Tap SOS for emergency assistance</p>
 
 </div>
 
-<!-- Fixed emergency button -->
-<button type="button"
-        class="retro-sos-button"
-        onclick="activateSOS()"
-        aria-label="Activate emergency SOS">
-    <span class="retro-sos-symbol">!</span>
-    <span>SOS</span>
+<button
+    type="button"
+    class="retro-emergency-button"
+    onclick="activateSOS()"
+    aria-label="Activate emergency SOS"
+>
+    <span class="retro-emergency-ring">
+        <i class="bi bi-bell-fill"></i>
+        <strong>SOS</strong>
+    </span>
 </button>
+<!-- END RETRO MUSIC HOME -->
 
 
     <!-- =====================================================
