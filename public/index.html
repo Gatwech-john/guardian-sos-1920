@@ -5777,14 +5777,14 @@ iframe {
                     </p>
 
                   <!-- =====================================================
-     MICHAEL JACKSON NEON DANCER  (replaces SOS heart + watch + compass on Home)
-     Self-contained: HTML + CSS + JS. Pixel data is taken from your design image.
+     NEON DANCER  (replaces SOS heart + watch + compass on Home)
+     Self-contained: HTML + CSS + JS. Sprite is cleaned up from your design image.
 ====================================================== -->
 <div class="mj-neon" id="mjNeon">
 
 <style>
 .mj-neon{container-type:inline-size;position:relative;width:100%;max-width:440px;margin:18px auto 0;padding:6px 0 14px;background:#000;border-radius:26px;color:#f5027d;font-family:Roboto,"Segoe UI",system-ui,-apple-system,sans-serif;text-align:center;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none}
-.mj-neon canvas{display:block;width:100%;aspect-ratio:670/600;image-rendering:pixelated}
+.mj-neon canvas{display:block;width:100%;aspect-ratio:670/600;image-rendering:auto}
 .mj-song{margin-top:-34px;display:flex;align-items:center;justify-content:center;gap:10px;color:#ff2d9a;font-size:clamp(24px,7vw,30px);font-weight:600;line-height:1.1;position:relative}
 .mj-song svg{width:30px;height:30px;fill:#f5027d;flex:none}
 .mj-artist{margin-top:6px;color:#f5027d;font-size:clamp(16px,4.6vw,19px)}
@@ -5805,7 +5805,7 @@ iframe {
 @keyframes mjSosPulse{0%,100%{box-shadow:0 0 0 5px #000,0 0 0 7px rgba(245,2,125,.55),0 0 18px 5px rgba(245,2,125,.45)}50%{box-shadow:0 0 0 5px #000,0 0 0 7px rgba(245,2,125,.9),0 0 30px 10px rgba(245,2,125,.7)}}
 </style>
 
-<canvas id="mjCanvas" aria-label="Michael Jackson neon dance animation"></canvas>
+<canvas id="mjCanvas" aria-label="Neon dance animation"></canvas>
 
 <div class="mj-song">
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v11.3A3.5 3.5 0 1 0 11 17.5V8l8-2v6.3a3.5 3.5 0 1 0 2 3.2V3L9 3z" transform="translate(-1 1)"/></svg>
@@ -5835,13 +5835,13 @@ iframe {
 (function () {
   "use strict";
 
-  /* ---------- sprite data (pixel-for-pixel from the design image, 6px cells) ---------- */
-  var PAL  = ["#f994bf", "#fb77b1", "#fd6daa", "#fe64a5", "#f663a5", "#f853a0", "#fb4299", "#fb3895", "#fb2a8b", "#fb1b85", "#f3298b", "#bd2a6d", "#f9117f", "#f1107b", "#f60979", "#f60474", "#eb036e", "#df0564", "#cb0961", "#9f074a", "#6f0530", "#40051c", "#f0016a", "#e00161", "#cd0057", "#aa0048", "#8f003a", "#780030", "#600026", "#50001f", "#45001a", "#400019", "#3a0016", "#370015", "#330013", "#2f0012", "#2c0010", "#2a0010", "#28000f", "#26000f"];
-  var KEY  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn";
-  var ROWS = ["................................EJYNG.................", "...............................GYji..QGGG.............", "...............................Knlf.....XE............", ".........................UGY..Kif........cG...........", "...........................KJ....j........M...........", ".............................W....nn.....gJ.A.........", "..............................Q.....l....T.BX.........", "...............................PQ.......a..YA.........", "...........................N.X...P......d.P.HA........", "...........................J.W....Mj.......PJBj.......", ".........................BK..O.aX..Madieh.Z.PBg.......", "......................cEIXj...YQXe..aNQOY..XPCA.......", "..............BJFFENGGSdN...XaWOMX....QOPQ.RPHA.......", ".............EMXidPMZddYl..ZWaWIIOa.f....JJ.WPBH......", ".............FTbY.ebf.N...cXPZbHHIWcRd..n...YQmXH.....", "............FWm.d.i..Khk..PXPQfKHI.Oh.........kYJ.....", "...........FQii.f....iSm..HQPWT.LHM...Q.......jXM.....", ".........UHXm.n.......gN.YMDJXZJbj....mN....m...LH....", "......l.GNa..i.....VJZc..PFBMPPBP..aki.kP...j..YKH....", "......FGTaeli......fa...ZODCBWBHJ.mfh....QY..i..ZQ....", "....jGJWi..........eZ...XFCDDWBDG..m......XY.b..TXK...", "...FJX.ic.f........gZ...XDCCCCCCF...X....c....m.bXF...", "..KYgf.......f.....kh..UWDCCCCCCG...a..........ndbI...", "..Mgfn....m.e......fUmgZWFCCCCCCK..gg...........eaJ...", "..W.ff....g....i...UZ.bWWGCCCCCDS..d............jZM...", "..X.eaT........e...UT.bOONCCCCCDS.nc...RX.n......eN...", "...Y...k.......c...cT.XJFCJDCCDNe.h.T....ROQW.........", "...Y.mYWh......b...cZ.XJFDCCCCDOg.h.S........QRWYQ....", "...a...l.g.....iU..TdcQMJFCBFDH...hd..................", "...Tm.ABE.......c.bdaYXPPDFDCJM....Y..................", "...Z.AGXNKAEA...b.ZdbYQMFMFFDDI....Q..................", "...cLFXKFDBTKL..ceadTYWQIIHIGFGb...W..................", "....LdMFDGFUaL..icUcYYNPPIGHGHHK...X..................", "......PGFSHN.j...eagaaTNOQHKIGPF...a..................", "......RHZJYH.....dT....aXRYYXWQR....j.................", ".......HeJ.M.....dT..........b......N.................", "...............l.P.........MQ.fk....Q.................", ".................P............dP.....Y................", "..............j.a...........n..cP....P................", "..............hla.............lQO....e................", ".............ld.N.............chZX....W...............", ".............Z.lOhj............aZF....X...............", ".............KJOWab............TMI...a................", "...............YPTPk..........Ye.OJ...................", "..................Zd.......l.....ZH...................", "..................ZZl.......m..mjaH...................", "...................aU.......U....aJ...................", "...................bQb......b....jPU..................", "...................VSa.....lea...jWT..................", "UU..................aSf....l.X...lXb..................", "ZT..................aSa....m.X...lXU..................", "cc...................cS......W....TNU.................", "aZ...................dSd.....Yd...dMc.................", "lg....................eJ......Q....Nc.................", "ba....................dM......P....Qc.................", ".......................dQ.....UO...cf.................", ".......................ePf....bM...de.................", "........................TQf...iRf...Yk................", ".......................UNc.a.hhSZ..mZ.................", ".......................Ucagc.nhSM..ma.................", ".......................TTaf....aM...U.................", "......................TSbk.....eU...nb................", ".....................jSae......k.....a................", "....................jLTim.....k.....lU................", "....................TNe.......i.....eX................", "...................UNb.......g......gZ................", "..................nNU.......h..n....fnV...............", "..................Kag.......d..c.....UP...............", ".................GYkl......g...U......O...............", "................FXik.......Y...jY....lW...............", "................eei.......de...ja....jZQ..............", "................nJf.......Q.....Y....haO..............", ".................AWj..n..W......M....jkMl.............", "..............n.AHXWbekm.Jm......R...liQam............", "...............iADWWOSZNN........Ol..jdYIk............", ".............UKAFYCMFj.jl........Of..ffdOl............", "............U.fBBJXCUimmn......m.Pc.ngfMJkm...........", "............f.mANIBUgjl.n......ljfjWXNMBkhjm..........", "............l..BFREVhil.mmmlmlmjijiINPGBAfhkn.........", "................JIe..................DBCA.e...........", "................HDdcUddc.............JNKGabe.f........", "................UTdccd...............OKFEEcUeTf.......", "...................e.f...............NFDCAUdef........", "...................effff.............QDDDBEf..........", "................f..ddddc..............eGFc...e........"];
+  /* ---------- sprite data (cleaned from the design image, 6px cells) ---------- */
+  var PAL  = ["#f67baf", "#fb65a6", "#fb4699", "#de458c", "#f72888", "#f6137c", "#d31b71", "#971b53", "#f40572", "#e30569", "#cd055f", "#b50453", "#9c0447", "#80033a", "#6b0431", "#390219", "#db005e", "#b4004b", "#7f0033", "#510020", "#370015", "#2c0012", "#2c0010", "#28000f", "#23000e", "#1f000c", "#1c000b", "#1a0009"];
+  var KEY  = "ABCDEFGHIJKLMNOPQRSTUVWXYZab";
+  var ROWS = ["...............................VBEKGCPVVV.............", "...............................CLXVVVLCCG.............", "...............................EXWPbVVVUJD............", ".........................HCRVVETPVVVVVVVVNG...........", "...........................EFbZVaVVVVVVVVPGD..........", ".............................QVVVVYYVVVVVTGDA.........", ".............................XKUVVVZYVVVZSGDG.........", ".............................VVMMVVVVVbYOVZGA.........", "...........................LKMLPTKVVVVVVTUKECA........", "..........................EFJILVRVJTbVVVVVLIEA........", ".........................BEYVIKOQJVJMTUPVbNJIA........", "......................NBEKXFVKKKJPJVNFJIRKUQIBA.......", "..............AFCCBFCCMOGaRVQSIIFJVNVVJIIJIJICA.......", ".............BFQGOIFLGOMWMVMINIEEFMWULLVPFFJIIAC......", ".............CMSRbPSKPKYZYTJIRSEEEISLOVaYVVVKJGKE.....", "............DIUVTVVaMGLWaXJQIQKGCEGKOMZaYaZVYVKRE.....", "...........DJTUVPVaVbSMWZXEJIINLLCKPaVRTYZZVVVVKF.....", ".........ODJTaXVZVVVVMOLKRFCFQRKMGPVVZPKaZabYVaKLH....", "........GFRUaWVVYVVOJMTMKICBFIIBJVaVPWYOLVbZVVVNGG....", "......DCGMTYWbVVVVVORPXZMFBBBIBCEVXTPZVaTJLVbWVPML....", ".....CFILZVVVVVVVVbOMYZVJCBBBIABCVYTbaVVVWJRVVVYNJG...", "...CEQZWOZUVVVVVVVVOMZaVIBBBBABBCaaYKZVVVTZVVVXZSJD...", "..ERUPaVVbVbZPVVVabXSYVOFBBBBBBBCVZaSVVVVVVVZVVYTMG...", "..FPPVVVVVVVPVVbVVVTOXPLFCBBBBBBDVYUTVVVVVVVVVVZTRG...", "..IVUTPVVVUVVVaUVVVSMNNIICBBBBBBGaYTVVVPPVVVVYVbPRJ...", "..RPUOSaVVVVVVVTVZbSNMMFFEBBBBBCLYXTYVZMMPTPPaVbaTL...", "...LRZMTWaVbVVVOVZaONRJECBEBBBBEOZUVN....LKLKTVPVL....", "...KaXLKTZVbbVbOYbVNMRJECBBBBBBGTVUYM........KRKLM....", "...MZYDDXUaaaVaPOVaMOOJFECBACBCTaVUT..................", "...MGVAABVZbZV...SOSNLQIFBBBBFFTabXM..................", "...LHADQJDADAa...aMOOKJFEECCBBETVbaQ..................", "...OHDQECBAMDH...TNNMQIIEECCCCCHYVaQ..................", "....HGFBBGCOSH...ONNLQIIFECCCEEEPVbK..................", ".....GICDLEGH....ONNOSMGIJEEECICTVVS..................", "......LEMENE.....ONNVVVOMRMRLQLLUVVb..................", ".......DOGGJ.....NNVVVVVVVLLLOYVVVVVL.................", ".................IVVVVaVaVZKLbMTZVVVM.................", ".................JVVVVVVVVVVVVTQTVVVaL................", "................NPVVVVVVVVVVXVYOIVVVVQ................", "................MUVVVVVVVVVVZVULJTVVVP................", "................JVVVVVVVVVVVVVTLLJVVVVJ...............", ".............MZJKLPVVVVVZbVVbVVORCVVVVQ...............", ".............EFFKNSVVVVVVVaVVVZNJEVVaN................", "...............KKMITVVVVbVVVVVQTKIE...................", ".................LROVVVVVbZXVaUZbLC...................", "..................MRPVVVVVYZWVVWPMC...................", "...................NNaVVVVYbOVVYUNE...................", "...................NKOVVVVZZOVVVZPIO..................", "....................KNVVVVbXTNVVbVJM..................", "....................MLPVVVVXYQVVVVQN..................", "....................OLNVVVVXYQVVVXKM..................", ".....................OLZVVVbYJVVVaNJN.................", "......................MOaVVVYMOVVVPGN.................", "......................OFbVVVYZJPVVVKN.................", "......................OFUVVVaaJTVVaLO.................", ".......................OKVVVVZOJZVVOT.................", ".......................OJPVVVZOIZ...T.................", ".......................HHKTV...LO...R.................", ".......................NGMMN...LL...M.................", ".......................OONNO...RF...S.................", ".......................OMN.....SI...T.................", "......................NLS.......S....O................", "......................LN.............O................", ".....................GM..............O................", "....................HG...............R................", "...................HGO...............S................", "...................KO.................O...............", "..................GM..................I...............", ".................DK............O......I...............", "................CJT........K....M.....J...............", "................OOP.......O.....M.....RK..............", "................XEN......TL.....Q.....OF..............", "................PAFO.....J......K......F..............", "................ACIJM...KK.......J.....JN.............", "...............AABEIFMNKL........I.....RF.............", ".............OGACQCECL...........I.....JJ.............", "............OXDAAEQCH............IN....FG.............", "...............AEECH.............OLQQIFAD.............", "...............ACJCO...............FFICAD.............", "................EENH.................CBAAH............", "................ECNTO................EECDNS...........", "................HHHOO................FECBDOO..........", ".....................................FBBAAH...........", ".....................................KDBBBD...........", ".....................................VPHHTY..........."];
 
   var CELL = 6, X0 = 331 - 180, Y0 = 265 - 250;   // sprite origin in scene coordinates
-  var SW = 670, SH = 600;                         // scene size (matches the design image crop)
+  var SW = 670, SH = 600;                         // scene size
   var PINK = "#f5027d";
 
   function sm(x){ return x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x); }
@@ -5897,6 +5897,11 @@ iframe {
     draw();
   }
 
+  function rectO(c2, x, y, w, h) {   // slightly overlapping cell => no hairline cracks while moving
+    var x0 = Math.round(x * k), y0 = Math.round(y * k);
+    c2.fillRect(x0, y0, Math.round((x + w) * k) - x0 + 1, Math.round((y + h) * k) - y0 + 1);
+  }
+
   function rect(c2, x, y, w, h) {
     var x0 = Math.round(x * k), y0 = Math.round(y * k);
     c2.fillRect(x0, y0, Math.round((x + w) * k) - x0, Math.round((y + h) * k) - y0);
@@ -5914,7 +5919,7 @@ iframe {
     var armR   = Math.sin(th + 1.0);
     var leg    = Math.sin(half);
     var nod    = S.nod * Math.sin(th - 0.5);
-    var glide  = Math.round(S.slide * Math.sin(half - 0.9));   // moonwalk slide across the stage
+    var glide  = Math.round(S.slide * Math.sin(half - 0.9));   // slide across the stage
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, cv.width, cv.height);
@@ -5969,7 +5974,7 @@ iframe {
              - (q.side < 0 ? Math.max(0, leg) : Math.max(0, -leg)) * 1.3 * q.leg * (Math.abs(q.side) > 0.6 ? 1 : 0.3);
       var ox = Math.round(dx) + glide, oy = Math.round(dy);
       if (q.col !== lastCol) { fctx.fillStyle = PAL[q.col]; lastCol = q.col; }
-      rect(fctx, X0 + (q.c + ox) * CELL, Y0 + (q.r + oy) * CELL, CELL, CELL);
+      rectO(fctx, X0 + (q.c + ox) * CELL, Y0 + (q.r + oy) * CELL, CELL, CELL);
     }
 
     /* reflection of the feet on the floor */
@@ -5987,9 +5992,9 @@ iframe {
     rctx.fillStyle = lg; rctx.fillRect(0, axis, rfl.width, 48 * k);
     ctx.drawImage(rfl, 0, 0);
 
-    /* neon glow + sharp pixels */
+    /* soft neon glow + crisp sharp pixels on top */
     ctx.save();
-    ctx.shadowColor = "rgba(245,2,125,.85)"; ctx.shadowBlur = (12 + 6 * pulse) * k;
+    ctx.globalAlpha = 0.7; ctx.shadowColor = "rgba(245,2,125,.8)"; ctx.shadowBlur = (7 + 3 * pulse) * k;
     ctx.drawImage(fig, 0, 0);
     ctx.restore();
     ctx.drawImage(fig, 0, 0);
