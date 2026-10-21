@@ -5381,6 +5381,303 @@ iframe {
     }
 }
 
+
+
+
+/* =====================================================
+   GUARDIAN SOS — NOKIA-STYLE RETRO PIXEL DANCE
+   Black + Deep Pink only
+===================================================== */
+
+#homePage .dangerous-dance-card {
+    width: 100%;
+    max-width: 480px;
+    margin: 24px auto 105px;
+    padding: 14px 12px 24px;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-align: center;
+    color: #ff1493;
+    background: #000000;
+    border: 1px solid rgba(255, 20, 147, 0.45);
+    border-radius: 22px;
+    box-shadow: 0 0 24px rgba(255, 20, 147, 0.12);
+}
+
+#homePage .dance-screen-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #ff1493;
+}
+
+#homePage .dance-screen-label span {
+    padding: 0 5px;
+}
+
+#homePage .dance-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 260px;
+    margin: 12px auto 0;
+    overflow: hidden;
+    background: #000000;
+    border-radius: 16px;
+}
+
+#homePage .pixel-dancer {
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: min(68%, 230px);
+    height: auto;
+    overflow: visible;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 7px rgba(255, 20, 147, .45));
+    animation: pixelDancerBounce .65s steps(2, end) infinite;
+}
+
+#homePage .dancer-head {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: pixelHeadMove .65s steps(2, end) infinite;
+}
+
+#homePage .dancer-body {
+    transform-box: fill-box;
+    transform-origin: center top;
+    animation: pixelBodyMove .65s steps(2, end) infinite;
+}
+
+#homePage .dancer-arm-left {
+    transform-box: view-box;
+    transform-origin: 61px 52px;
+    animation: pixelLeftArm .55s steps(2, end) infinite alternate;
+}
+
+#homePage .dancer-arm-right {
+    transform-box: view-box;
+    transform-origin: 100px 52px;
+    animation: pixelRightArm .55s steps(2, end) infinite alternate;
+}
+
+#homePage .dancer-leg-left {
+    transform-box: view-box;
+    transform-origin: 70px 102px;
+    animation: pixelLeftLeg .55s steps(2, end) infinite alternate;
+}
+
+#homePage .dancer-leg-right {
+    transform-box: view-box;
+    transform-origin: 88px 102px;
+    animation: pixelRightLeg .55s steps(2, end) infinite alternate;
+}
+
+#homePage .dance-platform {
+    width: 58%;
+    height: 12px;
+    margin-top: -3px;
+    border: 2px dashed #ff1493;
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(255, 20, 147, .5);
+    animation: dancePlatformPulse 1s steps(2, end) infinite;
+}
+
+#homePage .dance-track {
+    margin-top: 20px;
+    line-height: 1.5;
+}
+
+#homePage .dance-track-title {
+    color: #ff1493;
+    font-size: clamp(21px, 6vw, 29px);
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+#homePage .dance-track-artist {
+    margin-top: 3px;
+    color: #ff1493;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+#homePage .dance-track-caption {
+    margin-top: 7px;
+    color: #ff1493;
+    font-size: 10px;
+    letter-spacing: 3px;
+    opacity: .8;
+}
+
+/* Retro equalizer bars */
+#homePage .dance-equalizer {
+    position: absolute;
+    top: 44%;
+    left: 8%;
+    right: 8%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 55px;
+    pointer-events: none;
+}
+
+#homePage .dance-equalizer span {
+    display: block;
+    width: 5px;
+    height: 12px;
+    background: #ff1493;
+    box-shadow: 0 0 7px rgba(255, 20, 147, .5);
+    animation: danceEqualizer .5s steps(3, end) infinite alternate;
+}
+
+#homePage .dance-equalizer span:nth-child(3n) {
+    animation-delay: -.3s;
+}
+
+#homePage .dance-equalizer span:nth-child(3n + 1) {
+    animation-delay: -.15s;
+}
+
+#homePage .dance-equalizer-bottom {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: 55%;
+    height: 25px;
+    margin: 18px auto 0;
+}
+
+#homePage .dance-equalizer-bottom span {
+    width: 4px;
+}
+
+/* Fixed SOS button remains accessible above the bottom navigation */
+#homePage .dance-sos-button {
+    position: fixed;
+    z-index: 1001;
+    right: 16px;
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 68px;
+    height: 68px;
+    padding: 0;
+    border: 2px solid #ff1493;
+    border-radius: 50%;
+    background: #000000;
+    color: #ff1493;
+    font-size: 16px;
+    font-weight: 900;
+    box-shadow: 0 0 17px rgba(255, 20, 147, .35);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#homePage .dance-sos-icon {
+    display: grid;
+    place-items: center;
+    width: 23px;
+    height: 23px;
+    border: 2px solid #ff1493;
+    border-radius: 50%;
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Animation frames */
+@keyframes pixelDancerBounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-7px) scale(1.02); }
+}
+
+@keyframes pixelHeadMove {
+    0%, 100% { transform: rotate(-5deg); }
+    50%      { transform: rotate(7deg); }
+}
+
+@keyframes pixelBodyMove {
+    0%, 100% { transform: rotate(-3deg); }
+    50%      { transform: rotate(4deg); }
+}
+
+@keyframes pixelLeftArm {
+    from { transform: rotate(-18deg); }
+    to   { transform: rotate(24deg); }
+}
+
+@keyframes pixelRightArm {
+    from { transform: rotate(22deg); }
+    to   { transform: rotate(-20deg); }
+}
+
+@keyframes pixelLeftLeg {
+    from { transform: rotate(10deg); }
+    to   { transform: rotate(-12deg); }
+}
+
+@keyframes pixelRightLeg {
+    from { transform: rotate(-12deg); }
+    to   { transform: rotate(12deg); }
+}
+
+@keyframes dancePlatformPulse {
+    0%, 100% { opacity: .55; transform: scaleX(.92); }
+    50%      { opacity: 1; transform: scaleX(1); }
+}
+
+@keyframes danceEqualizer {
+    from { height: 8px; }
+    to   { height: 42px; }
+}
+
+/* Small Android phones */
+@media (max-width: 380px) {
+    #homePage .dangerous-dance-card {
+        margin-top: 14px;
+        padding: 12px 8px 18px;
+        border-radius: 16px;
+    }
+
+    #homePage .dance-stage {
+        min-height: 225px;
+    }
+
+    #homePage .pixel-dancer {
+        width: min(65%, 190px);
+    }
+
+    #homePage .dance-sos-button {
+        width: 60px;
+        height: 60px;
+        right: 10px;
+        bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* Respect users who disable motion */
+@media (prefers-reduced-motion: reduce) {
+    #homePage .pixel-dancer,
+    #homePage .dancer-head,
+    #homePage .dancer-body,
+    #homePage .dancer-arm-left,
+    #homePage .dancer-arm-right,
+    #homePage .dancer-leg-left,
+    #homePage .dancer-leg-right,
+    #homePage .dance-platform,
+    #homePage .dance-equalizer span {
+        animation: none !important;
+    }
+}
 </style>
 </head>
 
@@ -5776,128 +6073,108 @@ iframe {
                        supports journey tracking, chat, calls, and weather.
                     </p>
 
-                    <div class="home-actions">
+                    <!-- GUARDIAN SOS: RETRO PIXEL DANCE -->
+<div class="dangerous-dance-card">
 
-    <button 
-        class="sos-main-button"
-        onclick="activateSOS()"
-        title="Activate SOS"
-    >
-                <svg class="sos-real-heart" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-
-            <!-- white outline behind the vessels -->
-            <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M46 38 C42 14 62 4 72 14 C78 20 76 30 74 40" stroke-width="13"/>
-                <path d="M37 36 C30 24 24 16 17 18" stroke-width="11"/>
-                <path d="M68 42 C76 33 84 28 86 12" stroke-width="10"/>
-            </g>
-
-            <!-- heart body -->
-            <path d="M50 30 C32 22 12 36 18 58 C23 76 40 88 52 96 C64 88 84 76 86 56 C88 38 70 22 50 30 Z"
-                  fill="#000000" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
-
-            <!-- left atrium shading -->
-            <path d="M30 34 C19 39 17 54 24 64 C30 53 34 44 39 36 Z" fill="#2b2b2b"/>
-
-            <!-- right side shading -->
-            <path d="M62 34 C78 36 84 48 80 62 C74 52 68 44 62 34 Z" fill="#161616"/>
-
-            <!-- vessels (red, on top) -->
-            <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M46 42 C42 14 62 4 72 14 C78 20 76 30 74 42" stroke="#1a1a1a" stroke-width="8"/>
-                <path d="M38 40 C30 25 24 16 17 18" stroke="#383838" stroke-width="6"/>
-                <path d="M68 44 C76 34 84 28 86 12" stroke="#050505" stroke-width="6"/>
-
-                <!-- septum (divides left and right ventricles) -->
-                <path d="M50 34 C47 56 49 76 54 91" stroke="#4a4a4a" stroke-width="2.2"/>
-
-                <!-- coronary vessels on the surface -->
-                <path d="M31 42 C28 56 36 72 48 84" stroke="#ffb3bd" stroke-width="1.8"/>
-                <path d="M72 44 C76 58 70 72 60 84" stroke="#ffb3bd" stroke-width="1.8"/>
-                <path d="M36 52 C40 58 44 62 46 70" stroke="#ffb3bd" stroke-width="1.4"/>
-            </g>
-
-            <!-- shine -->
-            <ellipse cx="34" cy="50" rx="4" ry="9" fill="#ffffff" opacity=".28" transform="rotate(18 34 50)"/>
-
-        </svg>
-    </button>
-
-    <button 
-    class="secondary-button"
-    onclick="navigateTo('dashboard')"
-    title="Open Dashboard"
->
-    <div class="live-watch">
-        <div class="watch-face">
-
-            <div class="watch-number n12">12</div>
-            <div class="watch-number n1">1</div>
-            <div class="watch-number n2">2</div>
-            <div class="watch-number n3">3</div>
-            <div class="watch-number n4">4</div>
-            <div class="watch-number n5">5</div>
-            <div class="watch-number n6">6</div>
-            <div class="watch-number n7">7</div>
-            <div class="watch-number n8">8</div>
-            <div class="watch-number n9">9</div>
-            <div class="watch-number n10">10</div>
-            <div class="watch-number n11">11</div>
-
-            <div class="watch-hand watch-hour" id="watchHour"></div>
-            <div class="watch-hand watch-minute" id="watchMinute"></div>
-            <div class="watch-hand watch-second" id="watchSecond"></div>
-
-            <div class="watch-center"></div>
-
-            <div class="watch-digital" id="watchDigital">
-                00:00:00
-            </div>
-
-            <div class="watch-date" id="watchDate">
-                Loading...
-            </div>
-
-        </div>
+    <div class="dance-screen-label">
+        GUARDIAN SOS <span>•</span> RETRO DANCE
     </div>
-</button>
+
+    <div class="dance-stage">
+
+        <div class="dance-equalizer" aria-hidden="true">
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+        </div>
+
+        <svg class="pixel-dancer"
+             viewBox="0 0 160 220"
+             role="img"
+             aria-label="Animated original retro pixel dancer">
+
+            <!-- Head and hair -->
+            <g class="dancer-head">
+                <rect x="67" y="17" width="27" height="27" fill="#ff1493"/>
+                <rect x="61" y="23" width="6" height="13" fill="#ff1493"/>
+                <rect x="67" y="11" width="27" height="6" fill="#ff1493"/>
+                <rect x="94" y="17" width="6" height="13" fill="#ff1493"/>
+                <rect x="73" y="29" width="5" height="5" fill="#000000"/>
+                <rect x="84" y="29" width="5" height="5" fill="#000000"/>
+            </g>
+
+            <!-- Body -->
+            <g class="dancer-body">
+                <rect x="67" y="44" width="27" height="8" fill="#ff1493"/>
+                <rect x="61" y="52" width="39" height="32" fill="#ff1493"/>
+                <rect x="67" y="58" width="27" height="20" fill="#000000"/>
+                <rect x="73" y="84" width="23" height="10" fill="#ff1493"/>
+                <rect x="61" y="94" width="39" height="8" fill="#ff1493"/>
+            </g>
+
+            <!-- Left arm -->
+            <g class="dancer-arm-left">
+                <rect x="39" y="49" width="22" height="8" fill="#ff1493"/>
+                <rect x="33" y="42" width="8" height="14" fill="#ff1493"/>
+                <rect x="21" y="29" width="8" height="22" fill="#ff1493"/>
+                <rect x="27" y="23" width="8" height="14" fill="#ff1493"/>
+                <rect x="15" y="22" width="12" height="8" fill="#ff1493"/>
+            </g>
+
+            <!-- Right arm -->
+            <g class="dancer-arm-right">
+                <rect x="100" y="49" width="20" height="8" fill="#ff1493"/>
+                <rect x="114" y="40" width="8" height="17" fill="#ff1493"/>
+                <rect x="120" y="27" width="8" height="18" fill="#ff1493"/>
+                <rect x="126" y="19" width="8" height="12" fill="#ff1493"/>
+                <rect x="132" y="17" width="12" height="8" fill="#ff1493"/>
+            </g>
+
+            <!-- Left leg -->
+            <g class="dancer-leg-left">
+                <rect x="61" y="102" width="17" height="26" fill="#ff1493"/>
+                <rect x="55" y="126" width="17" height="25" fill="#ff1493"/>
+                <rect x="49" y="149" width="17" height="24" fill="#ff1493"/>
+                <rect x="37" y="169" width="24" height="8" fill="#ff1493"/>
+                <rect x="31" y="177" width="30" height="8" fill="#ff1493"/>
+            </g>
+
+            <!-- Right leg -->
+            <g class="dancer-leg-right">
+                <rect x="83" y="102" width="17" height="26" fill="#ff1493"/>
+                <rect x="89" y="126" width="17" height="25" fill="#ff1493"/>
+                <rect x="95" y="149" width="17" height="24" fill="#ff1493"/>
+                <rect x="101" y="169" width="24" height="8" fill="#ff1493"/>
+                <rect x="101" y="177" width="30" height="8" fill="#ff1493"/>
+            </g>
+        </svg>
+
+        <div class="dance-platform" aria-hidden="true"></div>
+    </div>
+
+    <div class="dance-track">
+        <div class="dance-track-title">♪ DANGEROUS</div>
+        <div class="dance-track-artist">MICHAEL JACKSON</div>
+        <div class="dance-track-caption">RETRO PIXEL DANCE</div>
+    </div>
+
+    <div class="dance-equalizer dance-equalizer-bottom"
+         aria-hidden="true">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+    </div>
 
 </div>
 
-                                                            <div class="guardian-compass-wrap">
-
-                        <div class="compass-outer" id="compassOuter">
-
-                            <div class="compass-pointer"></div>
-
-                            <div class="compass-ring">
-
-                                <div class="compass-dial" id="compassDial">
-                                    <div class="compass-marks" id="compassMarks"></div>
-                                    <div class="compass-rose"></div>
-                                    <div class="compass-north-arrow"></div>
-                                </div>
-
-                                <div class="compass-hub"></div>
-
-                            </div>
-
-                        </div>
-
-                        <div class="compass-readout">
-                            <div class="compass-degrees" id="compassDegrees">0°</div>
-                            <div class="compass-direction" id="compassDirection">N</div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </section>
+<!-- Keep emergency access visible on the home page -->
+<button type="button"
+        class="dance-sos-button"
+        onclick="activateSOS()"
+        aria-label="Activate emergency SOS">
+    <span class="dance-sos-icon">!</span>
+    <span>SOS</span>
+</button>
 
 
     <!-- =====================================================
