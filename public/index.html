@@ -5382,82 +5382,69 @@ iframe {
 }
 
 
-/* GUARDIAN SOS — LIGHT MODE COLOUR FIX ONLY */
-
-/* Text: black */
-html.light-mode,
-body.light-mode,
-body.light-mode h1,
-body.light-mode h2,
-body.light-mode h3,
-body.light-mode h4,
-body.light-mode p,
-body.light-mode span,
-body.light-mode label,
-body.light-mode a,
-body.light-mode li,
-body.light-mode strong,
-body.light-mode small {
-    color: #000000 !important;
-    text-shadow: none !important;
-    -webkit-text-fill-color: #000000 !important;
+/* LIGHT MODE — HOME PAGE ONLY */
+body.light-mode #homePage {
+    background: #fff !important;
+    color: #000 !important;
 }
 
-/* Pink text and pink effects: black */
-body.light-mode .pink,
-body.light-mode .gradient-text,
-body.light-mode .logo,
-body.light-mode .auth-logo,
-body.light-mode .home-title span,
-body.light-mode [style*="#ff1493"],
-body.light-mode [style*="#FF1493"],
-body.light-mode [style*="#e83e8c"],
-body.light-mode [style*="245,2,125"] {
-    color: #000000 !important;
-    -webkit-text-fill-color: #000000 !important;
+/* Existing Home page text */
+body.light-mode #homePage h1,
+body.light-mode #homePage h2,
+body.light-mode #homePage h3,
+body.light-mode #homePage p,
+body.light-mode #homePage .home-description,
+body.light-mode #homePage .home-title,
+body.light-mode #homePage .home-badge,
+body.light-mode #homePage .home-inner,
+body.light-mode #homePage .home-hero {
+    color: #000 !important;
     text-shadow: none !important;
-    box-shadow: none !important;
+    -webkit-text-fill-color: #000 !important;
 }
 
-/* Borders: black */
-body.light-mode * {
-    border-color: #000000 !important;
+/* Pink Home page text and effects become black */
+body.light-mode #homePage .pink,
+body.light-mode #homePage .gradient-text,
+body.light-mode #homePage .home-title span {
+    color: #000 !important;
+    background: none !important;
+    -webkit-text-fill-color: #000 !important;
     text-shadow: none !important;
 }
 
-/* Form text: black, without changing field backgrounds */
-body.light-mode input,
-body.light-mode textarea,
-body.light-mode select {
-    color: #000000 !important;
-    -webkit-text-fill-color: #000000 !important;
-    border-color: #000000 !important;
+/* Existing Home page borders */
+body.light-mode #homePage .home-badge {
+    border-color: #000 !important;
 }
 
-body.light-mode input::placeholder,
-body.light-mode textarea::placeholder {
-    color: #000000 !important;
-    -webkit-text-fill-color: #000000 !important;
-}
-
-/* Buttons: black text unless their existing light-mode rule
-   already specifies white text on a black button */
-body.light-mode button {
-    text-shadow: none !important;
-    box-shadow: none !important;
-}
-
-/* Michael Jackson animation text and effects */
-body.light-mode #mjNeon .mj-song,
-body.light-mode #mjNeon .mj-artist,
-body.light-mode #mjNeon .mj-hint {
-    color: #FFFFFF !important;
-    -webkit-text-fill-color: #FFFFFF !important;
+/* Existing Home page buttons */
+body.light-mode #homePage button {
     text-shadow: none !important;
 }
 
-body.light-mode #mjNeon {
-    box-shadow: none !important;
+/* Keep the existing Michael Jackson panel black;
+   only its text becomes white for contrast */
+body.light-mode #homePage #mjNeon {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+body.light-mode #homePage #mjNeon .mj-song,
+body.light-mode #homePage #mjNeon .mj-artist,
+body.light-mode #homePage #mjNeon .mj-hint {
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    text-shadow: none !important;
+}
+
+body.light-mode #homePage #mjNeon .mj-controls button {
+    color: #fff !important;
+    border-color: #fff !important;
+}
+
+body.light-mode #homePage #mjNeon .mj-controls svg {
+    fill: #fff !important;
 }
 </style>
 </head>
