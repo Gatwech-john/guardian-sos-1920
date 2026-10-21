@@ -5473,6 +5473,108 @@ body.light-mode #homePage .mj-sos b {
 }
 </style>
 
+<style>
+/* GUARDIAN SOS — STRICT BLACK AND WHITE FOR LIGHT MODE */
+body.light-mode #homePage #mjNeon {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+}
+
+/* Animation stage: black background */
+body.light-mode #homePage #mjStage {
+    background: #000 !important;
+    border: 1px solid #000 !important;
+}
+
+/* Keep both animation canvases visible */
+body.light-mode #homePage #mjBg {
+    background: #000 !important;
+}
+
+body.light-mode #homePage #mjFig {
+    filter: grayscale(1) brightness(0) invert(1) !important;
+}
+
+/* Song title, artist and hint */
+body.light-mode #homePage .mj-song,
+body.light-mode #homePage .mj-artist,
+body.light-mode #homePage .mj-hint {
+    color: #000 !important;
+    text-shadow: none !important;
+}
+
+/* Music symbol */
+body.light-mode #homePage .mj-song svg {
+    fill: #000 !important;
+}
+
+/* Previous and next controls */
+body.light-mode #homePage .mj-controls .mj-skip {
+    background: #fff !important;
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+}
+
+body.light-mode #homePage .mj-controls .mj-skip svg {
+    fill: #000 !important;
+}
+
+/* Play/pause control: white center, black outline */
+body.light-mode #homePage .mj-controls .mj-play {
+    background: #fff !important;
+    border: 3px solid #000 !important;
+    box-shadow: none !important;
+}
+
+body.light-mode #homePage .mj-controls .mj-play svg {
+    fill: #000 !important;
+}
+
+/* Progress indicators */
+body.light-mode #homePage .mj-dots i {
+    background: #fff !important;
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+}
+
+body.light-mode #homePage .mj-dots i.on {
+    background: #000 !important;
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+}
+
+/* Safety badge */
+body.light-mode #homePage .home-badge {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+}
+
+body.light-mode #homePage .home-badge * {
+    color: #000 !important;
+}
+
+/* SOS control: black with white content */
+body.light-mode #homePage .mj-sos {
+    background: #000 !important;
+    border: 2px solid #000 !important;
+    box-shadow: none !important;
+    animation: none !important;
+}
+
+body.light-mode #homePage .mj-sos svg,
+body.light-mode #homePage .mj-sos b {
+    color: #fff !important;
+}
+
+/* Remove pink glow from the dancer */
+body.light-mode #homePage #mjFig {
+    filter: grayscale(1) brightness(0) invert(1) !important;
+}
+</style>
+
 </head>
 
 <body>
