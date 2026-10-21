@@ -5382,55 +5382,11 @@ iframe {
 }
 
 
-/* =========================================
-   GUARDIAN SOS — PURE BLACK & WHITE LIGHT MODE
-   ========================================= */
+/* GUARDIAN SOS — LIGHT MODE COLOUR FIX ONLY */
 
+/* Text: black */
 html.light-mode,
-body.light-mode {
-    background: #FFFFFF !important;
-    background-image: none !important;
-    color: #000000 !important;
-}
-
-/* Make page backgrounds white and text black */
-html.light-mode *,
-body.light-mode * {
-    text-shadow: none !important;
-    -webkit-text-stroke-color: #000000 !important;
-}
-
-/* Main containers and cards */
-html.light-mode .page,
-body.light-mode .page,
-body.light-mode .card,
-body.light-mode .dashboard-card,
-body.light-mode .auth-box,
-body.light-mode .modal,
-body.light-mode .modal-box,
-body.light-mode .list-item,
-body.light-mode .guardian-status-card,
-body.light-mode .section,
-body.light-mode .panel {
-    background-color: #FFFFFF !important;
-    background-image: none !important;
-    color: #000000 !important;
-    border-color: #000000 !important;
-    box-shadow: none !important;
-}
-
-/* All normal text */
-html.light-mode h1,
-html.light-mode h2,
-html.light-mode h3,
-html.light-mode h4,
-html.light-mode p,
-html.light-mode span,
-html.light-mode label,
-html.light-mode strong,
-html.light-mode small,
-html.light-mode li,
-html.light-mode a,
+body.light-mode,
 body.light-mode h1,
 body.light-mode h2,
 body.light-mode h3,
@@ -5438,166 +5394,70 @@ body.light-mode h4,
 body.light-mode p,
 body.light-mode span,
 body.light-mode label,
-body.light-mode strong,
-body.light-mode small,
+body.light-mode a,
 body.light-mode li,
-body.light-mode a {
+body.light-mode strong,
+body.light-mode small {
     color: #000000 !important;
     text-shadow: none !important;
     -webkit-text-fill-color: #000000 !important;
 }
 
-/* Inputs and form fields */
-html.light-mode input,
-html.light-mode textarea,
-html.light-mode select,
+/* Pink text and pink effects: black */
+body.light-mode .pink,
+body.light-mode .gradient-text,
+body.light-mode .logo,
+body.light-mode .auth-logo,
+body.light-mode .home-title span,
+body.light-mode [style*="#ff1493"],
+body.light-mode [style*="#FF1493"],
+body.light-mode [style*="#e83e8c"],
+body.light-mode [style*="245,2,125"] {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+}
+
+/* Borders: black */
+body.light-mode * {
+    border-color: #000000 !important;
+    text-shadow: none !important;
+}
+
+/* Form text: black, without changing field backgrounds */
 body.light-mode input,
 body.light-mode textarea,
 body.light-mode select {
-    background: #FFFFFF !important;
-    background-image: none !important;
     color: #000000 !important;
-    border: 1px solid #000000 !important;
-    box-shadow: none !important;
     -webkit-text-fill-color: #000000 !important;
+    border-color: #000000 !important;
 }
 
-html.light-mode input::placeholder,
-html.light-mode textarea::placeholder,
 body.light-mode input::placeholder,
 body.light-mode textarea::placeholder {
-    color: #555555 !important;
-    -webkit-text-fill-color: #555555 !important;
-    opacity: 1 !important;
-}
-
-/* All buttons: black background and white text */
-html.light-mode button,
-html.light-mode .primary-button,
-html.light-mode .secondary-button,
-html.light-mode .card-button,
-html.light-mode .sos-main-button,
-html.light-mode .guardian-mini-button,
-body.light-mode button,
-body.light-mode .primary-button,
-body.light-mode .secondary-button,
-body.light-mode .card-button,
-body.light-mode .sos-main-button,
-body.light-mode .guardian-mini-button {
-    background: #000000 !important;
-    background-image: none !important;
-    color: #FFFFFF !important;
-    border: 1px solid #000000 !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-    -webkit-text-fill-color: #FFFFFF !important;
-}
-
-/* Icons */
-html.light-mode i,
-html.light-mode svg,
-body.light-mode i,
-body.light-mode svg {
-    filter: none !important;
-    text-shadow: none !important;
-}
-
-html.light-mode svg,
-body.light-mode svg {
     color: #000000 !important;
-}
-
-/* Navigation */
-html.light-mode .mobile-nav,
-html.light-mode .top-nav,
-html.light-mode .navbar,
-html.light-mode nav,
-body.light-mode .mobile-nav,
-body.light-mode .top-nav,
-body.light-mode .navbar,
-body.light-mode nav {
-    background: #FFFFFF !important;
-    background-image: none !important;
-    color: #000000 !important;
-    border-color: #000000 !important;
-    box-shadow: none !important;
-}
-
-/* Navigation buttons and labels */
-html.light-mode .mobile-nav button,
-html.light-mode .top-nav button,
-body.light-mode .mobile-nav button,
-body.light-mode .top-nav button {
-    background: #FFFFFF !important;
-    color: #000000 !important;
-    border-color: #000000 !important;
     -webkit-text-fill-color: #000000 !important;
 }
 
-/* Guardian SOS logo and branding become black */
-html.light-mode .logo,
-html.light-mode .auth-logo,
-html.light-mode .pink,
-html.light-mode .gradient-text,
-html.light-mode .home-title span,
-body.light-mode .logo,
-body.light-mode .auth-logo,
-body.light-mode .pink,
-body.light-mode .gradient-text,
-body.light-mode .home-title span {
-    color: #000000 !important;
-    background: none !important;
-    background-image: none !important;
-    -webkit-text-fill-color: #000000 !important;
+/* Buttons: black text unless their existing light-mode rule
+   already specifies white text on a black button */
+body.light-mode button {
     text-shadow: none !important;
-}
-
-/* Michael Jackson animation: keep the animation background black
-   so the figure remains visible, but remove pink styling from its text */
-html.light-mode #mjNeon,
-body.light-mode #mjNeon {
-    background: #000000 !important;
-    background-image: none !important;
-    color: #FFFFFF !important;
-    border-color: #000000 !important;
     box-shadow: none !important;
 }
 
-html.light-mode #mjNeon .mj-song,
-html.light-mode #mjNeon .mj-artist,
-html.light-mode #mjNeon .mj-hint,
-html.light-mode #mjNeon .mj-controls,
+/* Michael Jackson animation text and effects */
 body.light-mode #mjNeon .mj-song,
 body.light-mode #mjNeon .mj-artist,
-body.light-mode #mjNeon .mj-hint,
-body.light-mode #mjNeon .mj-controls {
+body.light-mode #mjNeon .mj-hint {
     color: #FFFFFF !important;
     -webkit-text-fill-color: #FFFFFF !important;
-}
-
-html.light-mode #mjNeon .mj-controls button,
-body.light-mode #mjNeon .mj-controls button {
-    background: #000000 !important;
-    color: #FFFFFF !important;
-    border-color: #FFFFFF !important;
-    -webkit-text-fill-color: #FFFFFF !important;
-}
-
-/* Keep maps, videos and images working */
-html.light-mode img,
-html.light-mode video,
-html.light-mode canvas,
-body.light-mode img,
-body.light-mode video,
-body.light-mode canvas {
-    filter: none !important;
-}
-
-/* Remove decorative gradients and pink glows from light mode */
-html.light-mode *,
-body.light-mode * {
-    box-shadow: none !important;
     text-shadow: none !important;
+}
+
+body.light-mode #mjNeon {
+    box-shadow: none !important;
 }
 </style>
 </head>
