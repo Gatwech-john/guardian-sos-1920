@@ -5381,497 +5381,6 @@ iframe {
     }
 }
 
-
-
-/* ==========================================
-   GUARDIAN SOS RETRO PIXEL DANCER
-   Pure HTML + CSS + SVG; no dancer image
-========================================== */
-
-#homePage .home-hero {
-    background: #000 !important;
-}
-
-#homePage .home-inner {
-    position: relative;
-    width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 18px 12px 105px !important;
-    box-sizing: border-box;
-    background: #000 !important;
-    color: #ff1493;
-}
-
-#homePage .retro-dance-card {
-    --retro-pink: #ff1493;
-    position: relative;
-    isolation: isolate;
-    width: 100%;
-    max-width: 460px;
-    margin: 0 auto;
-    padding: 17px 12px 20px;
-    overflow: hidden;
-    box-sizing: border-box;
-    color: var(--retro-pink);
-    text-align: center;
-    background: #000;
-    border: 1px solid rgba(255,20,147,.7);
-    border-radius: 20px;
-    box-shadow:
-        0 0 18px rgba(255,20,147,.12),
-        inset 0 0 24px rgba(255,20,147,.035);
-}
-
-/* Header */
-
-#homePage .retro-dance-header {
-    position: relative;
-    z-index: 5;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 7px;
-    width: 100%;
-    font-size: clamp(9px, 2.7vw, 12px);
-    font-weight: 900;
-    letter-spacing: 1.3px;
-    white-space: nowrap;
-}
-
-#homePage .retro-led {
-    width: 5px;
-    height: 5px;
-    flex: 0 0 5px;
-    border-radius: 50%;
-    background: #ff1493;
-    box-shadow: 0 0 9px #ff1493;
-    animation: retroLedBlink .8s steps(2,end) infinite;
-}
-
-#homePage .retro-divider {
-    opacity: .5;
-}
-
-@keyframes retroLedBlink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .25; }
-}
-
-/* Dance stage */
-
-#homePage .retro-dance-stage {
-    position: relative;
-    width: 100%;
-    height: clamp(275px, 80vw, 340px);
-    margin-top: 8px;
-    overflow: hidden;
-    background: #000;
-    perspective: 500px;
-}
-
-/* Dancer container: body bounce */
-
-#homePage .retro-dancer {
-    position: absolute;
-    z-index: 3;
-    left: 50%;
-    bottom: 42px;
-    width: min(58%, 205px);
-    aspect-ratio: 180 / 240;
-    transform: translateX(-50%);
-    transform-origin: 50% 90%;
-    animation: retroDancerBounce .36s steps(2,end) infinite;
-    filter: drop-shadow(0 0 7px rgba(255,20,147,.55));
-}
-
-#homePage .retro-dancer-svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    shape-rendering: crispEdges;
-}
-
-/* Torso movement */
-
-#homePage .dancer-body {
-    transform-box: view-box;
-    transform-origin: 90px 105px;
-    animation: retroBodyGroove .42s steps(2,end) infinite alternate;
-}
-
-/* Head movement */
-
-#homePage .dancer-head {
-    transform-box: view-box;
-    transform-origin: 90px 75px;
-    animation: retroHeadGroove .55s steps(2,end) infinite alternate;
-}
-
-/* Both arms swing independently */
-
-#homePage .dancer-arm {
-    transform-box: view-box;
-}
-
-#homePage .dancer-arm-back {
-    transform-origin: 56px 76px;
-    animation: retroArmBack .42s steps(2,end) infinite alternate;
-}
-
-#homePage .dancer-arm-front {
-    transform-origin: 119px 76px;
-    animation: retroArmFront .42s steps(2,end) infinite alternate;
-}
-
-/* Legs kick in opposite directions */
-
-#homePage .dancer-leg {
-    transform-box: view-box;
-}
-
-#homePage .dancer-leg-left {
-    transform-origin: 76px 134px;
-    animation: retroLegLeft .42s steps(2,end) infinite alternate;
-}
-
-#homePage .dancer-leg-right {
-    transform-origin: 104px 134px;
-    animation: retroLegRight .42s steps(2,end) infinite alternate;
-}
-
-@keyframes retroDancerBounce {
-    0%, 100% {
-        translate: 0 2px;
-    }
-    50% {
-        translate: 0 -8px;
-    }
-}
-
-@keyframes retroBodyGroove {
-    0% { transform: rotate(-5deg) skewY(-2deg); }
-    100% { transform: rotate(5deg) skewY(2deg); }
-}
-
-@keyframes retroHeadGroove {
-    0% { transform: rotate(-7deg) translateY(1px); }
-    100% { transform: rotate(7deg) translateY(-2px); }
-}
-
-@keyframes retroArmBack {
-    0% { transform: rotate(-28deg); }
-    100% { transform: rotate(28deg); }
-}
-
-@keyframes retroArmFront {
-    0% { transform: rotate(25deg); }
-    100% { transform: rotate(-32deg); }
-}
-
-@keyframes retroLegLeft {
-    0% { transform: rotate(-24deg) translateY(0); }
-    100% { transform: rotate(22deg) translateY(-3px); }
-}
-
-@keyframes retroLegRight {
-    0% { transform: rotate(23deg) translateY(-2px); }
-    100% { transform: rotate(-24deg) translateY(1px); }
-}
-
-/* Equalizers on both sides */
-
-#homePage .retro-equalizer {
-    position: absolute;
-    z-index: 2;
-    top: 135px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    height: 76px;
-    pointer-events: none;
-}
-
-#homePage .retro-equalizer-left {
-    left: 7px;
-}
-
-#homePage .retro-equalizer-right {
-    right: 7px;
-}
-
-#homePage .retro-equalizer i {
-    display: block;
-    width: 4px;
-    height: 15px;
-    background: #ff1493;
-    box-shadow: 0 0 8px rgba(255,20,147,.65);
-    animation: retroEqualizerMove .42s steps(4,end) infinite alternate;
-}
-
-#homePage .retro-equalizer i:nth-child(1) {
-    animation-delay: -.3s;
-}
-
-#homePage .retro-equalizer i:nth-child(2) {
-    animation-delay: -.1s;
-}
-
-#homePage .retro-equalizer i:nth-child(3) {
-    animation-delay: -.4s;
-}
-
-#homePage .retro-equalizer i:nth-child(4) {
-    animation-delay: -.2s;
-}
-
-#homePage .retro-equalizer i:nth-child(5) {
-    animation-delay: -.35s;
-}
-
-@keyframes retroEqualizerMove {
-    0% { height: 9px; }
-    25% { height: 25px; }
-    50% { height: 48px; }
-    75% { height: 20px; }
-    100% { height: 65px; }
-}
-
-/* Oval platform and floor */
-
-#homePage .retro-dance-platform {
-    position: absolute;
-    z-index: 2;
-    left: 23%;
-    bottom: 28px;
-    width: 54%;
-    height: 20px;
-    border: 2px dashed #ff1493;
-    border-radius: 50%;
-    box-shadow:
-        0 0 9px rgba(255,20,147,.8),
-        inset 0 0 8px rgba(255,20,147,.2);
-    animation: retroPlatformPulse .65s steps(2,end) infinite;
-}
-
-#homePage .retro-floor-line {
-    position: absolute;
-    left: 13%;
-    bottom: 18px;
-    width: 74%;
-    height: 1px;
-    background: #ff1493;
-    opacity: .55;
-}
-
-@keyframes retroPlatformPulse {
-    0%, 100% {
-        opacity: .55;
-        transform: scaleX(.92);
-    }
-    50% {
-        opacity: 1;
-        transform: scaleX(1);
-    }
-}
-
-/* Decorative bottom equalizer */
-
-#homePage .retro-bottom-equalizer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    height: 30px;
-    margin: 8px auto 0;
-}
-
-#homePage .retro-bottom-equalizer i {
-    width: 4px;
-    height: 8px;
-    background: #ff1493;
-    box-shadow: 0 0 6px rgba(255,20,147,.45);
-    animation: retroEqualizerMove .5s steps(4,end) infinite alternate;
-}
-
-#homePage .retro-bottom-equalizer i:nth-child(3n) {
-    animation-delay: -.25s;
-}
-
-#homePage .retro-bottom-equalizer i:nth-child(3n + 1) {
-    animation-delay: -.12s;
-}
-
-/* Song information */
-
-#homePage .retro-song-details {
-    position: relative;
-    z-index: 4;
-    margin-top: 9px;
-    text-align: center;
-    line-height: 1.5;
-}
-
-#homePage .retro-song-title {
-    color: #ff1493;
-    font-size: clamp(22px, 6vw, 31px);
-    font-weight: 900;
-    letter-spacing: 1.5px;
-    text-shadow: 0 0 10px rgba(255,20,147,.35);
-}
-
-#homePage .retro-song-artist {
-    margin-top: 4px;
-    color: #ff1493;
-    font-size: clamp(12px, 3.5vw, 15px);
-    font-weight: 900;
-    letter-spacing: 2.5px;
-}
-
-#homePage .retro-song-caption {
-    margin-top: 7px;
-    color: #ff1493;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 2.5px;
-    opacity: .75;
-}
-
-/* Pause/resume dance button */
-
-#homePage .retro-dance-toggle {
-    position: relative;
-    z-index: 5;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 42px;
-    margin: 15px auto 0;
-    padding: 9px 18px;
-    border: 1px solid #ff1493;
-    border-radius: 30px;
-    background: #000;
-    color: #ff1493;
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 1.5px;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-}
-
-#homePage .retro-dance-toggle i {
-    font-size: 19px;
-}
-
-#homePage .retro-dance-card.dance-paused .retro-dancer,
-#homePage .retro-dance-card.dance-paused .dancer-body,
-#homePage .retro-dance-card.dance-paused .dancer-head,
-#homePage .retro-dance-card.dance-paused .dancer-arm,
-#homePage .retro-dance-card.dance-paused .dancer-leg,
-#homePage .retro-dance-card.dance-paused .retro-equalizer i,
-#homePage .retro-dance-card.dance-paused .retro-bottom-equalizer i,
-#homePage .retro-dance-card.dance-paused .retro-dance-platform,
-#homePage .retro-dance-card.dance-paused .retro-led {
-    animation-play-state: paused !important;
-}
-
-/* Fixed emergency SOS button */
-
-#homePage .retro-sos-button {
-    position: fixed;
-    z-index: 1001;
-    right: 13px;
-    bottom: calc(82px + env(safe-area-inset-bottom, 0px));
-    width: 66px;
-    height: 66px;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    border: 2px solid #ff1493;
-    border-radius: 50%;
-    background: #000;
-    color: #ff1493;
-    font-size: 13px;
-    font-weight: 900;
-    box-shadow: 0 0 15px rgba(255,20,147,.35);
-    cursor: pointer;
-}
-
-#homePage .retro-sos-button i {
-    font-size: 23px;
-}
-
-@media (max-width: 380px) {
-    #homePage .home-inner {
-        padding: 12px 8px 100px !important;
-    }
-
-    #homePage .retro-dance-card {
-        padding: 14px 7px 17px;
-        border-radius: 16px;
-    }
-
-    #homePage .retro-dance-header {
-        gap: 4px;
-        letter-spacing: .8px;
-    }
-
-    #homePage .retro-dance-stage {
-        height: 270px;
-    }
-
-    #homePage .retro-dancer {
-        width: 57%;
-    }
-
-    #homePage .retro-equalizer {
-        gap: 3px;
-    }
-
-    #homePage .retro-equalizer-left {
-        left: 3px;
-    }
-
-    #homePage .retro-equalizer-right {
-        right: 3px;
-    }
-
-    #homePage .retro-equalizer i {
-        width: 3px;
-    }
-
-    #homePage .retro-bottom-equalizer {
-        gap: 4px;
-    }
-
-    #homePage .retro-sos-button {
-        right: 10px;
-        bottom: calc(78px + env(safe-area-inset-bottom, 0px));
-        width: 58px;
-        height: 58px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    #homePage .retro-dancer,
-    #homePage .dancer-body,
-    #homePage .dancer-head,
-    #homePage .dancer-arm,
-    #homePage .dancer-leg,
-    #homePage .retro-equalizer i,
-    #homePage .retro-bottom-equalizer i,
-    #homePage .retro-dance-platform,
-    #homePage .retro-led {
-        animation: none !important;
-    }
-}
-
 </style>
 </head>
 
@@ -6267,151 +5776,263 @@ iframe {
                        supports journey tracking, chat, calls, and weather.
                     </p>
 
-                    
-<!-- GUARDIAN SOS: ANIMATED RETRO PIXEL DANCER -->
-<div class="retro-dance-card" id="retroDanceCard">
+                  <!-- =====================================================
+     MICHAEL JACKSON NEON DANCER  (replaces SOS heart + watch + compass on Home)
+     Self-contained: HTML + CSS + JS. Pixel data is taken from your design image.
+====================================================== -->
+<div class="mj-neon" id="mjNeon">
 
-    <div class="retro-dance-header">
-        <span class="retro-led"></span>
-        <span>GUARDIAN SOS</span>
-        <span class="retro-divider">/</span>
-        <span>RETRO DANCE</span>
-        <span class="retro-led"></span>
-    </div>
+<style>
+.mj-neon{container-type:inline-size;position:relative;width:100%;max-width:440px;margin:18px auto 0;padding:6px 0 14px;background:#000;border-radius:26px;color:#f5027d;font-family:Roboto,"Segoe UI",system-ui,-apple-system,sans-serif;text-align:center;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none}
+.mj-neon canvas{display:block;width:100%;aspect-ratio:670/600;image-rendering:pixelated}
+.mj-song{margin-top:-34px;display:flex;align-items:center;justify-content:center;gap:10px;color:#ff2d9a;font-size:clamp(24px,7vw,30px);font-weight:600;line-height:1.1;position:relative}
+.mj-song svg{width:30px;height:30px;fill:#f5027d;flex:none}
+.mj-artist{margin-top:6px;color:#f5027d;font-size:clamp(16px,4.6vw,19px)}
+.mj-controls{display:flex;align-items:center;justify-content:center;gap:clamp(30px,10cqw,58px);margin-top:18px}
+.mj-controls button{background:none;border:0;padding:0;cursor:pointer;color:#f5027d;display:flex;align-items:center;justify-content:center}
+.mj-skip svg{width:42px;height:42px;fill:#f5027d}
+.mj-play{width:64px;height:64px;border:3px solid #f5027d !important;border-radius:50%;box-shadow:0 0 14px rgba(245,2,125,.45)}
+.mj-play svg{width:30px;height:30px;fill:#f5027d}
+.mj-skip:active,.mj-play:active{transform:scale(.92)}
+.mj-dots{display:flex;gap:18px;justify-content:center;margin-top:26px}
+.mj-dots i{width:19px;height:19px;border-radius:50%;background:#5a0a33;display:block;transition:background .2s}
+.mj-dots i.on{background:#f5027d;box-shadow:0 0 10px rgba(245,2,125,.7)}
+.mj-hint{margin-top:22px;color:#f5027d;font-size:clamp(14px,4vw,17px)}
+.mj-sos{position:absolute;right:4%;bottom:40px;width:72px;width:15cqw;max-width:78px;aspect-ratio:1;height:auto;border-radius:50%;border:0;cursor:pointer;padding:0;background:radial-gradient(circle at 50% 35%,#ff55ab,#f5027d 70%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;box-shadow:0 0 0 5px #000,0 0 0 7px rgba(245,2,125,.55),0 0 22px 6px rgba(245,2,125,.55);animation:mjSosPulse 1.6s ease-in-out infinite}
+.mj-sos svg{width:52%;height:auto}
+.mj-sos b{font-size:20px;font-size:clamp(15px,4.6cqw,21px);font-weight:700;letter-spacing:.5px;line-height:1;margin-top:2px}
+.mj-sos:active{transform:scale(.94)}
+@keyframes mjSosPulse{0%,100%{box-shadow:0 0 0 5px #000,0 0 0 7px rgba(245,2,125,.55),0 0 18px 5px rgba(245,2,125,.45)}50%{box-shadow:0 0 0 5px #000,0 0 0 7px rgba(245,2,125,.9),0 0 30px 10px rgba(245,2,125,.7)}}
+</style>
 
-    <div class="retro-equalizer retro-equalizer-left" aria-hidden="true">
-        <i></i><i></i><i></i><i></i><i></i>
-    </div>
+<canvas id="mjCanvas" aria-label="Michael Jackson neon dance animation"></canvas>
 
-    <div class="retro-equalizer retro-equalizer-right" aria-hidden="true">
-        <i></i><i></i><i></i><i></i><i></i>
-    </div>
+<div class="mj-song">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v11.3A3.5 3.5 0 1 0 11 17.5V8l8-2v6.3a3.5 3.5 0 1 0 2 3.2V3L9 3z" transform="translate(-1 1)"/></svg>
+  <span id="mjTitle">Dangerous</span>
+</div>
+<div class="mj-artist">Michael Jackson</div>
 
-    <div class="retro-dance-stage">
-        <div class="retro-dancer" id="retroDancer"
-             role="img" aria-label="Animated pink pixel dancer">
-
-            <svg class="retro-dancer-svg"
-                 viewBox="0 0 180 240"
-                 xmlns="http://www.w3.org/2000/svg"
-                 aria-hidden="true">
-
-                <g class="dancer-shadow">
-                    <ellipse cx="90" cy="218" rx="36" ry="5"
-                             fill="#ff1493" opacity=".2"/>
-                </g>
-
-                <!-- BACK ARM: swings from shoulder -->
-                <g class="dancer-arm dancer-arm-back">
-                    <rect x="42" y="66" width="14" height="14"/>
-                    <rect x="28" y="52" width="14" height="14"/>
-                    <rect x="14" y="38" width="14" height="14"/>
-                    <rect x="14" y="24" width="14" height="14"/>
-                    <rect x="28" y="10" width="14" height="14"/>
-                    <rect x="42" y="10" width="14" height="14"/>
-                </g>
-
-                <!-- RIGHT ARM: independent elbow and hand -->
-                <g class="dancer-arm dancer-arm-front">
-                    <rect x="113" y="65" width="14" height="14"/>
-                    <rect x="127" y="51" width="14" height="14"/>
-                    <rect x="141" y="37" width="14" height="14"/>
-                    <rect x="141" y="23" width="14" height="14"/>
-                    <rect x="155" y="23" width="14" height="14"/>
-                </g>
-
-                <!-- HEAD AND PIXEL HAIR -->
-                <g class="dancer-head">
-                    <rect x="70" y="17" width="42" height="14"/>
-                    <rect x="56" y="31" width="70" height="14"/>
-                    <rect x="56" y="45" width="70" height="28"/>
-                    <rect x="70" y="73" width="42" height="7"/>
-                    <rect x="49" y="38" width="7" height="21"/>
-                    <rect x="126" y="38" width="7" height="21"/>
-
-                    <!-- face -->
-                    <rect x="70" y="45" width="42" height="21"
-                          fill="#ff1493"/>
-                    <rect x="77" y="52" width="7" height="7"
-                          fill="#000"/>
-                    <rect x="98" y="52" width="7" height="7"
-                          fill="#000"/>
-                    <rect x="84" y="63" width="14" height="4"
-                          fill="#000"/>
-                </g>
-
-                <!-- BODY -->
-                <g class="dancer-body">
-                    <rect x="77" y="80" width="28" height="7"/>
-                    <rect x="63" y="87" width="56" height="42"/>
-                    <rect x="70" y="129" width="42" height="7"/>
-
-                    <!-- jacket highlights -->
-                    <rect x="77" y="87" width="7" height="35"
-                          fill="#000"/>
-                    <rect x="98" y="87" width="7" height="35"
-                          fill="#000"/>
-                    <rect x="84" y="94" width="14" height="7"
-                          fill="#fff"/>
-                    <rect x="84" y="108" width="14" height="7"
-                          fill="#000"/>
-                </g>
-
-                <!-- LEFT LEG: hip pivot -->
-                <g class="dancer-leg dancer-leg-left">
-                    <rect x="63" y="129" width="21" height="14"/>
-                    <rect x="56" y="143" width="14" height="21"/>
-                    <rect x="42" y="164" width="14" height="21"/>
-                    <rect x="28" y="185" width="28" height="7"/>
-                    <rect x="21" y="192" width="35" height="7"/>
-                </g>
-
-                <!-- RIGHT LEG: hip pivot -->
-                <g class="dancer-leg dancer-leg-right">
-                    <rect x="98" y="129" width="21" height="14"/>
-                    <rect x="112" y="143" width="14" height="21"/>
-                    <rect x="126" y="164" width="14" height="21"/>
-                    <rect x="126" y="185" width="28" height="7"/>
-                    <rect x="126" y="192" width="35" height="7"/>
-                </g>
-
-            </svg>
-        </div>
-
-        <div class="retro-dance-platform" aria-hidden="true"></div>
-        <div class="retro-floor-line" aria-hidden="true"></div>
-    </div>
-
-    <div class="retro-bottom-equalizer" aria-hidden="true">
-        <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-        <i></i><i></i><i></i><i></i><i></i><i></i>
-    </div>
-
-    <div class="retro-song-details">
-        <div class="retro-song-title">♪ DANGEROUS ♪</div>
-        <div class="retro-song-artist">MICHAEL JACKSON</div>
-        <div class="retro-song-caption">A RETRO PIXEL DANCE</div>
-    </div>
-
-    <button type="button"
-            class="retro-dance-toggle"
-            id="retroDanceToggle"
-            aria-pressed="false">
-        <i class="bi bi-pause-fill" id="retroDanceToggleIcon"></i>
-        <span id="retroDanceToggleText">PAUSE DANCE</span>
-    </button>
-
+<div class="mj-controls">
+  <button type="button" class="mj-skip" id="mjPrev" aria-label="Previous dance"><svg viewBox="0 0 24 24"><path d="M6 5h2.6v14H6zM20 5v14L9.5 12z"/></svg></button>
+  <button type="button" class="mj-play" id="mjPlay" aria-label="Pause dance"><svg viewBox="0 0 24 24" id="mjPlayIcon"><path d="M6 4h4.5v16H6zM13.5 4H18v16h-4.5z"/></svg></button>
+  <button type="button" class="mj-skip" id="mjNext" aria-label="Next dance"><svg viewBox="0 0 24 24"><path d="M15.4 5H18v14h-2.6zM4 5l10.5 7L4 19z"/></svg></button>
 </div>
 
-<!-- FIXED EMERGENCY BUTTON -->
-<button type="button"
-        class="retro-sos-button"
-        onclick="activateSOS()"
-        aria-label="Activate emergency SOS">
-    <i class="bi bi-shield-fill-exclamation"></i>
-    <span>SOS</span>
+<div class="mj-dots" id="mjDots"><i class="on"></i><i></i><i></i><i></i></div>
+<div class="mj-hint">Tap SOS for emergency assistance</div>
+
+<button type="button" class="mj-sos" onclick="activateSOS()" title="Activate SOS" aria-label="Activate SOS">
+  <svg viewBox="0 0 64 48" aria-hidden="true">
+    <g stroke="#ffd3ea" stroke-width="3" stroke-linecap="round"><path d="M32 3v6M14 9l4 5M50 9l-4 5M6 24h6M52 24h6"/></g>
+    <path d="M18 36V28a14 14 0 0 1 28 0v8z" fill="#ffd9ee"/>
+    <rect x="12" y="36" width="40" height="7" rx="2" fill="#ffd9ee"/>
+  </svg>
+  <b>SOS</b>
 </button>
-<!-- END RETRO PIXEL DANCER -->
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- sprite data (pixel-for-pixel from the design image, 6px cells) ---------- */
+  var PAL  = ["#f994bf", "#fb77b1", "#fd6daa", "#fe64a5", "#f663a5", "#f853a0", "#fb4299", "#fb3895", "#fb2a8b", "#fb1b85", "#f3298b", "#bd2a6d", "#f9117f", "#f1107b", "#f60979", "#f60474", "#eb036e", "#df0564", "#cb0961", "#9f074a", "#6f0530", "#40051c", "#f0016a", "#e00161", "#cd0057", "#aa0048", "#8f003a", "#780030", "#600026", "#50001f", "#45001a", "#400019", "#3a0016", "#370015", "#330013", "#2f0012", "#2c0010", "#2a0010", "#28000f", "#26000f"];
+  var KEY  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn";
+  var ROWS = ["................................EJYNG.................", "...............................GYji..QGGG.............", "...............................Knlf.....XE............", ".........................UGY..Kif........cG...........", "...........................KJ....j........M...........", ".............................W....nn.....gJ.A.........", "..............................Q.....l....T.BX.........", "...............................PQ.......a..YA.........", "...........................N.X...P......d.P.HA........", "...........................J.W....Mj.......PJBj.......", ".........................BK..O.aX..Madieh.Z.PBg.......", "......................cEIXj...YQXe..aNQOY..XPCA.......", "..............BJFFENGGSdN...XaWOMX....QOPQ.RPHA.......", ".............EMXidPMZddYl..ZWaWIIOa.f....JJ.WPBH......", ".............FTbY.ebf.N...cXPZbHHIWcRd..n...YQmXH.....", "............FWm.d.i..Khk..PXPQfKHI.Oh.........kYJ.....", "...........FQii.f....iSm..HQPWT.LHM...Q.......jXM.....", ".........UHXm.n.......gN.YMDJXZJbj....mN....m...LH....", "......l.GNa..i.....VJZc..PFBMPPBP..aki.kP...j..YKH....", "......FGTaeli......fa...ZODCBWBHJ.mfh....QY..i..ZQ....", "....jGJWi..........eZ...XFCDDWBDG..m......XY.b..TXK...", "...FJX.ic.f........gZ...XDCCCCCCF...X....c....m.bXF...", "..KYgf.......f.....kh..UWDCCCCCCG...a..........ndbI...", "..Mgfn....m.e......fUmgZWFCCCCCCK..gg...........eaJ...", "..W.ff....g....i...UZ.bWWGCCCCCDS..d............jZM...", "..X.eaT........e...UT.bOONCCCCCDS.nc...RX.n......eN...", "...Y...k.......c...cT.XJFCJDCCDNe.h.T....ROQW.........", "...Y.mYWh......b...cZ.XJFDCCCCDOg.h.S........QRWYQ....", "...a...l.g.....iU..TdcQMJFCBFDH...hd..................", "...Tm.ABE.......c.bdaYXPPDFDCJM....Y..................", "...Z.AGXNKAEA...b.ZdbYQMFMFFDDI....Q..................", "...cLFXKFDBTKL..ceadTYWQIIHIGFGb...W..................", "....LdMFDGFUaL..icUcYYNPPIGHGHHK...X..................", "......PGFSHN.j...eagaaTNOQHKIGPF...a..................", "......RHZJYH.....dT....aXRYYXWQR....j.................", ".......HeJ.M.....dT..........b......N.................", "...............l.P.........MQ.fk....Q.................", ".................P............dP.....Y................", "..............j.a...........n..cP....P................", "..............hla.............lQO....e................", ".............ld.N.............chZX....W...............", ".............Z.lOhj............aZF....X...............", ".............KJOWab............TMI...a................", "...............YPTPk..........Ye.OJ...................", "..................Zd.......l.....ZH...................", "..................ZZl.......m..mjaH...................", "...................aU.......U....aJ...................", "...................bQb......b....jPU..................", "...................VSa.....lea...jWT..................", "UU..................aSf....l.X...lXb..................", "ZT..................aSa....m.X...lXU..................", "cc...................cS......W....TNU.................", "aZ...................dSd.....Yd...dMc.................", "lg....................eJ......Q....Nc.................", "ba....................dM......P....Qc.................", ".......................dQ.....UO...cf.................", ".......................ePf....bM...de.................", "........................TQf...iRf...Yk................", ".......................UNc.a.hhSZ..mZ.................", ".......................Ucagc.nhSM..ma.................", ".......................TTaf....aM...U.................", "......................TSbk.....eU...nb................", ".....................jSae......k.....a................", "....................jLTim.....k.....lU................", "....................TNe.......i.....eX................", "...................UNb.......g......gZ................", "..................nNU.......h..n....fnV...............", "..................Kag.......d..c.....UP...............", ".................GYkl......g...U......O...............", "................FXik.......Y...jY....lW...............", "................eei.......de...ja....jZQ..............", "................nJf.......Q.....Y....haO..............", ".................AWj..n..W......M....jkMl.............", "..............n.AHXWbekm.Jm......R...liQam............", "...............iADWWOSZNN........Ol..jdYIk............", ".............UKAFYCMFj.jl........Of..ffdOl............", "............U.fBBJXCUimmn......m.Pc.ngfMJkm...........", "............f.mANIBUgjl.n......ljfjWXNMBkhjm..........", "............l..BFREVhil.mmmlmlmjijiINPGBAfhkn.........", "................JIe..................DBCA.e...........", "................HDdcUddc.............JNKGabe.f........", "................UTdccd...............OKFEEcUeTf.......", "...................e.f...............NFDCAUdef........", "...................effff.............QDDDBEf..........", "................f..ddddc..............eGFc...e........"];
+
+  var CELL = 6, X0 = 331 - 180, Y0 = 265 - 250;   // sprite origin in scene coordinates
+  var SW = 670, SH = 600;                         // scene size (matches the design image crop)
+  var PINK = "#f5027d";
+
+  function sm(x){ return x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x); }
+  function cl(x){ return x < 0 ? 0 : x > 1 ? 1 : x; }
+
+  /* ---------- build cells + fixed per-cell body weights ---------- */
+  var cells = [];
+  for (var r = 0; r < ROWS.length; r++) {
+    for (var c = 0; c < ROWS[r].length; c++) {
+      var ch = ROWS[r].charAt(c);
+      if (ch === ".") continue;
+      var wLean = Math.pow(cl((80 - r) / 80), 1.15);
+      var wUp   = sm((52 - r) / 30);
+      var wL    = sm((27 - c) / 10) * sm((r - 8) / 8) * sm((46 - r) / 8);       // left arm
+      var wR    = sm((c - 33) / 8)  * sm((36 - r) / 10) * sm((r + 1) / 3);      // arm tipping the hat
+      var wHead = sm((18 - r) / 8) * sm((c - 20) / 6) * sm((46 - c) / 6);
+      var legScale = cl((r - 44) / 40);
+      var side = Math.max(-1, Math.min(1, (c - 28) / 3));                      // -1 left leg, +1 right leg
+      cells.push({ r: r, c: c, col: KEY.indexOf(ch), wLean: wLean, wUp: wUp, wL: wL, wR: wR,
+                   wHead: wHead, leg: legScale, side: side });
+    }
+  }
+  // draw order grouped by colour => fewer fillStyle changes
+  cells.sort(function (a, b) { return a.col - b.col; });
+
+  /* ---------- equalizer bars (positions measured from the design) ---------- */
+  var BARS = [
+    [222-180,4],[238-180,3],[270-180,10],[298-180,4],[314-180,6],[322-180,2],[338-180,3],
+    [680-180,4],[700-180,5],[713-180,4],[726-180,2],[754-180,10],[785-180,4],[802-180,4]
+  ].map(function (b, i) { return { x: b[0], n: b[1], sp: 2.2 + (i * 0.37) % 1.9, ph: i * 1.7 }; });
+  var EQ_BASE = 590 - 250, EQ_PITCH = 12.3, EQ_SQ = 7;
+
+  /* ---------- dance styles (prev / next buttons + the 4 dots) ---------- */
+  var STYLES = [
+    { bpm: 104, lean: 4.2, arm: 4.6, hat: 3.4, leg: 4.2, bounce: 2.2, nod: 1.6, slide: 3 },  // moonwalk glide
+    { bpm: 124, lean: 5.0, arm: 5.6, hat: 4.0, leg: 5.0, bounce: 2.8, nod: 2.0, slide: 4 },  // fast groove
+    { bpm: 96,  lean: 3.0, arm: 2.6, hat: 5.0, leg: 3.2, bounce: 1.6, nod: 2.4, slide: 2.5 },  // hat tip
+    { bpm: 112, lean: 5.6, arm: 3.4, hat: 3.0, leg: 4.6, bounce: 3.2, nod: 1.2, slide: 3.5 }   // big lean
+  ];
+  var style = 0, playing = true, T = 0, last = 0, lastDraw = 0, visible = true;
+
+  /* ---------- canvases ---------- */
+  var cv = document.getElementById("mjCanvas"), ctx = cv.getContext("2d");
+  var fig = document.createElement("canvas"), fctx = fig.getContext("2d");
+  var rfl = document.createElement("canvas"), rctx = rfl.getContext("2d");
+  var k = 1;
+
+  function resize() {
+    var w = cv.clientWidth || 400, dpr = Math.min(window.devicePixelRatio || 1, 3);
+    cv.width = fig.width = rfl.width = Math.round(w * dpr);
+    cv.height = fig.height = rfl.height = Math.round(w * dpr * SH / SW);
+    k = cv.width / SW;
+    draw();
+  }
+
+  function rect(c2, x, y, w, h) {
+    var x0 = Math.round(x * k), y0 = Math.round(y * k);
+    c2.fillRect(x0, y0, Math.round((x + w) * k) - x0, Math.round((y + h) * k) - y0);
+  }
+
+  /* ---------- one frame ---------- */
+  function draw() {
+    var S = STYLES[style];
+    var th = T * Math.PI * 2 * S.bpm / 60;           // beat angle
+    var half = th / 2;                               // 2-beat dance cycle
+
+    var lean   = S.lean * Math.sin(half);
+    var bounce = S.bounce * Math.max(0, Math.sin(th));
+    var armL   = Math.sin(half + 0.6);
+    var armR   = Math.sin(th + 1.0);
+    var leg    = Math.sin(half);
+    var nod    = S.nod * Math.sin(th - 0.5);
+    var glide  = Math.round(S.slide * Math.sin(half - 0.9));   // moonwalk slide across the stage
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+
+    /* floor glow inside the ring */
+    var cx = (510 - 180) * k, cy = (776 - 250) * k, rx = 225 * k, ry = 26 * k;
+    var pulse = 0.5 + 0.5 * Math.sin(th - 1.2);
+    ctx.save();
+    ctx.translate(cx, cy); ctx.scale(1, ry / rx);
+    var g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+    g.addColorStop(0, "rgba(245,2,125," + (0.34 + 0.22 * pulse) + ")");
+    g.addColorStop(0.55, "rgba(245,2,125," + (0.12 + 0.08 * pulse) + ")");
+    g.addColorStop(1, "rgba(245,2,125,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    /* dashed stage ring */
+    ctx.save();
+    ctx.strokeStyle = PINK; ctx.lineWidth = 3.6 * k; ctx.lineCap = "butt";
+    ctx.setLineDash([16 * k, 11 * k]); ctx.lineDashOffset = -T * 22 * k;
+    ctx.shadowColor = "rgba(245,2,125,.9)"; ctx.shadowBlur = (8 + 6 * pulse) * k;
+    ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+
+    /* equalizers */
+    ctx.save();
+    ctx.shadowColor = "rgba(245,2,125,.8)"; ctx.shadowBlur = 5 * k;
+    for (var i = 0; i < BARS.length; i++) {
+      var b = BARS[i];
+      var lvl = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(T * b.sp * (S.bpm / 100) * 3 + b.ph));
+      var n = Math.max(1, Math.round(b.n * lvl + (pulse > 0.85 ? 1 : 0)));
+      for (var s = 0; s < n; s++) {
+        ctx.fillStyle = s === n - 1 ? "#ff3fa5" : "#e6117a";
+        rect(ctx, b.x - EQ_SQ / 2, EQ_BASE - EQ_SQ / 2 - s * EQ_PITCH, EQ_SQ, EQ_SQ);
+      }
+    }
+    ctx.restore();
+
+    /* dancer -> offscreen (integer pixel-art cell offsets) */
+    fctx.setTransform(1, 0, 0, 1, 0, 0);
+    fctx.clearRect(0, 0, fig.width, fig.height);
+    var lastCol = -1;
+    for (var j = 0; j < cells.length; j++) {
+      var q = cells[j];
+      var dx = lean * q.wLean
+             - armL * S.arm * 1.0 * q.wL
+             + (q.side * -1) * leg * S.leg * q.leg;
+      var dy = -bounce * q.wUp
+             + armL * S.arm * q.wL
+             - armR * S.hat * q.wR
+             + nod * q.wHead
+             - (q.side < 0 ? Math.max(0, leg) : Math.max(0, -leg)) * 1.3 * q.leg * (Math.abs(q.side) > 0.6 ? 1 : 0.3);
+      var ox = Math.round(dx) + glide, oy = Math.round(dy);
+      if (q.col !== lastCol) { fctx.fillStyle = PAL[q.col]; lastCol = q.col; }
+      rect(fctx, X0 + (q.c + ox) * CELL, Y0 + (q.r + oy) * CELL, CELL, CELL);
+    }
+
+    /* reflection of the feet on the floor */
+    var axis = (790 - 250) * k;
+    rctx.setTransform(1, 0, 0, 1, 0, 0);
+    rctx.globalCompositeOperation = "source-over";
+    rctx.clearRect(0, 0, rfl.width, rfl.height);
+    rctx.save();
+    rctx.translate(0, 2 * axis); rctx.scale(1, -1);
+    rctx.drawImage(fig, 0, axis - 90 * k, fig.width, 90 * k, 0, axis - 90 * k, fig.width, 90 * k);
+    rctx.restore();
+    rctx.globalCompositeOperation = "destination-in";
+    var lg = rctx.createLinearGradient(0, axis, 0, axis + 48 * k);
+    lg.addColorStop(0, "rgba(0,0,0,.55)"); lg.addColorStop(1, "rgba(0,0,0,0)");
+    rctx.fillStyle = lg; rctx.fillRect(0, axis, rfl.width, 48 * k);
+    ctx.drawImage(rfl, 0, 0);
+
+    /* neon glow + sharp pixels */
+    ctx.save();
+    ctx.shadowColor = "rgba(245,2,125,.85)"; ctx.shadowBlur = (12 + 6 * pulse) * k;
+    ctx.drawImage(fig, 0, 0);
+    ctx.restore();
+    ctx.drawImage(fig, 0, 0);
+  }
+
+  /* ---------- loop (30 fps, pauses when hidden / off-screen) ---------- */
+  function loop(now) {
+    requestAnimationFrame(loop);
+    if (!visible || document.hidden) { last = now; return; }
+    if (now - lastDraw < 33) return;
+    var dt = Math.min((now - last) / 1000, 0.1);
+    last = now; lastDraw = now;
+    if (playing) { T += dt; draw(); }
+  }
+
+  /* ---------- controls ---------- */
+  var dots = document.getElementById("mjDots").children;
+  function setStyle(n) {
+    style = (n + STYLES.length) % STYLES.length;
+    for (var i = 0; i < dots.length; i++) dots[i].className = i === style ? "on" : "";
+    if (!playing) draw();
+  }
+  document.getElementById("mjPrev").addEventListener("click", function () { setStyle(style - 1); });
+  document.getElementById("mjNext").addEventListener("click", function () { setStyle(style + 1); });
+  var PLAY = "M6 4h4.5v16H6zM13.5 4H18v16h-4.5z", PAUSED = "M7 4l13 8-13 8z";
+  document.getElementById("mjPlay").addEventListener("click", function () {
+    playing = !playing;
+    this.setAttribute("aria-label", playing ? "Pause dance" : "Play dance");
+    document.getElementById("mjPlayIcon").firstElementChild.setAttribute("d", playing ? PLAY : PAUSED);
+  });
+
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(cv);
+  }
+  if ("ResizeObserver" in window) new ResizeObserver(resize).observe(cv);
+  window.addEventListener("resize", resize);
+  resize();
+  requestAnimationFrame(loop);
+})();
+</script>
+</div>
+
+    </section>
 
 
     <!-- =====================================================
@@ -24936,47 +24557,6 @@ document.getElementById("chatImageViewer")?.addEventListener(
     },
     { passive: false }
 );
-
-
-
-
-
-/* Guardian SOS retro dancer: pause and resume */
-(function () {
-    function initRetroDance() {
-        const card = document.getElementById("retroDanceCard");
-        const button = document.getElementById("retroDanceToggle");
-        const icon = document.getElementById("retroDanceToggleIcon");
-        const label = document.getElementById("retroDanceToggleText");
-
-        if (!card || !button || !icon || !label) return;
-
-        // Prevent duplicate event listeners if the page is initialized again.
-        if (button.dataset.danceReady === "true") return;
-        button.dataset.danceReady = "true";
-
-        button.addEventListener("click", function () {
-            const paused = card.classList.toggle("dance-paused");
-
-            button.setAttribute("aria-pressed", String(paused));
-
-            if (paused) {
-                icon.className = "bi bi-play-fill";
-                label.textContent = "RESUME DANCE";
-            } else {
-                icon.className = "bi bi-pause-fill";
-                label.textContent = "PAUSE DANCE";
-            }
-        });
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initRetroDance);
-    } else {
-        initRetroDance();
-    }
-})();
-
 </script>
 
 </body>
