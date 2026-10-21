@@ -5888,6 +5888,42 @@ body.light-mode #homePage .mj-sos {
 .mj-sos b{font-size:20px;font-size:clamp(15px,4.6cqw,21px);font-weight:700;letter-spacing:.5px;line-height:1;margin-top:2px}
 .mj-sos:active{transform:scale(.94)}
 @keyframes mjSosPulse{0%,100%{box-shadow:0 0 0 5px #000,0 0 0 7px rgba(245,2,125,.55),0 0 18px 5px rgba(245,2,125,.45)}50%{box-shadow:0 0 0 5px #000,0 0 0 7px rgba(245,2,125,.9),0 0 30px 10px rgba(245,2,125,.7)}}
+
+
+
+/* Michael Jackson music card — LIGHT MODE ONLY */
+body.light-mode .mj-neon {
+    background: #ffffff;
+    color: #000000;
+    border-color: #000000;
+}
+
+body.light-mode .mj-song,
+body.light-mode .mj-artist,
+body.light-mode .mj-hint {
+    color: #000000;
+}
+
+body.light-mode .mj-controls button {
+    color: #000000;
+}
+
+body.light-mode .mj-controls .mj-play {
+    background: #ffffff !important;
+    border-color: #000000 !important;
+}
+
+body.light-mode .mj-controls .mj-play svg,
+body.light-mode .mj-controls .mj-skip svg,
+body.light-mode .mj-song svg {
+    fill: #000000;
+}
+
+body.light-mode .mj-dots i.on {
+    background: #ff1493;
+}
+
+
 </style>
 
 <!-- smoothing filter: turns stair-stepped pixel edges into continuous clean curves -->
@@ -5932,7 +5968,15 @@ body.light-mode #homePage .mj-sos {
   "use strict";
 
   /* ---------- sprite data (cleaned from the design image, 6px cells) ---------- */
-  var PAL  = ["#f67baf", "#fb65a6", "#fb4699", "#de458c", "#f72888", "#f6137c", "#d31b71", "#971b53", "#f40572", "#e30569", "#cd055f", "#b50453", "#9c0447", "#80033a", "#6b0431", "#390219", "#db005e", "#b4004b", "#7f0033", "#510020", "#370015", "#2c0012", "#2c0010", "#28000f", "#23000e", "#1f000c", "#1c000b", "#1a0009"];
+ var PAL = [
+  "#ffffff", "#ffffff", "#fdfdfd", "#f8f8f8",
+  "#f0f0f0", "#e8e8e8", "#dcdcdc", "#c8c8c8",
+  "#ffffff", "#f5f5f5", "#eeeeee", "#d8d8d8",
+  "#b8b8b8", "#777777", "#444444", "#000000",
+  "#000000", "#080808", "#101010", "#181818",
+  "#202020", "#000000", "#000000", "#080808",
+  "#000000", "#000000", "#000000", "#000000"
+];
   var KEY  = "ABCDEFGHIJKLMNOPQRSTUVWXYZab";
   var ROWS = ["...............................VBEKGCPVVV.............", "...............................CLXVVVLCCG.............", "...............................EXWPbVVVUJD............", ".........................HCRVVETPVVVVVVVVNG...........", "...........................EFbZVaVVVVVVVVPGD..........", ".............................QVVVVYYVVVVVTGDA.........", ".............................XKUVVVZYVVVZSGDG.........", ".............................VVMMVVVVVbYOVZGA.........", "...........................LKMLPTKVVVVVVTUKECA........", "..........................EFJILVRVJTbVVVVVLIEA........", ".........................BEYVIKOQJVJMTUPVbNJIA........", "......................NBEKXFVKKKJPJVNFJIRKUQIBA.......", "..............AFCCBFCCMOGaRVQSIIFJVNVVJIIJIJICA.......", ".............BFQGOIFLGOMWMVMINIEEFMWULLVPFFJIIAC......", ".............CMSRbPSKPKYZYTJIRSEEEISLOVaYVVVKJGKE.....", "............DIUVTVVaMGLWaXJQIQKGCEGKOMZaYaZVYVKRE.....", "...........DJTUVPVaVbSMWZXEJIINLLCKPaVRTYZZVVVVKF.....", ".........ODJTaXVZVVVVMOLKRFCFQRKMGPVVZPKaZabYVaKLH....", "........GFRUaWVVYVVOJMTMKICBFIIBJVaVPWYOLVbZVVVNGG....", "......DCGMTYWbVVVVVORPXZMFBBBIBCEVXTPZVaTJLVbWVPML....", ".....CFILZVVVVVVVVbOMYZVJCBBBIABCVYTbaVVVWJRVVVYNJG...", "...CEQZWOZUVVVVVVVVOMZaVIBBBBABBCaaYKZVVVTZVVVXZSJD...", "..ERUPaVVbVbZPVVVabXSYVOFBBBBBBBCVZaSVVVVVVVZVVYTMG...", "..FPPVVVVVVVPVVbVVVTOXPLFCBBBBBBDVYUTVVVVVVVVVVZTRG...", "..IVUTPVVVUVVVaUVVVSMNNIICBBBBBBGaYTVVVPPVVVVYVbPRJ...", "..RPUOSaVVVVVVVTVZbSNMMFFEBBBBBCLYXTYVZMMPTPPaVbaTL...", "...LRZMTWaVbVVVOVZaONRJECBEBBBBEOZUVN....LKLKTVPVL....", "...KaXLKTZVbbVbOYbVNMRJECBBBBBBGTVUYM........KRKLM....", "...MZYDDXUaaaVaPOVaMOOJFECBACBCTaVUT..................", "...MGVAABVZbZV...SOSNLQIFBBBBFFTabXM..................", "...LHADQJDADAa...aMOOKJFEECCBBETVbaQ..................", "...OHDQECBAMDH...TNNMQIIEECCCCCHYVaQ..................", "....HGFBBGCOSH...ONNLQIIFECCCEEEPVbK..................", ".....GICDLEGH....ONNOSMGIJEEECICTVVS..................", "......LEMENE.....ONNVVVOMRMRLQLLUVVb..................", ".......DOGGJ.....NNVVVVVVVLLLOYVVVVVL.................", ".................IVVVVaVaVZKLbMTZVVVM.................", ".................JVVVVVVVVVVVVTQTVVVaL................", "................NPVVVVVVVVVVXVYOIVVVVQ................", "................MUVVVVVVVVVVZVULJTVVVP................", "................JVVVVVVVVVVVVVTLLJVVVVJ...............", ".............MZJKLPVVVVVZbVVbVVORCVVVVQ...............", ".............EFFKNSVVVVVVVaVVVZNJEVVaN................", "...............KKMITVVVVbVVVVVQTKIE...................", ".................LROVVVVVbZXVaUZbLC...................", "..................MRPVVVVVYZWVVWPMC...................", "...................NNaVVVVYbOVVYUNE...................", "...................NKOVVVVZZOVVVZPIO..................", "....................KNVVVVbXTNVVbVJM..................", "....................MLPVVVVXYQVVVVQN..................", "....................OLNVVVVXYQVVVXKM..................", ".....................OLZVVVbYJVVVaNJN.................", "......................MOaVVVYMOVVVPGN.................", "......................OFbVVVYZJPVVVKN.................", "......................OFUVVVaaJTVVaLO.................", ".......................OKVVVVZOJZVVOT.................", ".......................OJPVVVZOIZ...T.................", ".......................HHKTV...LO...R.................", ".......................NGMMN...LL...M.................", ".......................OONNO...RF...S.................", ".......................OMN.....SI...T.................", "......................NLS.......S....O................", "......................LN.............O................", ".....................GM..............O................", "....................HG...............R................", "...................HGO...............S................", "...................KO.................O...............", "..................GM..................I...............", ".................DK............O......I...............", "................CJT........K....M.....J...............", "................OOP.......O.....M.....RK..............", "................XEN......TL.....Q.....OF..............", "................PAFO.....J......K......F..............", "................ACIJM...KK.......J.....JN.............", "...............AABEIFMNKL........I.....RF.............", ".............OGACQCECL...........I.....JJ.............", "............OXDAAEQCH............IN....FG.............", "...............AEECH.............OLQQIFAD.............", "...............ACJCO...............FFICAD.............", "................EENH.................CBAAH............", "................ECNTO................EECDNS...........", "................HHHOO................FECBDOO..........", ".....................................FBBAAH...........", ".....................................KDBBBD...........", ".....................................VPHHTY..........."];
 
