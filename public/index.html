@@ -5384,6 +5384,97 @@ iframe {
 
 
 </style>
+
+<style>
+/* LIGHT MODE: HOME MUSIC PLAYER — BLACK AND WHITE */
+body.light-mode #homePage .mj-neon {
+    background: #fff !important;
+    color: #000 !important;
+}
+
+/* Change the pink dancer to black */
+body.light-mode #homePage #mjFig {
+    filter: grayscale(1) brightness(0) !important;
+}
+
+/* Change the song title, artist and music icon to black */
+body.light-mode #homePage .mj-song,
+body.light-mode #homePage .mj-artist,
+body.light-mode #homePage .mj-hint {
+    color: #000 !important;
+}
+
+body.light-mode #homePage .mj-song svg {
+    fill: #000 !important;
+}
+
+/* Previous and next: transparent background, black icons */
+body.light-mode #homePage .mj-controls .mj-skip {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #000 !important;
+}
+
+body.light-mode #homePage .mj-controls .mj-skip svg {
+    fill: #000 !important;
+}
+
+/* Play/pause: remove the filled circle and keep a black outline */
+body.light-mode #homePage .mj-controls .mj-play {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: 3px solid #000 !important;
+    box-shadow: none !important;
+    color: #000 !important;
+}
+
+body.light-mode #homePage .mj-controls .mj-play svg {
+    fill: #000 !important;
+}
+
+/* Music progress dots */
+body.light-mode #homePage .mj-dots i {
+    background: #ccc !important;
+    box-shadow: none !important;
+}
+
+body.light-mode #homePage .mj-dots i.on {
+    background: #000 !important;
+    box-shadow: none !important;
+}
+
+/* Safety badge */
+body.light-mode #homePage .home-badge {
+    background: #fff !important;
+    color: #000 !important;
+    border-color: #000 !important;
+}
+
+body.light-mode #homePage .home-badge * {
+    color: #000 !important;
+}
+
+/* Remove the pink glow around the music animation */
+body.light-mode #homePage #mjFig {
+    filter: grayscale(1) brightness(0) !important;
+}
+
+/* Keep the SOS control black in light mode */
+body.light-mode #homePage .mj-sos {
+    background: #000 !important;
+    border: 2px solid #000 !important;
+    box-shadow: none !important;
+    animation: none !important;
+}
+
+body.light-mode #homePage .mj-sos svg,
+body.light-mode #homePage .mj-sos b {
+    color: #fff !important;
+}
+</style>
+
 </head>
 
 <body>
