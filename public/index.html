@@ -12340,6 +12340,326 @@ window.addEventListener(
 );
 
 
+/* =====================================================
+   FACEBOOK-STYLE PULL TO REFRESH
+   Works across Guardian SOS pages
+===================================================== */
+
+(function () {
+
+    let startY = 0;
+    let startX = 0;
+    let pulling = false;
+    let refreshing = false;
+    let pullDistance = 0;
+
+    const REFRESH_DISTANCE = 90;
+
+    // Create refresh indicator
+    const indicator = document.createElement("div");
+
+    indicator.id = "guardianPullRefresh";
+
+    indicator.innerHTML = `
+        <i class="bi bi-arrow-clockwise"></i>
+        <span>Pull down to refresh</span>
+    `;
+
+    document.body.appendChild(indicator);
+
+    // Indicator styling
+    const style = document.createElement("style");
+
+    style.textContent = `
+        #guardianPullRefresh {
+            position: fixed;
+            top: 8px;
+            left: 50%;
+            transform: translate(-50%, -70px);
+            z-index: 9999999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            border-radius: 30px;
+            background: #111;
+            color: #ff1493;
+            border: 1px solid #ff1493;
+            box-shadow: 0 4px 15px rgba(0,0,0,.35);
+            font-size: 13px;
+            font-weight: 600;
+            transition: transform .2s ease;
+            pointer-events: none;
+        }
+
+        #guardianPullRefresh i {
+            font-size: 18px;
+        }
+
+        #guardianPullRefresh.visible {
+            transform: translate(-50%, 0);
+        }
+
+        #guardianPullRefresh.refreshing i {
+            animation: guardianRefreshSpin .8s linear infinite;
+        }
+
+        @keyframes guardianRefreshSpin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    `;
+
+    document.head.appendChild(style);
+
+
+    // Check whether the user is at the top
+    function isAtPageTop(target) {
+
+        let element = target;
+
+        while (element && element !== document.body) {
+
+            if (
+                element.scrollHeight >
+                element.clientHeight + 5
+            ) {
+
+                if (element.scrollTop > 2) {
+                    return false;
+                }
+
+            }
+
+            element = element.parentElement;
+        }
+
+        return (
+            !document.scrollingElement ||
+            document.scrollingElement.scrollTop <= 2
+        );
+    }
+
+
+    // Refresh the currently open page
+    function refreshCurrentPage() {
+
+        const page =
+            window.location.hash
+                .replace("#", "")
+                .trim() || "home";
+
+        if (
+            page === "login" ||
+            page === "register"
+        ) {
+            return;
+        }
+
+        // Do not interrupt an active call
+        if (
+            typeof activeCallUserId !== "undefined" &&
+            activeCallUserId
+        ) {
+            return;
+        }
+
+        // Reuse your existing page-loading system
+        showPage(page);
+    }
+
+
+    // Start one-finger gesture
+    document.addEventListener(
+        "touchstart",
+        function (event) {
+
+            if (
+                refreshing ||
+                event.touches.length !== 1
+            ) {
+                pulling = false;
+                return;
+            }
+
+            const target = event.target;
+
+            // Never interfere with map gestures
+            if (
+                target.closest(".leaflet-container")
+            ) {
+                pulling = false;
+                return;
+            }
+
+            // Avoid controls and text-entry areas
+            if (
+                target.closest(
+                    "input, textarea, select, button, a, [contenteditable='true']"
+                )
+            ) {
+                pulling = false;
+                return;
+            }
+
+            if (!isAtPageTop(target)) {
+                pulling = false;
+                return;
+            }
+
+            startY = event.touches[0].clientY;
+            startX = event.touches[0].clientX;
+
+            pullDistance = 0;
+            pulling = true;
+
+        },
+        { passive: true }
+    );
+
+
+    // Track downward movement
+    document.addEventListener(
+        "touchmove",
+        function (event) {
+
+            if (
+                !pulling ||
+                refreshing ||
+                event.touches.length !== 1
+            ) {
+                return;
+            }
+
+            const currentY =
+                event.touches[0].clientY;
+
+            const currentX =
+                event.touches[0].clientX;
+
+            const deltaY = currentY - startY;
+            const deltaX = currentX - startX;
+
+            // Ignore horizontal swipes
+            if (
+                deltaY <= 0 ||
+                Math.abs(deltaX) > Math.abs(deltaY)
+            ) {
+                return;
+            }
+
+            pullDistance = Math.min(deltaY * 0.55, 120);
+
+            event.preventDefault();
+
+            indicator.style.transform =
+                `translate(-50%, ${Math.min(
+                    pullDistance - 70,
+                    30
+                )}px)`;
+
+            const message =
+                indicator.querySelector("span");
+
+            message.textContent =
+                pullDistance >= REFRESH_DISTANCE
+                    ? "Release to refresh"
+                    : "Pull down to refresh";
+
+        },
+        { passive: false }
+    );
+
+
+    // Release finger and refresh
+    document.addEventListener(
+        "touchend",
+        function () {
+
+            if (!pulling) {
+                return;
+            }
+
+            pulling = false;
+
+            if (
+                pullDistance < REFRESH_DISTANCE ||
+                refreshing
+            ) {
+
+                indicator.classList.remove("visible");
+
+                indicator.style.transform =
+                    "translate(-50%, -70px)";
+
+                return;
+            }
+
+            refreshing = true;
+
+            indicator.classList.add(
+                "visible",
+                "refreshing"
+            );
+
+            indicator.querySelector("span").textContent =
+                "Refreshing...";
+
+            try {
+
+                refreshCurrentPage();
+
+            } catch (error) {
+
+                console.error(
+                    "Pull-to-refresh error:",
+                    error
+                );
+
+            }
+
+            setTimeout(function () {
+
+                refreshing = false;
+
+                indicator.classList.remove(
+                    "visible",
+                    "refreshing"
+                );
+
+                indicator.style.transform =
+                    "translate(-50%, -70px)";
+
+                indicator.querySelector("span").textContent =
+                    "Pull down to refresh";
+
+            }, 1200);
+
+        },
+        { passive: true }
+    );
+
+
+    document.addEventListener(
+        "touchcancel",
+        function () {
+
+            pulling = false;
+            pullDistance = 0;
+
+            indicator.classList.remove("visible");
+
+            indicator.style.transform =
+                "translate(-50%, -70px)";
+
+        },
+        { passive: true }
+    );
+
+})();
+
+
 /* =========================================================
    NAVIGATION BUTTONS
 ========================================================= */
