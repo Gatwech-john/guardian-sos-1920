@@ -6094,6 +6094,16 @@ body  { min-height: 100vh; min-height: 100dvh; }
 .mj-neon{container-type:inline-size;position:relative;width:100%;max-width:440px;margin:18px auto 0;padding:6px 0 14px;background:#000;border-radius:26px;color:#f5027d;font-family:Roboto,"Segoe UI",system-ui,-apple-system,sans-serif;text-align:center;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none}
 .mj-stage{position:relative;width:100%;aspect-ratio:670/600}
 .mj-stage canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+.mj-stage iframe{
+  position:absolute;
+  left:0;
+  top:0;
+  width:100%;
+  height:100%;
+  border:0;
+  display:none;
+  background:#000;
+}
 #mjFig{filter:url(#mjSmooth) drop-shadow(0 0 3px rgba(245,2,125,.55))}
 .mj-song{margin-top:-34px;display:flex;align-items:center;justify-content:center;gap:10px;color:#ff2d9a;font-size:clamp(24px,7vw,30px);font-weight:600;line-height:1.1;position:relative}
 .mj-song svg{width:30px;height:30px;fill:#f5027d;flex:none}
@@ -6124,8 +6134,21 @@ body  { min-height: 100vh; min-height: 100dvh; }
 </svg>
 
 <div class="mj-stage" id="mjStage">
+
+  <!-- Original Michael Jackson animation -->
   <canvas id="mjBg" aria-label="Neon dance animation"></canvas>
   <canvas id="mjFig"></canvas>
+
+  <!-- YouTube dancer videos -->
+  <iframe
+    id="mjVideo"
+    src=""
+    title="Dancer video"
+    allow="autoplay; encrypted-media; picture-in-picture"
+    allowfullscreen
+    referrerpolicy="strict-origin-when-cross-origin">
+  </iframe>
+
 </div><br>
 
 <div class="mj-song">
@@ -6140,7 +6163,11 @@ body  { min-height: 100vh; min-height: 100dvh; }
   <button type="button" class="mj-skip" id="mjNext" aria-label="Next dance"><svg viewBox="0 0 24 24"><path d="M15.4 5H18v14h-2.6zM4 5l10.5 7L4 19z"/></svg></button>
 </div>
 
-<div class="mj-dots" id="mjDots"><i class="on"></i><i></i><i></i><i></i></div>
+<div class="mj-dots" id="mjDots">
+  <i class="on"></i>
+  <i></i>
+  <i></i>
+</div>
 <div class="mj-hint">Tap SOS for emergency assistance</div>
 
 <button type="button" class="mj-sos" onclick="activateSOS()" title="Activate SOS" aria-label="Activate SOS">
@@ -6326,21 +6353,158 @@ body  { min-height: 100vh; min-height: 100dvh; }
     if (playing) { T += dt; draw(); }
   }
 
-  /* ---------- controls ---------- */
-  var dots = document.getElementById("mjDots").children;
-  function setStyle(n) {
-    style = (n + STYLES.length) % STYLES.length;
-    for (var i = 0; i < dots.length; i++) dots[i].className = i === style ? "on" : "";
-    if (!playing) draw();
+ /* ---------- performer controls ---------- */
+
+var dots = document.getElementById("mjDots").children;
+
+var performer = 0;
+
+var performers = [
+  {
+    name: "Michael Jackson",
+    title: "Dangerous",
+    type: "canvas",
+    video: ""
+  },
+  {
+    name: "Lisa",
+    title: "Lisa - Dancing",
+    type: "video",
+    video: "https://www.youtube.com/embed/RbD8ymRkFqs?autoplay=1&mute=1&controls=1&playsinline=1&enablejsapi=1"
+  },
+  {
+    name: "Jennie Kim",
+    title: "Jennie Kim - Dancing",
+    type: "video",
+    video: "https://www.youtube.com/embed/lbCjq0zmbPk?autoplay=1&mute=1&controls=1&playsinline=1&enablejsapi=1"
   }
-  document.getElementById("mjPrev").addEventListener("click", function () { setStyle(style - 1); });
-  document.getElementById("mjNext").addEventListener("click", function () { setStyle(style + 1); });
-  var PLAY = "M6 4h4.5v16H6zM13.5 4H18v16h-4.5z", PAUSED = "M7 4l13 8-13 8z";
-  document.getElementById("mjPlay").addEventListener("click", function () {
-    playing = !playing;
-    this.setAttribute("aria-label", playing ? "Pause dance" : "Play dance");
-    document.getElementById("mjPlayIcon").firstElementChild.setAttribute("d", playing ? PLAY : PAUSED);
-  });
+];
+
+var mjVideo = document.getElementById("mjVideo");
+var mjBg = document.getElementById("mjBg");
+var mjFig = document.getElementById("mjFig");
+var mjArtist = document.querySelector("#mjNeon .mj-artist");
+var mjTitle = document.getElementById("mjTitle");
+
+function youtubeCommand(command) {
+  if (!mjVideo || !mjVideo.contentWindow) return;
+
+  mjVideo.contentWindow.postMessage(
+    JSON.stringify({
+      event: "command",
+      func: command,
+      args: []
+    }),
+    "*"
+  );
+}
+
+function updateDots() {
+  for (var i = 0; i < dots.length; i++) {
+    dots[i].className = i === performer ? "on" : "";
+  }
+}
+
+function showPerformer(n) {
+
+  performer = (n + performers.length) % performers.length;
+
+  var selected = performers[performer];
+
+  mjArtist.textContent = selected.name;
+  mjTitle.textContent = selected.title;
+
+  updateDots();
+
+  if (selected.type === "canvas") {
+
+    // Stop and hide YouTube video
+    mjVideo.style.display = "none";
+    mjVideo.src = "";
+
+    // Restore original Michael Jackson animation
+    mjBg.style.display = "block";
+    mjFig.style.display = "block";
+
+    playing = true;
+
+    document.getElementById("mjPlay").setAttribute(
+      "aria-label",
+      "Pause dance"
+    );
+
+    document.getElementById("mjPlayIcon").firstElementChild.setAttribute(
+      "d",
+      PLAY
+    );
+
+    draw();
+
+  } else {
+
+    // Hide Michael Jackson animation
+    mjBg.style.display = "none";
+    mjFig.style.display = "none";
+
+    // Load selected YouTube video
+    mjVideo.style.display = "block";
+    mjVideo.src = selected.video;
+
+    playing = true;
+
+    document.getElementById("mjPlay").setAttribute(
+      "aria-label",
+      "Pause dance"
+    );
+
+    document.getElementById("mjPlayIcon").firstElementChild.setAttribute(
+      "d",
+      PLAY
+    );
+  }
+}
+
+// Previous performer
+document.getElementById("mjPrev").addEventListener("click", function () {
+  showPerformer(performer - 1);
+});
+
+// Next performer
+document.getElementById("mjNext").addEventListener("click", function () {
+  showPerformer(performer + 1);
+});
+
+// Play and pause
+document.getElementById("mjPlay").addEventListener("click", function () {
+
+  playing = !playing;
+
+  if (performers[performer].type === "video") {
+
+    youtubeCommand(playing ? "playVideo" : "pauseVideo");
+
+  } else {
+
+    if (playing) {
+      draw();
+    }
+
+  }
+
+  this.setAttribute(
+    "aria-label",
+    playing ? "Pause dance" : "Play dance"
+  );
+
+  document.getElementById("mjPlayIcon").firstElementChild.setAttribute(
+    "d",
+    playing ? PLAY : PAUSED
+  );
+
+});
+
+var PLAY = "M6 4h4.5v16H6zM13.5 4H18v16h-4.5z";
+var PAUSED = "M7 4l13 8-13 8z";
 
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(stage);
