@@ -6094,16 +6094,6 @@ body  { min-height: 100vh; min-height: 100dvh; }
 .mj-neon{container-type:inline-size;position:relative;width:100%;max-width:440px;margin:18px auto 0;padding:6px 0 14px;background:#000;border-radius:26px;color:#f5027d;font-family:Roboto,"Segoe UI",system-ui,-apple-system,sans-serif;text-align:center;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none}
 .mj-stage{position:relative;width:100%;aspect-ratio:670/600}
 .mj-stage canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
-.mj-stage iframe{
-  position:absolute;
-  left:0;
-  top:0;
-  width:100%;
-  height:100%;
-  border:0;
-  display:none;
-  background:#000;
-}
 #mjFig{filter:url(#mjSmooth) drop-shadow(0 0 3px rgba(245,2,125,.55))}
 .mj-song{margin-top:-34px;display:flex;align-items:center;justify-content:center;gap:10px;color:#ff2d9a;font-size:clamp(24px,7vw,30px);font-weight:600;line-height:1.1;position:relative}
 .mj-song svg{width:30px;height:30px;fill:#f5027d;flex:none}
@@ -6134,28 +6124,15 @@ body  { min-height: 100vh; min-height: 100dvh; }
 </svg>
 
 <div class="mj-stage" id="mjStage">
-
-  <!-- Original Michael Jackson animation -->
   <canvas id="mjBg" aria-label="Neon dance animation"></canvas>
   <canvas id="mjFig"></canvas>
-
-  <!-- YouTube dancer videos -->
-  <iframe
-    id="mjVideo"
-    src=""
-    title="Dancer video"
-    allow="autoplay; encrypted-media; picture-in-picture"
-    allowfullscreen
-    referrerpolicy="strict-origin-when-cross-origin">
-  </iframe>
-
 </div><br>
 
 <div class="mj-song">
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v11.3A3.5 3.5 0 1 0 11 17.5V8l8-2v6.3a3.5 3.5 0 1 0 2 3.2V3L9 3z" transform="translate(-1 1)"/></svg>
   <span id="mjTitle">Dangerous</span>
 </div>
-<div class="mj-artist" id="mjArtist">Michael Jackson</div>
+<div class="mj-artist">Michael Jackson</div>
 
 <div class="mj-controls">
   <button type="button" class="mj-skip" id="mjPrev" aria-label="Previous dance"><svg viewBox="0 0 24 24"><path d="M6 5h2.6v14H6zM20 5v14L9.5 12z"/></svg></button>
@@ -6163,11 +6140,7 @@ body  { min-height: 100vh; min-height: 100dvh; }
   <button type="button" class="mj-skip" id="mjNext" aria-label="Next dance"><svg viewBox="0 0 24 24"><path d="M15.4 5H18v14h-2.6zM4 5l10.5 7L4 19z"/></svg></button>
 </div>
 
-<div class="mj-dots" id="mjDots">
-  <i class="on"></i>
-  <i></i>
-  <i></i>
-</div>
+<div class="mj-dots" id="mjDots"><i class="on"></i><i></i><i></i><i></i></div>
 <div class="mj-hint">Tap SOS for emergency assistance</div>
 
 <button type="button" class="mj-sos" onclick="activateSOS()" title="Activate SOS" aria-label="Activate SOS">
@@ -6229,8 +6202,7 @@ body  { min-height: 100vh; min-height: 100dvh; }
     { bpm: 96,  lean: 3.0, arm: 2.6, hat: 5.0, leg: 3.2, bounce: 1.6, nod: 2.4, slide: 2.5 },  // hat tip
     { bpm: 112, lean: 5.6, arm: 3.4, hat: 3.0, leg: 4.6, bounce: 3.2, nod: 1.2, slide: 3.5 }   // big lean
   ];
- var style = 0, performer = 0;
-var playing = true, T = 0, last = 0, lastDraw = 0, visible = true;
+  var style = 0, playing = true, T = 0, last = 0, lastDraw = 0, visible = true;
 
   /* ---------- canvases ---------- */
   var stage = document.getElementById("mjStage");
@@ -6257,171 +6229,7 @@ var playing = true, T = 0, last = 0, lastDraw = 0, visible = true;
     var x0 = Math.round(x * k), y0 = Math.round(y * k);
     c2.fillRect(x0, y0, Math.round((x + w) * k) - x0, Math.round((y + h) * k) - y0);
   }
-  /* ---------- Lisa and Jennie neon dancer animations ---------- */
 
-  function drawAltDancer(who, time, bounce, lean) {
-
-    var c = fctx;
-    var t = time * (who === 1 ? 5.0 : 5.8);
-
-    var sway = Math.sin(t);
-    var armMove = Math.sin(t * 1.15);
-    var legMove = Math.sin(t * 0.9);
-    var headMove = Math.sin(t * 0.65);
-
-    c.save();
-
-    // Use the same scene scale as Michael Jackson
-    c.setTransform(k, 0, 0, k, 0, 0);
-
-    // Neon glow
-    c.shadowColor = "#ff1493";
-    c.shadowBlur = 24;
-
-    var pink = c.createLinearGradient(250, 180, 420, 500);
-    pink.addColorStop(0, "#ffb4dc");
-    pink.addColorStop(0.35, "#ff42a5");
-    pink.addColorStop(1, "#c90068");
-
-    c.fillStyle = pink;
-    c.strokeStyle = "#ff45a8";
-    c.lineWidth = 19;
-    c.lineCap = "round";
-    c.lineJoin = "round";
-
-    // Different dance styles for Lisa and Jennie
-    var centerX = 335;
-    var shoulderY = 285;
-    var hipY = 390;
-
-    var leftArmX;
-    var leftArmY;
-    var rightArmX;
-    var rightArmY;
-
-    if (who === 1) {
-      // Lisa-inspired energetic dance pose
-      leftArmX = 235 + armMove * 35;
-      leftArmY = 185 + Math.sin(t * 0.8) * 35;
-
-      rightArmX = 425 - armMove * 30;
-      rightArmY = 220 + Math.cos(t) * 35;
-    } else {
-      // Jennie-inspired stylish dance pose
-      leftArmX = 245 + Math.cos(t) * 35;
-      leftArmY = 230 + Math.sin(t) * 25;
-
-      rightArmX = 420 + Math.sin(t) * 25;
-      rightArmY = 165 + Math.cos(t * 0.8) * 35;
-    }
-
-    // Head
-    c.save();
-    c.translate(centerX + headMove * 5, 205 + bounce);
-    c.rotate(sway * 0.08);
-
-    c.beginPath();
-    c.arc(0, 0, 25, 0, Math.PI * 2);
-    c.fill();
-
-    // Hair
-    c.beginPath();
-
-    if (who === 1) {
-      // Long flowing ponytail silhouette
-      c.moveTo(-15, -17);
-      c.quadraticCurveTo(-60, -5, -48, 55);
-      c.quadraticCurveTo(-22, 34, -18, 4);
-      c.fill();
-
-      c.beginPath();
-      c.moveTo(12, -15);
-      c.quadraticCurveTo(45, -5, 42, 43);
-      c.quadraticCurveTo(22, 28, 18, 0);
-      c.fill();
-
-    } else {
-      // Long flowing hair silhouette
-      c.moveTo(-18, -18);
-      c.quadraticCurveTo(-45, 15, -42, 75);
-      c.quadraticCurveTo(-15, 48, -16, 10);
-      c.fill();
-
-      c.beginPath();
-      c.moveTo(18, -18);
-      c.quadraticCurveTo(48, 20, 38, 78);
-      c.quadraticCurveTo(17, 45, 16, 10);
-      c.fill();
-    }
-
-    c.restore();
-
-    // Neck
-    c.fillRect(centerX - 8, 228 + bounce, 16, 27);
-
-    // Body
-    c.beginPath();
-    c.moveTo(centerX - 23, shoulderY);
-    c.quadraticCurveTo(centerX - 35, 330, centerX - 18, hipY);
-    c.lineTo(centerX + 18, hipY);
-    c.quadraticCurveTo(centerX + 35, 330, centerX + 23, shoulderY);
-    c.closePath();
-    c.fill();
-
-    // Waist and skirt
-    c.beginPath();
-    c.moveTo(centerX - 18, hipY);
-    c.lineTo(centerX + 18, hipY);
-    c.lineTo(centerX + 48, 450 + sway * 8);
-    c.lineTo(centerX - 48, 450 - sway * 8);
-    c.closePath();
-    c.fill();
-
-    // Left arm
-    c.beginPath();
-    c.moveTo(centerX - 22, shoulderY);
-    c.quadraticCurveTo(leftArmX - 15, leftArmY + 35, leftArmX, leftArmY);
-    c.stroke();
-
-    // Right arm
-    c.beginPath();
-    c.moveTo(centerX + 22, shoulderY);
-    c.quadraticCurveTo(rightArmX + 15, rightArmY + 35, rightArmX, rightArmY);
-    c.stroke();
-
-    // Left leg
-    c.beginPath();
-    c.moveTo(centerX - 17, 445);
-    c.quadraticCurveTo(
-      centerX - 45 + legMove * 20,
-      475,
-      centerX - 48 + legMove * 30,
-      535
-    );
-    c.stroke();
-
-    // Right leg
-    c.beginPath();
-    c.moveTo(centerX + 17, 445);
-    c.quadraticCurveTo(
-      centerX + 45 - legMove * 20,
-      480,
-      centerX + 48 - legMove * 30,
-      535
-    );
-    c.stroke();
-
-    // Neon highlights
-    c.shadowBlur = 12;
-    c.fillStyle = "#ffffff";
-
-    c.beginPath();
-    c.arc(centerX - 22, shoulderY, 5, 0, Math.PI * 2);
-    c.arc(centerX + 22, shoulderY, 5, 0, Math.PI * 2);
-    c.fill();
-
-    c.restore();
-  }
   /* ---------- one frame ---------- */
   function draw() {
     var S = STYLES[style];
@@ -6476,9 +6284,8 @@ var playing = true, T = 0, last = 0, lastDraw = 0, visible = true;
     /* dancer -> its own canvas (the smoothing filter is applied by CSS) */
     fctx.setTransform(1, 0, 0, 1, 0, 0);
     fctx.clearRect(0, 0, fig.width, fig.height);
-       if (performer === 0) {
-      var lastCol = -1;
-      for (var j = 0; j < cells.length; j++) {
+    var lastCol = -1;
+    for (var j = 0; j < cells.length; j++) {
       var q = cells[j];
       var dx = lean * q.wLean
              - armL * S.arm * 1.0 * q.wL
@@ -6490,11 +6297,7 @@ var playing = true, T = 0, last = 0, lastDraw = 0, visible = true;
              - (q.side < 0 ? Math.max(0, leg) : Math.max(0, -leg)) * 1.3 * q.leg * (Math.abs(q.side) > 0.6 ? 1 : 0.3);
       var ox = dx + glide, oy = dy;
       if (q.col !== lastCol) { fctx.fillStyle = PAL[q.col]; lastCol = q.col; }
-          rectO(fctx, X0 + (q.c + ox) * CELL, Y0 + (q.r + oy) * CELL, CELL, CELL);
-      }
-
-    } else {
-      drawAltDancer(performer, T, bounce, lean);
+      rectO(fctx, X0 + (q.c + ox) * CELL, Y0 + (q.r + oy) * CELL, CELL, CELL);
     }
 
     /* reflection of the feet on the floor */
@@ -6523,72 +6326,21 @@ var playing = true, T = 0, last = 0, lastDraw = 0, visible = true;
     if (playing) { T += dt; draw(); }
   }
 
-   /* ---------- performer controls ---------- */
-
+  /* ---------- controls ---------- */
   var dots = document.getElementById("mjDots").children;
-  var artist = document.getElementById("mjArtist");
-  var title = document.getElementById("mjTitle");
-
-  var performers = [
-    {
-      artist: "Michael Jackson",
-      title: "Dangerous"
-    },
-    {
-      artist: "Lisa",
-      title: "Lisa Dance"
-    },
-    {
-      artist: "Jennie Kim",
-      title: "Jennie Dance"
-    }
-  ];
-
-  function showPerformer(n) {
-
-    performer = (n + performers.length) % performers.length;
-
-    artist.textContent = performers[performer].artist;
-    title.textContent = performers[performer].title;
-
-    for (var i = 0; i < dots.length; i++) {
-      dots[i].className = i === performer ? "on" : "";
-    }
-
-    draw();
+  function setStyle(n) {
+    style = (n + STYLES.length) % STYLES.length;
+    for (var i = 0; i < dots.length; i++) dots[i].className = i === style ? "on" : "";
+    if (!playing) draw();
   }
-
-  document.getElementById("mjPrev").addEventListener("click", function () {
-    showPerformer(performer - 1);
-  });
-
-  document.getElementById("mjNext").addEventListener("click", function () {
-    showPerformer(performer + 1);
-  });
-
-  var PLAY = "M6 4h4.5v16H6zM13.5 4H18v16h-4.5z";
-  var PAUSED = "M7 4l13 8-13 8z";
-
+  document.getElementById("mjPrev").addEventListener("click", function () { setStyle(style - 1); });
+  document.getElementById("mjNext").addEventListener("click", function () { setStyle(style + 1); });
+  var PLAY = "M6 4h4.5v16H6zM13.5 4H18v16h-4.5z", PAUSED = "M7 4l13 8-13 8z";
   document.getElementById("mjPlay").addEventListener("click", function () {
-
     playing = !playing;
-
-    this.setAttribute(
-      "aria-label",
-      playing ? "Pause dance" : "Play dance"
-    );
-
-    document.getElementById("mjPlayIcon")
-      .firstElementChild
-      .setAttribute("d", playing ? PLAY : PAUSED);
-
-    if (playing) {
-      last = 0;
-    }
+    this.setAttribute("aria-label", playing ? "Pause dance" : "Play dance");
+    document.getElementById("mjPlayIcon").firstElementChild.setAttribute("d", playing ? PLAY : PAUSED);
   });
-
-var PLAY = "M6 4h4.5v16H6zM13.5 4H18v16h-4.5z";
-var PAUSED = "M7 4l13 8-13 8z";
 
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(stage);
