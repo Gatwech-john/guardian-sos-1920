@@ -10977,6 +10977,10 @@ async function forwardMessage(message) {
    ANDROID PHONE CONTACT PICKER
 ========================================================= */
 
+/* Tracks whether the Android contact picker
+   was opened to share a contact in chat. */
+let chatContactShareMode = false;
+
 function pickPhoneContacts() {
 
     /*
@@ -11026,6 +11030,8 @@ function pickPhoneContacts() {
     showToast(
         "Phone contacts are not available on this device."
     );
+
+    chatContactShareMode = false;
 }
 
 
@@ -11116,11 +11122,9 @@ async function openBrowserContacts() {
    a contact from the phone.
 ========================================================= */
 
+
 window.androidContactSelected =
-    async function(
-        name,
-        phone
-    ) {
+    async function(name, phone) {
 
         console.log(
             "Android contact selected:",
@@ -11128,10 +11132,22 @@ window.androidContactSelected =
             phone
         );
 
+        // Contact was selected from the chat attachment menu.
+        if (chatContactShareMode) {
 
-        if (
-            !phone
-        ) {
+            chatContactShareMode = false;
+
+            await sendPhoneContactMessage(
+                name,
+                phone
+            );
+
+            return;
+        }
+
+        // Preserve the existing contact-search behaviour
+        // for other parts of Guardian SOS.
+        if (!phone) {
 
             showToast(
                 "The selected contact has no phone number."
@@ -11140,11 +11156,9 @@ window.androidContactSelected =
             return;
         }
 
-
         showToast(
             "Checking " + name + "..."
         );
-
 
         await processSelectedPhoneContact(
             name,
@@ -11152,6 +11166,7 @@ window.androidContactSelected =
             ""
         );
     };
+
 
 
 async function processSelectedPhoneContact(name, phone, email) {
@@ -11950,7 +11965,7 @@ function showChatWindow(user, conversationId) {
 
     <button onclick="shareContact()">
         <i class="bi bi-person-fill"></i>
-        <span>Contact</span>
+        <span>Phone Contact</span>
     </button>
 
 </div>
@@ -20275,14 +20290,111 @@ function shareCurrentLocation() {
    CONTACT SHARING
 ============================================================ */
 
+
 async function shareContact() {
 
-    const user =
-        getStoredUser();
+    if (!currentConversationId) {
 
-    if (!user) return;
+        showToast(
+            "Open a conversation first."
+        );
+
+        return;
+    }
+
+    // Close the attachment menu.
+    const attachmentMenu =
+        document.getElementById("attachmentMenu");
+
+    if (attachmentMenu) {
+        attachmentMenu.style.display = "none";
+    }
+
+    // ANDROID PHONE CONTACT PICKER
+    if (
+        window.AndroidContacts &&
+        typeof window.AndroidContacts.openContacts === "function"
+    ) {
+
+        chatContactShareMode = true;
+
+        try {
+
+            showToast(
+                "Choose a phone contact to share..."
+            );
+
+            window.AndroidContacts.openContacts();
+
+        } catch (error) {
+
+            chatContactShareMode = false;
+
+            console.error(
+                "Phone contact picker error:",
+                error
+            );
+
+            showToast(
+                "Unable to open phone contacts."
+            );
+        }
+
+        return;
+    }
+
+    // BROWSER CONTACT PICKER FALLBACK
+    if (
+        navigator.contacts &&
+        typeof navigator.contacts.select === "function"
+    ) {
+
+        await openBrowserChatContact();
+
+        return;
+    }
+
+    showToast(
+        "Phone contact selection is not supported on this device."
+    );
+}
+
+
+/* ============================================================
+   SEND SELECTED PHONE CONTACT TO CHAT
+============================================================ */
+
+async function sendPhoneContactMessage(name, phone) {
+
+    if (!currentConversationId) {
+
+        showToast(
+            "No conversation is open."
+        );
+
+        return;
+    }
+
+    const contactName =
+        String(name || "Contact").trim() || "Contact";
+
+    const contactPhone =
+        String(phone || "").trim();
+
+    if (!contactPhone) {
+
+        showToast(
+            "The selected contact has no phone number."
+        );
+
+        return;
+    }
 
     try {
+
+        showToast(
+            "Sending contact..."
+        );
 
         const message =
             await sendAdvancedMessage({
@@ -20291,8 +20403,7 @@ async function shareContact() {
                     currentConversationId,
 
                 text:
-                    "👤 " +
-                    (user.name || "Contact"),
+                    "👤 " + contactName,
 
                 type:
                     "contact",
@@ -20300,30 +20411,90 @@ async function shareContact() {
                 contactData: {
 
                     name:
-                        user.name || "",
+                        contactName,
 
                     phone:
-                        user.phone || ""
+                        contactPhone
 
                 }
 
             });
 
-        appendChatMessage(
-            message
-        );
+        // Display the sent contact immediately.
+        appendChatMessage(message);
 
-        openAttachmentMenu();
+        showToast(
+            "Contact sent successfully."
+        );
 
     } catch (error) {
 
-        showToast(
-            error.message
+        console.error(
+            "Send phone contact error:",
+            error
         );
 
+        showToast(
+            error.message ||
+            "Unable to send contact."
+        );
     }
-
 }
+
+
+/* ============================================================
+   BROWSER PHONE CONTACT PICKER
+============================================================ */
+
+async function openBrowserChatContact() {
+
+    try {
+
+        const contacts =
+            await navigator.contacts.select(
+                ["name", "tel"],
+                {
+                    multiple: false
+                }
+            );
+
+        if (
+            !contacts ||
+            !contacts.length
+        ) {
+            return;
+        }
+
+        const contact = contacts[0];
+
+        const name =
+            contact.name && contact.name.length
+                ? contact.name[0]
+                : "Contact";
+
+        const phone =
+            contact.tel && contact.tel.length
+                ? contact.tel[0]
+                : "";
+
+        await sendPhoneContactMessage(
+            name,
+            phone
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Browser phone contact error:",
+            error
+        );
+
+        showToast(
+            "Contact selection was cancelled or unavailable."
+        );
+    }
+}
+
 
 
 /* ============================================================
