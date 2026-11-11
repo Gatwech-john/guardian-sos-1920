@@ -5555,6 +5555,75 @@ app.post(
 );
 
 /* ============================================================
+   CLEAR CONVERSATION FOR CURRENT USER ONLY
+============================================================ */
+
+app.delete(
+    "/api/chat/conversations/:conversationId/clear-for-me",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            await connectMongoDB();
+
+            const conversationId = req.params.conversationId;
+            const currentUserId = req.user.userId;
+
+            // Confirm that the conversation exists and
+            // the logged-in user belongs to it.
+            const conversation = await ChatConversation.findOne({
+                _id: conversationId,
+                participants: currentUserId
+            }).select("_id");
+
+            if (!conversation) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Conversation not found or access denied."
+                });
+            }
+
+            // Hide every message in this conversation
+            // from the current user only.
+            const result = await ChatMessage.updateMany(
+                {
+                    conversationId: conversationId,
+                    deletedFor: {
+                        $ne: currentUserId
+                    }
+                },
+                {
+                    $addToSet: {
+                        deletedFor: currentUserId
+                    }
+                }
+            );
+
+            return res.status(200).json({
+                success: true,
+                message: "Conversation cleared successfully.",
+                clearedCount: result.modifiedCount || 0
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Clear conversation error:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable to clear this conversation."
+            });
+
+        }
+
+    }
+);
+
+/* ============================================================
    GET CHAT MESSAGES
 ============================================================ */
 
