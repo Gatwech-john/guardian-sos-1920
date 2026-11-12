@@ -6249,556 +6249,421 @@ body.light-mode .guardian-confirm-danger {
      Self-contained: HTML + CSS + JS. Sprite is cleaned up from your design image.
 ====================================================== -->
 
-<!-- =====================================================
-     GUARDIAN SOS - REALISTIC 3D MICHAEL JACKSON DANCER
-     Model: public/models/michael-jackson-dancer.glb
-====================================================== -->
+<!-- GUARDIAN SOS - MICHAEL JACKSON 3D DANCER -->
+<div id="mj-neon-dancer">
 
-<div class="mj-neon" id="mjNeon">
+  <style>
+    #mj-neon-dancer {
+      width: 100%;
+      min-height: 560px;
+      padding: 20px 12px 25px;
+      box-sizing: border-box;
+      background: #050505;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
 
-<style>
-.mj-neon {
-    position: relative;
-    width: 100%;
-    max-width: 440px;
-    margin: 18px auto 0;
-    padding: 12px 8px 18px;
-    background: #000;
-    border-radius: 26px;
-    color: #ff1493;
-    text-align: center;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-    box-sizing: border-box;
-}
+    #mj-neon-dancer * {
+      box-sizing: border-box;
+    }
 
-.mj-stage {
-    position: relative;
-    width: 100%;
-    height: 440px;
-    max-height: 115vw;
-    overflow: hidden;
-    background:
+    #mj-neon-dancer .mj-heading {
+      margin: 8px 0 5px;
+      color: #ff1493;
+      font-size: clamp(27px, 6vw, 43px);
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-shadow: 0 0 15px #ff1493;
+    }
+
+    #mj-neon-dancer .mj-artist {
+      color: #fff;
+      font-size: 15px;
+      letter-spacing: 4px;
+      margin-bottom: 15px;
+    }
+
+    #mj-neon-dancer .mj-stage {
+      position: relative;
+      width: 100%;
+      max-width: 520px;
+      height: 390px;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 1px solid rgba(255,20,147,.45);
+      border-radius: 18px;
+      background:
         radial-gradient(ellipse at center bottom,
-        rgba(255,20,147,.18), transparent 65%),
-        #000;
-    border-radius: 20px;
-}
-
-.mj-stage canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-}
-
-.mj-model-status {
-    position: absolute;
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
-    color: #ff1493;
-    font-size: 12px;
-    pointer-events: none;
-    text-shadow: 0 0 8px #ff1493;
-}
-
-.mj-song {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin-top: 12px;
-    color: #ff1493;
-    font-size: 29px;
-    font-weight: bold;
-}
-
-.mj-artist {
-    margin-top: 5px;
-    color: #ff1493;
-    font-size: 17px;
-}
-
-.mj-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 42px;
-    margin-top: 20px;
-}
-
-.mj-controls button {
-    background: transparent;
-    border: 0;
-    color: #ff1493;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.mj-skip {
-    font-size: 34px;
-}
-
-.mj-play {
-    width: 62px;
-    height: 62px;
-    border: 3px solid #ff1493 !important;
-    border-radius: 50%;
-    font-size: 27px;
-    box-shadow: 0 0 16px rgba(255,20,147,.5);
-}
-
-.mj-controls button:active {
-    transform: scale(.9);
-}
-
-.mj-dots {
-    display: flex;
-    justify-content: center;
-    gap: 13px;
-    margin-top: 22px;
-}
-
-.mj-dots i {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #641039;
-}
-
-.mj-dots i.on {
-    background: #ff1493;
-    box-shadow: 0 0 10px #ff1493;
-}
-
-.mj-hint {
-    margin-top: 19px;
-    color: #ff1493;
-    font-size: 14px;
-}
-
-.mj-sos {
-    position: absolute;
-    right: 13px;
-    bottom: 105px;
-    width: 72px;
-    height: 72px;
-    border: none;
-    border-radius: 50%;
-    background: #ff1493;
-    color: white;
-    font-weight: bold;
-    font-size: 19px;
-    cursor: pointer;
-    box-shadow:
-        0 0 0 5px #000,
-        0 0 0 7px rgba(255,20,147,.7),
-        0 0 24px rgba(255,20,147,.8);
-    animation: mjSosPulse 1.5s infinite;
-    z-index: 5;
-}
-
-@keyframes mjSosPulse {
-    50% {
-        box-shadow:
-            0 0 0 5px #000,
-            0 0 0 9px rgba(255,20,147,.9),
-            0 0 32px rgba(255,20,147,1);
-    }
-}
-
-@media (max-width: 380px) {
-    .mj-stage {
-        height: 360px;
+          rgba(255,20,147,.16), transparent 65%),
+        #050505;
+      box-shadow: 0 0 25px rgba(255,20,147,.12);
     }
 
-    .mj-sos {
-        width: 62px;
-        height: 62px;
-        bottom: 100px;
-        right: 8px;
+    #mj-neon-dancer canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
 
-    .mj-controls {
-        gap: 30px;
+    #mj-neon-dancer .mj-status {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 12px;
+      z-index: 2;
+      color: #ff1493;
+      font-size: 12px;
+      pointer-events: none;
     }
-}
-</style>
 
-<div class="mj-stage" id="mjStage">
-    <div class="mj-model-status" id="mjModelStatus">
-        Loading 3D dancer...
+    #mj-neon-dancer .mj-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 13px;
+      margin: 18px auto;
+    }
+
+    #mj-neon-dancer .mj-control {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid #ff1493;
+      color: white;
+      background: #111;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    #mj-neon-dancer .mj-control:active {
+      background: #ff1493;
+    }
+
+    #mj-neon-dancer .mj-sos {
+      display: inline-block;
+      padding: 15px 35px;
+      border: none;
+      border-radius: 35px;
+      background: #ff1493;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(255,20,147,.4);
+    }
+
+    #mj-neon-dancer .mj-sos:active {
+      transform: scale(.96);
+    }
+
+    @media(max-width: 480px) {
+      #mj-neon-dancer {
+        min-height: 0;
+        padding: 15px 8px 25px;
+      }
+
+      #mj-neon-dancer .mj-stage {
+        height: 340px;
+      }
+    }
+  </style>
+
+  <h2 class="mj-heading">DANGEROUS</h2>
+  <div class="mj-artist">MICHAEL JACKSON</div>
+
+  <div class="mj-stage" id="mj-stage">
+    <div class="mj-status" id="mj-status">
+      Loading Michael Jackson...
     </div>
-</div>
+  </div>
 
-<div class="mj-song">
-    <span>♫</span>
-    <span id="mjTitle">Dangerous</span>
-</div>
+  <div class="mj-controls">
+    <button class="mj-control" id="mj-prev" type="button"
+      aria-label="Previous dance">⏮</button>
 
-<div class="mj-artist">Michael Jackson</div>
+    <button class="mj-control" id="mj-play" type="button"
+      aria-label="Pause or play">Ⅱ</button>
 
-<div class="mj-controls">
+    <button class="mj-control" id="mj-next" type="button"
+      aria-label="Next dance">⏭</button>
+  </div>
 
-    <button type="button"
-            class="mj-skip"
-            id="mjPrev"
-            aria-label="Previous dance">
-        ⏮
-    </button>
-
-    <button type="button"
-            class="mj-play"
-            id="mjPlay"
-            aria-label="Pause dance">
-        ❚❚
-    </button>
-
-    <button type="button"
-            class="mj-skip"
-            id="mjNext"
-            aria-label="Next dance">
-        ⏭
-    </button>
+  <button class="mj-sos" type="button" onclick="activateSOS()">
+    ACTIVATE SOS
+  </button>
 
 </div>
-
-<div class="mj-dots" id="mjDots">
-    <i class="on"></i>
-</div>
-
-<div class="mj-hint">
-    Tap SOS for emergency assistance
-</div>
-
-<button type="button"
-        class="mj-sos"
-        onclick="activateSOS()"
-        aria-label="Activate SOS">
-    SOS
-</button>
 
 <script type="module">
-import * as THREE from
-"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+  import * as THREE from
+    "https://esm.sh/three@0.160.0";
 
-import { GLTFLoader } from
-"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+  import { GLTFLoader } from
+    "https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
 
-(function () {
-    "use strict";
+  (function () {
+    const stage = document.getElementById("mj-stage");
+    const status = document.getElementById("mj-status");
+    const playButton = document.getElementById("mj-play");
+    const nextButton = document.getElementById("mj-next");
+    const prevButton = document.getElementById("mj-prev");
 
-    const stage = document.getElementById("mjStage");
-    const status = document.getElementById("mjModelStatus");
+    if (!stage || stage.dataset.initialized === "true") return;
+    stage.dataset.initialized = "true";
 
-    if (!stage) return;
+    let renderer;
+    let mixer;
+    let actions = [];
+    let currentAction = 0;
+    let isPlaying = true;
+    let dancer;
+    let animationFrame;
+    const clock = new THREE.Clock();
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
+    scene.background = new THREE.Color(0x050505);
 
     const camera = new THREE.PerspectiveCamera(
-        35,
-        stage.clientWidth / stage.clientHeight,
-        0.1,
-        1000
+      35,
+      1,
+      0.1,
+      1000
     );
 
-    camera.position.set(0, 1.5, 5);
+    camera.position.set(0, 2, 6);
 
-    const renderer = new THREE.WebGLRenderer({
+    try {
+      renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: false
-    });
+      });
 
-    renderer.setPixelRatio(
+      renderer.setPixelRatio(
         Math.min(window.devicePixelRatio || 1, 2)
-    );
+      );
 
-    renderer.setSize(
-        stage.clientWidth,
-        stage.clientHeight
-    );
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.2;
 
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
-
-    stage.insertBefore(renderer.domElement, status);
+      stage.insertBefore(renderer.domElement, status);
+    } catch (error) {
+      status.textContent = "Your browser could not start 3D graphics.";
+      console.error(error);
+      return;
+    }
 
     // Lighting
-    const ambient = new THREE.HemisphereLight(
-        0xffffff,
-        0x444444,
-        2
-    );
+    scene.add(new THREE.AmbientLight(0xffffff, 2));
 
-    scene.add(ambient);
-
-    const frontLight = new THREE.DirectionalLight(
-        0xffffff,
-        3
-    );
-
-    frontLight.position.set(2, 5, 6);
+    const frontLight = new THREE.DirectionalLight(0xffffff, 3);
+    frontLight.position.set(3, 5, 6);
     scene.add(frontLight);
 
-    const pinkLight = new THREE.PointLight(
-        0xff1493,
-        35,
-        12
-    );
-
-    pinkLight.position.set(-2, 2, 2);
+    const pinkLight = new THREE.PointLight(0xff1493, 35, 12);
+    pinkLight.position.set(-3, 2, 2);
     scene.add(pinkLight);
 
-    const backLight = new THREE.PointLight(
-        0xff1493,
-        30,
-        10
-    );
-
-    backLight.position.set(0, 2, -3);
+    const backLight = new THREE.PointLight(0xffffff, 20, 10);
+    backLight.position.set(0, 3, -3);
     scene.add(backLight);
 
-    // Neon floor ring
-    const ringGeometry = new THREE.TorusGeometry(
-        1.35,
-        0.025,
-        12,
-        100
-    );
-
-    const ringMaterial = new THREE.MeshBasicMaterial({
-        color: 0xff1493
-    });
-
-    const ring = new THREE.Mesh(
-        ringGeometry,
-        ringMaterial
-    );
-
-    ring.rotation.x = -Math.PI / 2;
-    ring.position.y = -1.45;
-
-    scene.add(ring);
-
+    // Floor
     const floor = new THREE.Mesh(
-        new THREE.CircleGeometry(1.5, 64),
-        new THREE.MeshBasicMaterial({
-            color: 0x16000c,
-            transparent: true,
-            opacity: 0.7
-        })
+      new THREE.CircleGeometry(2.2, 64),
+      new THREE.MeshStandardMaterial({
+        color: 0x111111,
+        roughness: 0.65,
+        metalness: 0.3
+      })
     );
 
     floor.rotation.x = -Math.PI / 2;
-    floor.position.y = -1.47;
-
+    floor.position.y = -0.03;
     scene.add(floor);
 
-    let dancer = null;
-    let mixer = null;
-    let actions = [];
-    let currentAnimation = 0;
-    let playing = true;
-    let clock = new THREE.Clock();
+    // Pink neon ring
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(1.7, 0.018, 12, 100),
+      new THREE.MeshBasicMaterial({ color: 0xff1493 })
+    );
 
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 0.01;
+    scene.add(ring);
+
+    // Resize
+    function resizeStage() {
+      if (!renderer) return;
+
+      const width = stage.clientWidth;
+      const height = stage.clientHeight;
+
+      if (!width || !height) return;
+
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    }
+
+    window.addEventListener("resize", resizeStage);
+    resizeStage();
+
+    // Load the actual Michael Jackson model
     const loader = new GLTFLoader();
 
     loader.load(
-        "/models/michael-jackson-dancer.glb",
+      "/models/michael-jackson-dancer.glb",
 
-        function (gltf) {
+      function (gltf) {
+        dancer = gltf.scene;
 
-            dancer = gltf.scene;
+        // Center and scale the character
+        const box = new THREE.Box3().setFromObject(dancer);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
 
-            // Fit model to the stage
-            const box = new THREE.Box3().setFromObject(dancer);
-            const size = box.getSize(new THREE.Vector3());
-            const center = box.getCenter(new THREE.Vector3());
+        const maxDimension = Math.max(size.x, size.y, size.z);
 
-            const maxDimension = Math.max(
-                size.x,
-                size.y,
-                size.z
-            );
-
-            if (maxDimension > 0) {
-                const scale = 2.65 / maxDimension;
-                dancer.scale.setScalar(scale);
-            }
-
-            dancer.position.x = -center.x * dancer.scale.x;
-            dancer.position.y = -center.y * dancer.scale.y - 0.15;
-            dancer.position.z = -center.z * dancer.scale.z;
-
-            // Face the camera
-            dancer.rotation.y = Math.PI;
-
-            scene.add(dancer);
-
-            // Camera framing
-            camera.position.set(0, 1.35, 5);
-            camera.lookAt(0, 0, 0);
-
-            // Load available animations
-            if (gltf.animations && gltf.animations.length > 0) {
-
-                mixer = new THREE.AnimationMixer(dancer);
-
-                gltf.animations.forEach(function (clip) {
-                    const action = mixer.clipAction(clip);
-                    actions.push(action);
-                });
-
-                actions[0].play();
-
-                const dots = document.getElementById("mjDots");
-                dots.innerHTML = "";
-
-                actions.forEach(function (_, index) {
-                    const dot = document.createElement("i");
-
-                    if (index === 0) {
-                        dot.className = "on";
-                    }
-
-                    dots.appendChild(dot);
-                });
-
-                status.textContent = "3D dancer loaded";
-            } else {
-                status.textContent =
-                    "Model loaded, but no dance animation was found.";
-            }
-
-        },
-
-        function (xhr) {
-            if (xhr.total) {
-                const percent = Math.round(
-                    xhr.loaded / xhr.total * 100
-                );
-
-                status.textContent =
-                    "Loading 3D dancer: " + percent + "%";
-            }
-        },
-
-        function (error) {
-            console.error("3D dancer loading error:", error);
-
-            status.textContent =
-                "Could not load the 3D model. Check the GLB file path.";
+        if (!maxDimension || !Number.isFinite(maxDimension)) {
+          status.textContent = "The 3D model has invalid dimensions.";
+          return;
         }
+
+        const scale = 2.8 / maxDimension;
+        dancer.scale.setScalar(scale);
+
+        dancer.position.x = -center.x * scale;
+        dancer.position.y = -box.min.y * scale;
+        dancer.position.z = -center.z * scale;
+
+        scene.add(dancer);
+
+        // Camera framing
+        const scaledHeight = size.y * scale;
+        camera.position.set(
+          0,
+          Math.max(1.2, scaledHeight * 0.55),
+          Math.max(4.5, scaledHeight * 2.3)
+        );
+
+        camera.lookAt(0, scaledHeight * 0.48, 0);
+
+        // Load model animations
+        if (gltf.animations && gltf.animations.length > 0) {
+          mixer = new THREE.AnimationMixer(dancer);
+
+          actions = gltf.animations.map((clip) => {
+            return mixer.clipAction(clip);
+          });
+
+          currentAction = 0;
+          actions[0].reset().play();
+
+          status.textContent =
+            "Michael Jackson 3D dancer loaded";
+
+        } else {
+          status.textContent =
+            "Model loaded, but no dance animation was found.";
+        }
+
+        resizeStage();
+        console.log("3D model loaded:", gltf);
+        console.log("Animation clips:", gltf.animations);
+      },
+
+      function (progress) {
+        if (progress.total > 0) {
+          const percent = Math.round(
+            (progress.loaded / progress.total) * 100
+          );
+
+          status.textContent =
+            "Loading Michael Jackson... " + percent + "%";
+        }
+      },
+
+      function (error) {
+        console.error("Michael Jackson model error:", error);
+
+        status.textContent =
+          "Could not load model. Check the GLB file and its path.";
+      }
     );
 
+    // Play / pause
+    playButton.addEventListener("click", function () {
+      if (!actions.length) return;
+
+      isPlaying = !isPlaying;
+
+      if (isPlaying) {
+        actions[currentAction].play();
+        playButton.textContent = "Ⅱ";
+      } else {
+        actions.forEach(action => action.stop());
+        playButton.textContent = "▶";
+      }
+    });
+
+    // Change animation
     function changeAnimation(direction) {
+      if (!actions.length) return;
 
-        if (!actions.length) return;
+      actions[currentAction].stop();
 
-        actions[currentAnimation].fadeOut(0.3);
+      currentAction =
+        (currentAction + direction + actions.length) %
+        actions.length;
 
-        currentAnimation =
-            (currentAnimation + direction + actions.length)
-            % actions.length;
+      isPlaying = true;
 
-        actions[currentAnimation].reset();
-        actions[currentAnimation].fadeIn(0.3);
+      actions[currentAction].reset().play();
+      playButton.textContent = "Ⅱ";
 
-        if (playing) {
-            actions[currentAnimation].play();
-        }
-
-        const dots = document.getElementById("mjDots").children;
-
-        for (let i = 0; i < dots.length; i++) {
-            dots[i].className =
-                i === currentAnimation ? "on" : "";
-        }
+      status.textContent =
+        "Dance " + (currentAction + 1) +
+        " of " + actions.length;
     }
 
-    document.getElementById("mjPrev").addEventListener(
-        "click",
-        function () {
-            changeAnimation(-1);
-        }
-    );
+    nextButton.addEventListener("click", () => {
+      changeAnimation(1);
+    });
 
-    document.getElementById("mjNext").addEventListener(
-        "click",
-        function () {
-            changeAnimation(1);
-        }
-    );
+    prevButton.addEventListener("click", () => {
+      changeAnimation(-1);
+    });
 
-    document.getElementById("mjPlay").addEventListener(
-        "click",
-        function () {
-
-            playing = !playing;
-
-            if (mixer) {
-                mixer.timeScale = playing ? 1 : 0;
-            }
-
-            this.textContent = playing ? "❚❚" : "▶";
-            this.setAttribute(
-                "aria-label",
-                playing ? "Pause dance" : "Play dance"
-            );
-        }
-    );
-
-    // Responsive resizing
-    function resize() {
-
-        const width = stage.clientWidth;
-        const height = stage.clientHeight;
-
-        if (!width || !height) return;
-
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
-
-        renderer.setSize(width, height);
-    }
-
-    if ("ResizeObserver" in window) {
-        new ResizeObserver(resize).observe(stage);
-    }
-
-    window.addEventListener("resize", resize);
-
-    // Render animation
+    // Animation loop
     function animate() {
+      animationFrame = requestAnimationFrame(animate);
 
-        requestAnimationFrame(animate);
+      const delta = Math.min(clock.getDelta(), 0.05);
 
-        const delta = Math.min(clock.getDelta(), 0.05);
+      if (mixer && isPlaying) {
+        mixer.update(delta);
+      }
 
-        if (mixer && playing) {
-            mixer.update(delta);
-        }
+      ring.rotation.z += 0.002;
 
-        if (dancer) {
-            dancer.rotation.y = Math.PI;
-        }
-
-        ring.rotation.z += 0.002;
-
-        renderer.render(scene, camera);
+      renderer.render(scene, camera);
     }
 
     animate();
 
-})();
-</script>
+    // Cleanup if the section is removed
+    window.addEventListener("pagehide", function () {
+      cancelAnimationFrame(animationFrame);
+      window.removeEventListener("resize", resizeStage);
+      renderer.dispose();
+    }, { once: true });
 
-</div>
-<!-- END 3D MICHAEL JACKSON DANCER -->
+  })();
+</script>
 
 
     </section>
