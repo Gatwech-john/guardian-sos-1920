@@ -6471,7 +6471,7 @@ body.light-mode .guardian-confirm-danger {
 
     // STAGE FLOOR
     const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(2.2, 64),
+      new THREE.CircleGeometry(1.3, 64),
       new THREE.MeshStandardMaterial({
         color: 0x111111,
         roughness: 0.65,
@@ -6485,7 +6485,7 @@ body.light-mode .guardian-confirm-danger {
 
     // PINK NEON RING
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(1.7, 0.018, 12, 100),
+      new THREE.TorusGeometry(1.1, 0.018, 12, 100),
       new THREE.MeshBasicMaterial({
         color: 0xff1493
       })
@@ -6500,48 +6500,34 @@ body.light-mode .guardian-confirm-danger {
     const frameMargin = 1.25;
 
     // AUTOMATIC CAMERA ADJUSTMENT
-    function updateCamera() {
-      const width = stage.clientWidth;
-      const height = stage.clientHeight;
+   // The dancer is normalized to this height; the camera is built around it
+const DANCER_HEIGHT = 2.0;
 
-      if (!width || !height) return;
+function updateCamera() {
+  const width = stage.clientWidth;
+  const height = stage.clientHeight;
+  if (!width || !height) return;
 
-      renderer.setSize(width, height, false);
+  renderer.setSize(width, height, false);
+  camera.aspect = width / height;
 
-      camera.aspect = width / height;
+  const vFov = THREE.MathUtils.degToRad(camera.fov);
+  const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
 
-      const verticalFov = THREE.MathUtils.degToRad(camera.fov);
-      const horizontalFov = 2 * Math.atan(
-        Math.tan(verticalFov / 2) * camera.aspect
-      );
+  // Visible area: 1.6x his height, and 2.6 units wide (room for arms)
+  const needHeight = DANCER_HEIGHT * 1.6;
+  const needWidth  = 2.6;
 
-      const verticalDistance =
-        (characterHeight * frameMargin / 2) /
-        Math.tan(verticalFov / 2);
+  const distance = Math.max(
+    (needHeight / 2) / Math.tan(vFov / 2),
+    (needWidth  / 2) / Math.tan(hFov / 2)
+  );
 
-      const horizontalDistance =
-        (characterHeight * 0.48 * frameMargin / 2) /
-        Math.tan(horizontalFov / 2);
-
-      const distance = Math.max(
-        verticalDistance,
-        horizontalDistance
-      );
-
-      camera.position.set(
-        0,
-        characterHeight * 0.48,
-        distance * 1.12
-      );
-
-      camera.lookAt(
-        0,
-        characterHeight * 0.48,
-        0
-      );
-
-      camera.updateProjectionMatrix();
-    }
+  const targetY = DANCER_HEIGHT * 0.5;   // look at his middle
+  camera.position.set(0, targetY + 0.35, distance);
+  camera.lookAt(0, targetY - 0.05, 0);
+  camera.updateProjectionMatrix();
+}
 
     window.addEventListener("resize", updateCamera);
 
@@ -6552,74 +6538,60 @@ body.light-mode .guardian-confirm-danger {
       "/models/michael-jackson-dancer.glb",
 
       function (gltf) {
-        dancer = gltf.scene;
+  dancer = gltf.scene;
 
-        // GET CHARACTER DIMENSIONS
-        const originalBox = new THREE.Box3().setFromObject(dancer);
-        const originalSize = originalBox.getSize(
-          new THREE.Vector3()
-        );
-
-        const maxDimension = Math.max(
-          originalSize.x,
-          originalSize.y,
-          originalSize.z
-        );
-
-        if (!maxDimension || !Number.isFinite(maxDimension)) {
-          status.textContent = "Invalid 3D model dimensions.";
-          return;
+  // 1. Stop the dance from drifting him sideways/forward off the stage
+  (gltf.animations || []).forEach(function (clip) {
+    clip.tracks.forEach(function (track) {
+      if (/hips\.position$/i.test(track.name)) {
+        const v = track.values;
+        const x0 = v[0], z0 = v[2];
+        for (let i = 0; i < v.length; i += 3) {
+          v[i] = x0;       // lock X
+          v[i + 2] = z0;   // lock Z
         }
+      }
+    });
+  });
 
-        // SCALE CHARACTER SMALLER TO FIT THE STAGE
-        const scale = 2.35 / maxDimension;
+  // 2. Set up the animation first so we measure him in his real pose
+  if (gltf.animations && gltf.animations.length > 0) {
+    mixer = new THREE.AnimationMixer(dancer);
+    actions = gltf.animations.map(clip => mixer.clipAction(clip));
+    currentAction = 0;
+    actions[0].reset().play();
+    mixer.update(0);
+    status.textContent = "Michael Jackson is dancing";
+  } else {
+    status.textContent = "Model loaded, but no dance animation was found.";
+  }
 
-        dancer.scale.setScalar(scale);
+  dancer.updateMatrixWorld(true);
 
-        // POSITION CHARACTER WITH FEET AT FLOOR LEVEL
-        const scaledBox = new THREE.Box3().setFromObject(dancer);
+  // 3. Measure the REAL posed body (true = use skinned vertices)
+  let box = new THREE.Box3().setFromObject(dancer, true);
+  const size = box.getSize(new THREE.Vector3());
 
-        const center = scaledBox.getCenter(new THREE.Vector3());
+  if (!size.y || !Number.isFinite(size.y)) {
+    status.textContent = "Invalid 3D model dimensions.";
+    return;
+  }
 
-        dancer.position.x -= center.x;
-        dancer.position.z -= center.z;
-        dancer.position.y -= scaledBox.min.y;
+  // 4. Scale so his full height = DANCER_HEIGHT
+  dancer.scale.setScalar(DANCER_HEIGHT / size.y);
+  dancer.updateMatrixWorld(true);
 
-        scene.add(dancer);
+  // 5. Center him on the stage and put his feet ON the floor
+  box = new THREE.Box3().setFromObject(dancer, true);
+  const center = box.getCenter(new THREE.Vector3());
+  dancer.position.x -= center.x;
+  dancer.position.z -= center.z;
+  dancer.position.y -= box.min.y;   // feet at y = 0
 
-        // GET FINAL CHARACTER HEIGHT
-        const finalBox = new THREE.Box3().setFromObject(dancer);
+  scene.add(dancer);
 
-        characterHeight = finalBox.max.y - finalBox.min.y;
-
-        // CAMERA: SHOW FULL BODY WITH SPACE ABOVE AND BELOW
-        updateCamera();
-
-        // LOAD MIXAMO ANIMATION
-        if (gltf.animations && gltf.animations.length > 0) {
-
-          mixer = new THREE.AnimationMixer(dancer);
-
-          actions = gltf.animations.map(clip => {
-            return mixer.clipAction(clip);
-          });
-
-          currentAction = 0;
-          actions[0].reset().play();
-
-          status.textContent =
-            "Michael Jackson is dancing";
-
-        } else {
-
-          status.textContent =
-            "Model loaded, but no dance animation was found.";
-
-        }
-
-        console.log("Michael Jackson loaded:", gltf);
-        console.log("Dance animations:", gltf.animations);
-      },
+  updateCamera();
+},
 
       function (progress) {
         if (progress.total > 0) {
