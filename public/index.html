@@ -13260,12 +13260,12 @@ async function registerGuardianFCMToken() {
 
     try {
 
-        if (!window.getGuardianFCMToken) {
+       if (!window.getGuardianFCMToken && !localStorage.getItem("guardianNativeFcmToken")) {
             return;
         }
 
         const token =
-            await window.getGuardianFCMToken();
+           (window.getGuardianFCMToken ? await window.getGuardianFCMToken() : null) || localStorage.getItem("guardianNativeFcmToken");
 
         if (!token) {
             return;
@@ -25881,6 +25881,121 @@ document.getElementById("chatImageViewer")?.addEventListener(
     { passive: false }
 );
 </script>
+<script>
+/* GUARDIAN FIXES: contact sharing + native call bridge */
+(function () {
 
+    var PENDING_KEY = "guardianPendingContactShare";
+    var PHONE_RE = /^[+\d\s\-().]{5,}$/;
+
+    function setPending() {
+        try {
+            sessionStorage.setItem(PENDING_KEY, JSON.stringify({
+                conversationId: currentConversationId,
+                ts: Date.now()
+            }));
+        } catch (e) {}
+    }
+    function getPending() {
+        try {
+            var p = JSON.parse(sessionStorage.getItem(PENDING_KEY) || "null");
+            return p && Date.now() - p.ts < 180000 ? p : null;
+        } catch (e) { return null; }
+    }
+    function clearPending() {
+        try { sessionStorage.removeItem(PENDING_KEY); } catch (e) {}
+    }
+
+    var originalShareContact = window.shareContact;
+    window.shareContact = async function () {
+        if (currentConversationId) setPending();
+        return originalShareContact.apply(this, arguments);
+    };
+
+    window.sendPhoneContactMessage = async function (name, phone) {
+        if (!currentConversationId) {
+            var p = getPending();
+            if (p) currentConversationId = p.conversationId;
+        }
+        if (!currentConversationId) { showToast("No conversation is open."); return; }
+
+        name = String(name || "").trim();
+        phone = String(phone || "").trim();
+        if (PHONE_RE.test(name) && !PHONE_RE.test(phone)) { var t = name; name = phone; phone = t; }
+        if (!name) name = "Contact";
+        if (!phone) { showToast("The selected contact has no phone number."); return; }
+
+        try {
+            showToast("Sending contact...");
+            var message = await sendAdvancedMessage({
+                conversationId: currentConversationId,
+                text: "👤 " + name,
+                type: "contact",
+                contactData: { name: name, phone: phone }
+            });
+            try { appendChatMessage(message); }
+            catch (renderError) { console.error("Render contact error:", renderError); }
+            var list = document.getElementById("messagesList");
+            if (list) list.scrollTop = list.scrollHeight;
+            if (typeof loadChats === "function") { loadChats().catch(function () {}); }
+            showToast("Contact sent.");
+        } catch (error) {
+            console.error("Send phone contact error:", error);
+            showToast(error.message || "Unable to send contact.");
+        }
+    };
+
+    var originalSelected = window.androidContactSelected;
+    window.androidContactSelected = async function (name, phone) {
+        var pending = getPending();
+        if (chatContactShareMode || pending) {
+            chatContactShareMode = false;
+            clearPending();
+            return window.sendPhoneContactMessage(name, phone);
+        }
+        return originalSelected.apply(this, arguments);
+    };
+    var originalCancelled = window.androidContactPickerCancelled;
+    window.androidContactPickerCancelled = function () {
+        clearPending();
+        if (originalCancelled) originalCancelled();
+    };
+
+    /* token handed over by the Android app */
+    window.androidFcmTokenReady = function (token) {
+        if (!token) return;
+        try { localStorage.setItem("guardianNativeFcmToken", token); } catch (e) {}
+        if (typeof registerGuardianFCMToken === "function") registerGuardianFCMToken();
+    };
+
+    /* Accept / Decline from the Android call notification */
+    var originalShowIncoming = window.showIncomingCall;
+    window.showIncomingCall = function (data) {
+        var r = originalShowIncoming.apply(this, arguments);
+        var want = window.__guardianAutoAnswer;
+        if (want && (!data || !data.callerId || String(data.callerId) === String(want))) {
+            window.__guardianAutoAnswer = null;
+            setTimeout(function () { window.acceptIncomingCall(); }, 400);
+        }
+        if (window.__guardianDeclineCaller) {
+            window.__guardianDeclineCaller = null;
+            setTimeout(function () { window.rejectIncomingCall(); }, 300);
+        }
+        return r;
+    };
+    window.guardianCallAction = function (action, callerId) {
+        if (action === "accept") {
+            window.__guardianAutoAnswer = callerId || "any";
+            if (pendingIncomingOffer) {
+                window.__guardianAutoAnswer = null;
+                window.acceptIncomingCall();
+            }
+        } else if (action === "decline") {
+            if (pendingIncomingOffer) window.rejectIncomingCall();
+            else window.__guardianDeclineCaller = callerId;
+        }
+    };
+})();
+</script>
 </body>
 </html>

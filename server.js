@@ -1549,7 +1549,50 @@ next();
 
 });
 
+/* ============================================================
+   GUARDIAN: PENDING CALLS + CALL PUSH (works when app is closed)
+============================================================ */
+const guardianPendingCalls = new Map();
+const GUARDIAN_CALL_TTL_MS = 45000;
 
+async function guardianSendCallPush(calleeId, data) {
+    try {
+        const appsCount = typeof admin.getApps === "function"
+            ? admin.getApps().length
+            : (admin.apps || []).length;
+        if (!appsCount) return;
+
+        const user = await User.findById(calleeId).select("fcmTokens");
+        const tokens = (user && user.fcmTokens ? user.fcmTokens : []).filter(Boolean);
+        if (!tokens.length) return;
+
+        const payload = {};
+        Object.keys(data).forEach(function (k) {
+            payload[k] = String(data[k] === undefined || data[k] === null ? "" : data[k]);
+        });
+
+        const response = await admin.messaging().sendEachForMulticast({
+            tokens: tokens,
+            data: payload,
+            android: { priority: "high", ttl: GUARDIAN_CALL_TTL_MS }
+        });
+
+        const dead = [];
+        response.responses.forEach(function (r, i) {
+            if (!r.success && r.error && (
+                r.error.code === "messaging/registration-token-not-registered" ||
+                r.error.code === "messaging/invalid-registration-token"
+            )) {
+                dead.push(tokens[i]);
+            }
+        });
+        if (dead.length) {
+            await User.findByIdAndUpdate(calleeId, { $pull: { fcmTokens: { $in: dead } } });
+        }
+    } catch (error) {
+        console.error("Call push error:", error.message);
+    }
+}
 /* ============================================================
    REAL-TIME CHAT
 ============================================================ */
@@ -1569,7 +1612,62 @@ io.on("connection", (socket) => {
     const userRoom =
         "user:" + socket.userId;
 
-    socket.join(userRoom);
+       socket.join(userRoom);
+
+    /* GUARDIAN: deliver a call that arrived while this user was offline */
+    const guardianPending = guardianPendingCalls.get(String(socket.userId));
+    if (guardianPending && guardianPending.expires > Date.now()) {
+        socket.emit("incoming_call", guardianPending.payload);
+        setTimeout(function () {
+            (guardianPending.ice || []).forEach(function (c) {
+                socket.emit("ice_candidate", { candidate: c });
+            });
+        }, 400);
+    }
+
+    socket.on("call_user", function (data) {
+        if (!data || !data.userId) return;
+        const calleeKey = String(data.userId);
+        const payload = {
+            callerId: socket.userId,
+            callerName: socket.userName || "Guardian SOS User",
+            callerImage: socket.userProfileImage || "",
+            callType: data.callType || "voice",
+            offer: data.offer || null
+        };
+        const entry = { payload: payload, expires: Date.now() + GUARDIAN_CALL_TTL_MS, ice: [] };
+        guardianPendingCalls.set(calleeKey, entry);
+        setTimeout(function () {
+            if (guardianPendingCalls.get(calleeKey) === entry) guardianPendingCalls.delete(calleeKey);
+        }, GUARDIAN_CALL_TTL_MS + 1000);
+
+        guardianSendCallPush(data.userId, {
+            type: "CALL",
+            callerId: socket.userId,
+            callerName: payload.callerName,
+            callType: payload.callType
+        });
+    });
+
+    socket.on("ice_candidate", function (data) {
+        if (!data || !data.userId) return;
+        const p = guardianPendingCalls.get(String(data.userId));
+        if (p && data.candidate && p.ice.length < 60) p.ice.push(data.candidate);
+    });
+
+    ["answer_call", "reject_call"].forEach(function (ev) {
+        socket.on(ev, function () {
+            guardianPendingCalls.delete(String(socket.userId));
+        });
+    });
+
+    socket.on("end_call", function (data) {
+        guardianPendingCalls.delete(String(socket.userId));
+        if (data && data.userId) {
+            guardianPendingCalls.delete(String(data.userId));
+            guardianSendCallPush(data.userId, { type: "CALL_CANCEL", callerId: socket.userId });
+        }
+    });
     /* ============================================================
        USER ONLINE STATUS
     ============================================================ */
