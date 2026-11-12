@@ -6249,6 +6249,7 @@ body.light-mode .guardian-confirm-danger {
      Self-contained: HTML + CSS + JS. Sprite is cleaned up from your design image.
 ====================================================== -->
 
+
 <!-- GUARDIAN SOS - MICHAEL JACKSON 3D DANCER -->
 <div id="mj-neon-dancer">
 
@@ -6421,19 +6422,15 @@ body.light-mode .guardian-confirm-danger {
     let isPlaying = true;
     let dancer;
     let animationFrame;
+
     const clock = new THREE.Clock();
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x050505);
 
     const camera = new THREE.PerspectiveCamera(
-      35,
-      1,
-      0.1,
-      1000
+      35, 1, 0.1, 1000
     );
-
-    camera.position.set(0, 2, 6);
 
     try {
       renderer = new THREE.WebGLRenderer({
@@ -6450,13 +6447,14 @@ body.light-mode .guardian-confirm-danger {
       renderer.toneMappingExposure = 1.2;
 
       stage.insertBefore(renderer.domElement, status);
+
     } catch (error) {
       status.textContent = "Your browser could not start 3D graphics.";
       console.error(error);
       return;
     }
 
-    // Lighting
+    // LIGHTING
     scene.add(new THREE.AmbientLight(0xffffff, 2));
 
     const frontLight = new THREE.DirectionalLight(0xffffff, 3);
@@ -6471,7 +6469,7 @@ body.light-mode .guardian-confirm-danger {
     backLight.position.set(0, 3, -3);
     scene.add(backLight);
 
-    // Floor
+    // STAGE FLOOR
     const floor = new THREE.Mesh(
       new THREE.CircleGeometry(2.2, 64),
       new THREE.MeshStandardMaterial({
@@ -6482,37 +6480,72 @@ body.light-mode .guardian-confirm-danger {
     );
 
     floor.rotation.x = -Math.PI / 2;
-    floor.position.y = -0.03;
+    floor.position.y = 0;
     scene.add(floor);
 
-    // Pink neon ring
+    // PINK NEON RING
     const ring = new THREE.Mesh(
       new THREE.TorusGeometry(1.7, 0.018, 12, 100),
-      new THREE.MeshBasicMaterial({ color: 0xff1493 })
+      new THREE.MeshBasicMaterial({
+        color: 0xff1493
+      })
     );
 
     ring.rotation.x = Math.PI / 2;
-    ring.position.y = 0.01;
+    ring.position.y = 0.015;
     scene.add(ring);
 
-    // Resize
-    function resizeStage() {
-      if (!renderer) return;
+    // MODEL FRAMING VALUES
+    let characterHeight = 2.8;
+    const frameMargin = 1.25;
 
+    // AUTOMATIC CAMERA ADJUSTMENT
+    function updateCamera() {
       const width = stage.clientWidth;
       const height = stage.clientHeight;
 
       if (!width || !height) return;
 
       renderer.setSize(width, height, false);
+
       camera.aspect = width / height;
+
+      const verticalFov = THREE.MathUtils.degToRad(camera.fov);
+      const horizontalFov = 2 * Math.atan(
+        Math.tan(verticalFov / 2) * camera.aspect
+      );
+
+      const verticalDistance =
+        (characterHeight * frameMargin / 2) /
+        Math.tan(verticalFov / 2);
+
+      const horizontalDistance =
+        (characterHeight * 0.48 * frameMargin / 2) /
+        Math.tan(horizontalFov / 2);
+
+      const distance = Math.max(
+        verticalDistance,
+        horizontalDistance
+      );
+
+      camera.position.set(
+        0,
+        characterHeight * 0.48,
+        distance * 1.12
+      );
+
+      camera.lookAt(
+        0,
+        characterHeight * 0.48,
+        0
+      );
+
       camera.updateProjectionMatrix();
     }
 
-    window.addEventListener("resize", resizeStage);
-    resizeStage();
+    window.addEventListener("resize", updateCamera);
 
-    // Load the actual Michael Jackson model
+    // LOAD MICHAEL JACKSON
     const loader = new GLTFLoader();
 
     loader.load(
@@ -6521,53 +6554,53 @@ body.light-mode .guardian-confirm-danger {
       function (gltf) {
         dancer = gltf.scene;
 
-        // Center and scale the character
-        const box = new THREE.Box3().setFromObject(dancer);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
+        // GET CHARACTER DIMENSIONS
+        const originalBox = new THREE.Box3().setFromObject(dancer);
+        const originalSize = originalBox.getSize(
+          new THREE.Vector3()
+        );
 
-        const maxDimension = Math.max(size.x, size.y, size.z);
+        const maxDimension = Math.max(
+          originalSize.x,
+          originalSize.y,
+          originalSize.z
+        );
 
         if (!maxDimension || !Number.isFinite(maxDimension)) {
-          status.textContent = "The 3D model has invalid dimensions.";
+          status.textContent = "Invalid 3D model dimensions.";
           return;
         }
 
-        const scale = 2.8 / maxDimension;
+        // SCALE CHARACTER SMALLER TO FIT THE STAGE
+        const scale = 2.35 / maxDimension;
+
         dancer.scale.setScalar(scale);
 
-        dancer.position.x = -center.x * scale;
-        dancer.position.y = -box.min.y * scale;
-        dancer.position.z = -center.z * scale;
+        // POSITION CHARACTER WITH FEET AT FLOOR LEVEL
+        const scaledBox = new THREE.Box3().setFromObject(dancer);
+
+        const center = scaledBox.getCenter(new THREE.Vector3());
+
+        dancer.position.x -= center.x;
+        dancer.position.z -= center.z;
+        dancer.position.y -= scaledBox.min.y;
 
         scene.add(dancer);
 
-        // Camera framing
-        
-// Camera framing - show the FULL dancing character
-const scaledHeight = size.y * scale;
+        // GET FINAL CHARACTER HEIGHT
+        const finalBox = new THREE.Box3().setFromObject(dancer);
 
-camera.position.set(
-  0,
-  scaledHeight * 0.55,
-  scaledHeight * 5.8
-);
+        characterHeight = finalBox.max.y - finalBox.min.y;
 
-camera.lookAt(
-  0,
-  scaledHeight * 0.50,
-  0
-);
+        // CAMERA: SHOW FULL BODY WITH SPACE ABOVE AND BELOW
+        updateCamera();
 
-camera.fov = 42;
-camera.updateProjectionMatrix();
-
-
-        // Load model animations
+        // LOAD MIXAMO ANIMATION
         if (gltf.animations && gltf.animations.length > 0) {
+
           mixer = new THREE.AnimationMixer(dancer);
 
-          actions = gltf.animations.map((clip) => {
+          actions = gltf.animations.map(clip => {
             return mixer.clipAction(clip);
           });
 
@@ -6575,22 +6608,23 @@ camera.updateProjectionMatrix();
           actions[0].reset().play();
 
           status.textContent =
-            "Michael Jackson 3D dancer loaded";
+            "Michael Jackson is dancing";
 
         } else {
+
           status.textContent =
             "Model loaded, but no dance animation was found.";
+
         }
 
-        resizeStage();
-        console.log("3D model loaded:", gltf);
-        console.log("Animation clips:", gltf.animations);
+        console.log("Michael Jackson loaded:", gltf);
+        console.log("Dance animations:", gltf.animations);
       },
 
       function (progress) {
         if (progress.total > 0) {
           const percent = Math.round(
-            (progress.loaded / progress.total) * 100
+            progress.loaded / progress.total * 100
           );
 
           status.textContent =
@@ -6599,14 +6633,14 @@ camera.updateProjectionMatrix();
       },
 
       function (error) {
-        console.error("Michael Jackson model error:", error);
+        console.error("Model loading error:", error);
 
         status.textContent =
-          "Could not load model. Check the GLB file and its path.";
+          "Could not load Michael Jackson model.";
       }
     );
 
-    // Play / pause
+    // PLAY AND PAUSE
     playButton.addEventListener("click", function () {
       if (!actions.length) return;
 
@@ -6621,7 +6655,7 @@ camera.updateProjectionMatrix();
       }
     });
 
-    // Change animation
+    // CHANGE DANCE
     function changeAnimation(direction) {
       if (!actions.length) return;
 
@@ -6634,6 +6668,7 @@ camera.updateProjectionMatrix();
       isPlaying = true;
 
       actions[currentAction].reset().play();
+
       playButton.textContent = "Ⅱ";
 
       status.textContent =
@@ -6641,15 +6676,15 @@ camera.updateProjectionMatrix();
         " of " + actions.length;
     }
 
-    nextButton.addEventListener("click", () => {
+    nextButton.addEventListener("click", function () {
       changeAnimation(1);
     });
 
-    prevButton.addEventListener("click", () => {
+    prevButton.addEventListener("click", function () {
       changeAnimation(-1);
     });
 
-    // Animation loop
+    // ANIMATION LOOP
     function animate() {
       animationFrame = requestAnimationFrame(animate);
 
@@ -6666,10 +6701,10 @@ camera.updateProjectionMatrix();
 
     animate();
 
-    // Cleanup if the section is removed
+    // CLEANUP
     window.addEventListener("pagehide", function () {
       cancelAnimationFrame(animationFrame);
-      window.removeEventListener("resize", resizeStage);
+      window.removeEventListener("resize", updateCamera);
       renderer.dispose();
     }, { once: true });
 
