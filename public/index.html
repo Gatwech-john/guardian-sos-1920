@@ -6543,14 +6543,25 @@ body.light-mode .guardian-confirm-danger {
         scene.add(dancer);
 
         // Camera framing
-        const scaledHeight = size.y * scale;
-        camera.position.set(
-          0,
-          Math.max(1.2, scaledHeight * 0.55),
-          Math.max(4.5, scaledHeight * 2.3)
-        );
+        
+// Camera framing - show the FULL dancing character
+const scaledHeight = size.y * scale;
 
-        camera.lookAt(0, scaledHeight * 0.48, 0);
+camera.position.set(
+  0,
+  scaledHeight * 0.55,
+  scaledHeight * 3.8
+);
+
+camera.lookAt(
+  0,
+  scaledHeight * 0.50,
+  0
+);
+
+camera.fov = 42;
+camera.updateProjectionMatrix();
+
 
         // Load model animations
         if (gltf.animations && gltf.animations.length > 0) {
