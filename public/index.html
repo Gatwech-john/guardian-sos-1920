@@ -18210,14 +18210,19 @@ window.selectGuardianSafetyStatus = function(status) {
     closeGuardianStatusPicker();
 
     // Open existing SOS confirmation if help is selected
-    if (status === "help" &&
-        typeof openSOSModal === "function") {
+if (status === "help") {
 
-        setTimeout(function() {
-            openSOSModal();
-        }, 250);
+    setTimeout(function() {
 
-    }
+        if (typeof activateSOS === "function") {
+            activateSOS();
+        } else {
+            console.error("Guardian SOS: activateSOS() was not found.");
+        }
+
+    }, 250);
+
+}
 
     if (status === "safe") {
         showToast("Your safety status is now: I'm Safe.");
