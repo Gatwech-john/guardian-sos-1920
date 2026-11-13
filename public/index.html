@@ -6514,132 +6514,143 @@ renderer.setClearColor(0x000000, 0);
     backLight.position.set(0, 3, -3);
     scene.add(backLight);
 
-    // STAGE FLOOR
-   // RAINBOW GLOWING STAGE FLOOR
-const floorCanvas = document.createElement("canvas");
-floorCanvas.width = floorCanvas.height = 256;
-const floorCtx = floorCanvas.getContext("2d");
-const floorImage = floorCtx.createImageData(256, 256);
-const tmpColor = new THREE.Color();
+        // ===== STAGE: RAINBOW FLOOR + RAINBOW RING + LIGHTS =====
+    const FLOOR_RADIUS = 1.2;
+    const RING_RADIUS = 1.25;
 
-for (let y = 0; y < 256; y++) {
-  for (let x = 0; x < 256; x++) {
-    const dx = x - 128;
-    const dy = y - 128;
-    const dist = Math.min(Math.sqrt(dx * dx + dy * dy) / 128, 1);
-    const hue = Math.atan2(dy, dx) / (Math.PI * 2) + 0.5;   // colour around the circle
-    const light = 0.3 + 0.25 * dist;                         // softer centre, brighter edge
-    tmpColor.setHSL(hue, 1, light);
-    const i = (y * 256 + x) * 4;
-    floorImage.data[i]     = Math.round(tmpColor.r * 255);
-    floorImage.data[i + 1] = Math.round(tmpColor.g * 255);
-    floorImage.data[i + 2] = Math.round(tmpColor.b * 255);
-    floorImage.data[i + 3] = 255;
-  }
-}
-floorCtx.putImageData(floorImage, 0, 0);
+    // Floor: a rainbow wheel painted on a canvas
+    const floorCanvas = document.createElement("canvas");
+    floorCanvas.width = 256;
+    floorCanvas.height = 256;
+    const floorCtx = floorCanvas.getContext("2d");
+    const floorImage = floorCtx.createImageData(256, 256);
+    const tmpColor = new THREE.Color();
 
-const floorTexture = new THREE.CanvasTexture(floorCanvas);
-floorTexture.colorSpace = THREE.SRGBColorSpace;
-floorTexture.center.set(0.5, 0.5);
+    for (let y = 0; y < 256; y++) {
+      for (let x = 0; x < 256; x++) {
+        const dx = x - 128;
+        const dy = y - 128;
+        const dist = Math.min(Math.sqrt(dx * dx + dy * dy) / 128, 1);
+        const hue = Math.atan2(dy, dx) / (Math.PI * 2) + 0.5;
+        tmpColor.setHSL(hue, 1, 0.25 + 0.2 * dist);
+        const i = (y * 256 + x) * 4;
+        floorImage.data[i]     = Math.round(tmpColor.r * 255);
+        floorImage.data[i + 1] = Math.round(tmpColor.g * 255);
+        floorImage.data[i + 2] = Math.round(tmpColor.b * 255);
+        floorImage.data[i + 3] = 255;
+      }
+    }
+    floorCtx.putImageData(floorImage, 0, 0);
 
-const floor = new THREE.Mesh(
-  new THREE.CircleGeometry(1.3, 64),
-  new THREE.MeshStandardMaterial({
-    color: 0x000000,
-    emissive: 0xffffff,
-    emissiveMap: floorTexture,
-    emissiveIntensity: 1.2,
-    roughness: 0.65,
-    metalness: 0.3,
-    toneMapped: false
-  })
-);
+    const floorTexture = new THREE.CanvasTexture(floorCanvas);
+    floorTexture.colorSpace = THREE.SRGBColorSpace;
+    floorTexture.center.set(0.5, 0.5);
 
-floor.rotation.x = -Math.PI / 2;
-floor.position.y = 0;
-scene.add(floor);
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(FLOOR_RADIUS, 64),
+      new THREE.MeshBasicMaterial({ map: floorTexture, toneMapped: false })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = 0;
+    scene.add(floor);
 
-    // PINK NEON RING
-    // Main deep-pink stage ring
-const ring = new THREE.Mesh(
-  new THREE.TorusGeometry(1.7, 0.025, 16, 120),
-  new THREE.MeshBasicMaterial({
-    color: 0xff1493
-  })
-);
+    // Ring + glow layers
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(RING_RADIUS, 0.03, 16, 160),
+      new THREE.MeshBasicMaterial({ color: 0xff1493, toneMapped: false })
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 0.02;
+    scene.add(ring);
 
-ring.rotation.x = Math.PI / 2;
-ring.position.y = 0.01;
-scene.add(ring);
+    const glowRings = [];
+    [[0.08, 0.35], [0.15, 0.2], [0.25, 0.1]].forEach(function (cfg) {
+      const g = new THREE.Mesh(
+        new THREE.TorusGeometry(RING_RADIUS, cfg[0], 16, 160),
+        new THREE.MeshBasicMaterial({
+          color: 0xff1493,
+          transparent: true,
+          opacity: cfg[1],
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          toneMapped: false
+        })
+      );
+      g.rotation.x = Math.PI / 2;
+      g.position.y = 0.02;
+      g.userData.baseOpacity = cfg[1];
+      scene.add(g);
+      glowRings.push(g);
+    });
 
-// Pink outer glow
-const pinkGlowRing = new THREE.Mesh(
-  new THREE.TorusGeometry(1.7, 0.075, 16, 120),
-  new THREE.MeshBasicMaterial({
-    color: 0xff1493,
-    transparent: true,
-    opacity: 0.22
-  })
-);
+    // Colourful stage lights
+    const stagePinkLight = new THREE.PointLight(0xff1493, 35, 9);
+    stagePinkLight.position.set(0, 2, 2);
+    scene.add(stagePinkLight);
 
-pinkGlowRing.rotation.x = Math.PI / 2;
-pinkGlowRing.position.y = 0.01;
-scene.add(pinkGlowRing);
+    const blueLight = new THREE.PointLight(0x008cff, 30, 9);
+    blueLight.position.set(-3, 3, 1);
+    scene.add(blueLight);
 
-// Colourful stage lights
-const stagePinkLight = new THREE.PointLight(0xff1493, 35, 9);
-stagePinkLight.position.set(0, 2, 2);
-scene.add(stagePinkLight);
+    const purpleLight = new THREE.PointLight(0x9b30ff, 30, 9);
+    purpleLight.position.set(3, 3, -1);
+    scene.add(purpleLight);
 
-const blueLight = new THREE.PointLight(0x008cff, 30, 9);
-blueLight.position.set(-3, 3, 1);
-scene.add(blueLight);
+    const whiteLight = new THREE.SpotLight(0xffffff, 4, 12, Math.PI / 5, 0.5, 1);
+    whiteLight.position.set(0, 6, 3);
+    whiteLight.target.position.set(0, 1, 0);
+    scene.add(whiteLight);
+    scene.add(whiteLight.target);
 
-const purpleLight = new THREE.PointLight(0x9b30ff, 30, 9);
-purpleLight.position.set(3, 3, -1);
-scene.add(purpleLight);
+    // Your app uses "light-mode" (there is no "dark-mode" class)
+    function isLightMode() {
+      return document.body.classList.contains("light-mode") ||
+             document.documentElement.classList.contains("light-mode");
+    }
 
-const whiteLight = new THREE.SpotLight(
-  0xffffff, 4, 12, Math.PI / 5, 0.5, 1
-);
+    function updateMichaelStageLights() {
+      const dark = !isLightMode();
+      stagePinkLight.intensity = dark ? 35 : 0;
+      blueLight.intensity      = dark ? 30 : 0;
+      purpleLight.intensity    = dark ? 30 : 0;
+      whiteLight.intensity     = dark ? 4  : 0;
+    }
 
-whiteLight.position.set(0, 6, 3);
-whiteLight.target.position.set(0, 1, 0);
+    updateMichaelStageLights();
 
-scene.add(whiteLight);
-scene.add(whiteLight.target);
+    const michaelThemeObserver = new MutationObserver(updateMichaelStageLights);
+    michaelThemeObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"]
+    });
+    michaelThemeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"]
+    });
 
+    // Called every frame: changes colours + spins the floor
+    function updateStageColors(t) {
+      const dark = !isLightMode();
+      const hue = (t * 0.12) % 1;
 
-function updateMichaelStageLights() {
-  const isDark =
-    document.body.classList.contains("dark-mode") ||
-    document.documentElement.classList.contains("dark-mode") ||
-    document.documentElement.dataset.theme === "dark";
+      ring.material.color.setHSL(hue, 1, 0.55);
 
-    stagePinkLight.intensity = isDark ? 35 : 0;
-  blueLight.intensity = isDark ? 30 : 0;
-  purpleLight.intensity = isDark ? 30 : 0;
-  whiteLight.intensity = isDark ? 4 : 0;
+      glowRings.forEach(function (g, i) {
+        g.material.color.setHSL((hue + i * 0.08) % 1, 1, 0.55);
+        g.material.opacity = dark
+          ? g.userData.baseOpacity * (0.75 + 0.25 * Math.sin(t * 3))
+          : 0.08;
+      });
 
-  pinkGlowRing.material.opacity = isDark ? 0.35 : 0;
-}
+      stagePinkLight.color.setHSL(hue, 1, 0.5);
+      blueLight.color.setHSL((hue + 0.33) % 1, 1, 0.5);
+      purpleLight.color.setHSL((hue + 0.66) % 1, 1, 0.5);
 
-updateMichaelStageLights();
-
-const michaelThemeObserver = new MutationObserver(
-  updateMichaelStageLights
-);
-
-michaelThemeObserver.observe(document.body, {
-  attributes: true,
-  attributeFilter: ["class"]
-});
-
-michaelThemeObserver.observe(document.documentElement, {
-  attributes: true,
-  attributeFilter: ["class", "data-theme"]
-});
+      floorTexture.rotation = -t * 0.5;
+      floor.material.color.setScalar(
+        dark ? 0.85 + 0.15 * Math.sin(t * 3) : 0.7
+      );
+    }
 
     // MODEL FRAMING VALUES
     let characterHeight = 2.8;
@@ -6812,11 +6823,8 @@ function updateCamera() {
         mixer.update(delta);
       }
 
-      ring.rotation.z += 0.002;
-      floorTexture.rotation -= 0.012;   // the rainbow spins around the stage
-floor.material.emissiveIntensity = stageIsDark
-  ? 1.1 + 0.4 * Math.sin(clock.elapsedTime * 3)   // pulsing glow
-  : 0.5;                                           // calmer in light mode
+            updateStageColors(clock.elapsedTime);
+
 
       renderer.render(scene, camera);
     }
