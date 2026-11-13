@@ -17746,11 +17746,489 @@ document.addEventListener(
         $('globalSafetyPill')?.classList.remove('safe','careful','help'); $('globalSafetyPill')?.classList.add(key);
         $('socialStatusTag') && ($('socialStatusTag').textContent=key==='safe'?'🛡️ I\'m Safe':key==='careful'?'⚠️ Be Careful':'🚨 I Need Help');
     }
-    window.openSafetyStatusPicker=function(){
-        const value=prompt('Set your Safety Status:\n\n1 = I\'m Safe\n2 = Be Careful\n3 = I Need Help','1');
-        if(value==='1')setStatus('safe',"I'm Safe"); else if(value==='2')setStatus('careful','Be Careful'); else if(value==='3')setStatus('help','I Need Help');
-        if(value==='3' && typeof openSOSModal==='function') openSOSModal();
+    
+window.openSafetyStatusPicker = function () {
+
+    // Create the popup only once
+    let modal = document.getElementById("guardianStatusModal");
+
+    if (!modal) {
+
+        const style = document.createElement("style");
+
+        style.id = "guardianStatusModalStyles";
+
+        style.textContent = `
+
+        #guardianStatusModal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000005;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(0,0,0,.82);
+            backdrop-filter: blur(9px);
+            -webkit-backdrop-filter: blur(9px);
+        }
+
+        #guardianStatusModal.open {
+            display: flex;
+            animation: guardianStatusFade .2s ease;
+        }
+
+        @keyframes guardianStatusFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes guardianStatusPop {
+            from {
+                opacity: 0;
+                transform: translateY(15px) scale(.94);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .guardian-status-popup {
+            width: 100%;
+            max-width: 410px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 28px 23px;
+            background: linear-gradient(145deg,#191019,#080808);
+            border: 1px solid #ff1493;
+            border-radius: 23px;
+            color: white;
+            text-align: center;
+            box-shadow:
+                0 20px 65px rgba(0,0,0,.7),
+                0 0 30px rgba(255,20,147,.18);
+            animation: guardianStatusPop .22s ease;
+        }
+
+        .guardian-status-popup-header {
+            position: relative;
+            margin-bottom: 22px;
+        }
+
+        .guardian-status-close {
+            position: absolute;
+            top: -12px;
+            right: -10px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 1px solid #ff1493;
+            background: #111;
+            color: #ff1493;
+            font-size: 19px;
+            cursor: pointer;
+        }
+
+        .guardian-status-main-icon {
+            width: 66px;
+            height: 66px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            background: rgba(255,20,147,.12);
+            border: 1px solid #ff1493;
+            color: #ff1493;
+            font-size: 30px;
+            box-shadow: 0 0 22px rgba(255,20,147,.2);
+        }
+
+        .guardian-status-popup h2 {
+            color: white;
+            font-size: 23px;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .guardian-status-popup .status-description {
+            color: #aaa;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .guardian-status-options {
+            display: grid;
+            gap: 12px;
+            margin-top: 23px;
+        }
+
+        .guardian-status-option {
+            width: 100%;
+            min-height: 75px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 13px;
+            border-radius: 14px;
+            border: 1px solid #333;
+            background: #111;
+            color: white;
+            text-align: left;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+
+        .guardian-status-option:hover {
+            border-color: #ff1493;
+            background: #21101a;
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(255,20,147,.15);
+        }
+
+        .guardian-status-option:active {
+            transform: scale(.98);
+        }
+
+        .guardian-status-option-icon {
+            width: 47px;
+            height: 47px;
+            min-width: 47px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 23px;
+        }
+
+        .guardian-status-option-copy {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .guardian-status-option-copy strong {
+            display: block;
+            font-size: 15px;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .guardian-status-option-copy small {
+            display: block;
+            font-size: 11px;
+            color: #999;
+            line-height: 1.4;
+        }
+
+        .guardian-status-option-arrow {
+            color: #ff1493;
+            font-size: 18px;
+        }
+
+        .guardian-safe-icon {
+            color: #00df83;
+            background: rgba(0,223,131,.12);
+        }
+
+        .guardian-careful-icon {
+            color: #ffb52e;
+            background: rgba(255,181,46,.12);
+        }
+
+        .guardian-help-icon {
+            color: #ff4444;
+            background: rgba(255,68,68,.12);
+        }
+
+        .guardian-status-cancel {
+            width: 100%;
+            padding: 13px;
+            margin-top: 19px;
+            border: 1px solid #ff1493;
+            border-radius: 11px;
+            background: transparent;
+            color: #ff1493;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .guardian-status-cancel:hover {
+            background: #ff1493;
+            color: white;
+        }
+
+        /* LIGHT MODE */
+
+        body.light-mode #guardianStatusModal {
+            background: rgba(0,0,0,.55);
+        }
+
+        body.light-mode .guardian-status-popup {
+            background: #fff;
+            border: 1.5px solid #111;
+            color: #111;
+            box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        }
+
+        body.light-mode .guardian-status-popup h2 {
+            color: #000;
+        }
+
+        body.light-mode .guardian-status-popup .status-description {
+            color: #555;
+        }
+
+        body.light-mode .guardian-status-option {
+            background: #fff;
+            border: 1px solid #ddd;
+        }
+
+        body.light-mode .guardian-status-option:hover {
+            background: #fff5fa;
+            border-color: #ff1493;
+        }
+
+        body.light-mode .guardian-status-option-copy strong {
+            color: #111;
+        }
+
+        body.light-mode .guardian-status-option-copy small {
+            color: #666;
+        }
+
+        body.light-mode .guardian-status-close {
+            background: white;
+            color: #111;
+            border-color: #111;
+        }
+
+        body.light-mode .guardian-status-cancel {
+            background: white;
+            color: #111;
+            border-color: #111;
+        }
+
+        body.light-mode .guardian-status-main-icon {
+            background: #fff5fa;
+        }
+
+        @media(max-width:420px) {
+
+            .guardian-status-popup {
+                padding: 24px 17px;
+                border-radius: 19px;
+            }
+
+            .guardian-status-popup h2 {
+                font-size: 20px;
+            }
+
+            .guardian-status-option {
+                min-height: 69px;
+                padding: 10px;
+            }
+
+        }
+
+        `;
+
+        document.head.appendChild(style);
+
+        modal = document.createElement("div");
+
+        modal.id = "guardianStatusModal";
+
+        modal.innerHTML = `
+
+            <div class="guardian-status-popup"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="guardianStatusTitle">
+
+                <div class="guardian-status-popup-header">
+
+                    <button type="button"
+                            class="guardian-status-close"
+                            aria-label="Close"
+                            onclick="closeGuardianStatusPicker()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+
+                    <div class="guardian-status-main-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+
+                    <h2 id="guardianStatusTitle">
+                        Your Safety Status
+                    </h2>
+
+                    <p class="status-description">
+                        Let your trusted people know how you are doing.
+                        Select your current safety status below.
+                    </p>
+
+                </div>
+
+                <div class="guardian-status-options">
+
+                    <button type="button"
+                            class="guardian-status-option"
+                            onclick="selectGuardianSafetyStatus('safe')">
+
+                        <div class="guardian-status-option-icon guardian-safe-icon">
+                            <i class="bi bi-shield-fill-check"></i>
+                        </div>
+
+                        <div class="guardian-status-option-copy">
+                            <strong>I'm Safe</strong>
+                            <small>
+                                Everything is okay. I'm safe.
+                            </small>
+                        </div>
+
+                        <i class="bi bi-chevron-right guardian-status-option-arrow"></i>
+
+                    </button>
+
+                    <button type="button"
+                            class="guardian-status-option"
+                            onclick="selectGuardianSafetyStatus('careful')">
+
+                        <div class="guardian-status-option-icon guardian-careful-icon">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </div>
+
+                        <div class="guardian-status-option-copy">
+                            <strong>Be Careful</strong>
+                            <small>
+                                I may be in a situation requiring caution.
+                            </small>
+                        </div>
+
+                        <i class="bi bi-chevron-right guardian-status-option-arrow"></i>
+
+                    </button>
+
+                    <button type="button"
+                            class="guardian-status-option"
+                            onclick="selectGuardianSafetyStatus('help')">
+
+                        <div class="guardian-status-option-icon guardian-help-icon">
+                            <i class="bi bi-exclamation-octagon-fill"></i>
+                        </div>
+
+                        <div class="guardian-status-option-copy">
+                            <strong>I Need Help</strong>
+                            <small>
+                                I need assistance. Open emergency SOS.
+                            </small>
+                        </div>
+
+                        <i class="bi bi-chevron-right guardian-status-option-arrow"></i>
+
+                    </button>
+
+                </div>
+
+                <button type="button"
+                        class="guardian-status-cancel"
+                        onclick="closeGuardianStatusPicker()">
+
+                    Cancel
+
+                </button>
+
+            </div>
+
+        `;
+
+        document.body.appendChild(modal);
+
+        // Close when clicking outside
+        modal.addEventListener("click", function(event) {
+
+            if (event.target === modal) {
+                closeGuardianStatusPicker();
+            }
+
+        });
+
+    }
+
+    modal.classList.add("open");
+
+    document.body.style.overflow = "hidden";
+
+};
+
+
+// Close popup
+window.closeGuardianStatusPicker = function() {
+
+    const modal = document.getElementById("guardianStatusModal");
+
+    if (modal) {
+        modal.classList.remove("open");
+    }
+
+    document.body.style.overflow = "";
+
+};
+
+
+// Select safety status
+window.selectGuardianSafetyStatus = function(status) {
+
+    const statuses = {
+
+        safe: {
+            key: "safe",
+            label: "I'm Safe"
+        },
+
+        careful: {
+            key: "careful",
+            label: "Be Careful"
+        },
+
+        help: {
+            key: "help",
+            label: "I Need Help"
+        }
+
     };
+
+    const selected = statuses[status];
+
+    if (!selected) return;
+
+    // Update existing Guardian SOS status system
+    setStatus(selected.key, selected.label);
+
+    // Close popup
+    closeGuardianStatusPicker();
+
+    // Open existing SOS confirmation if help is selected
+    if (status === "help" &&
+        typeof openSOSModal === "function") {
+
+        setTimeout(function() {
+            openSOSModal();
+        }, 250);
+
+    }
+
+    if (status === "safe") {
+        showToast("Your safety status is now: I'm Safe.");
+    }
+
+    if (status === "careful") {
+        showToast("Your safety status is now: Be Careful.");
+    }
+
+};
+
 
     function renderBattery(){
         const level=$('batteryLevel'),state=$('batteryState'); if(!level)return;
