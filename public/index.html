@@ -6563,25 +6563,7 @@ renderer.setClearColor(0x000000, 0);
     ring.position.y = 0.02;
     scene.add(ring);
 
-    const glowRings = [];
-    [[0.08, 0.35], [0.15, 0.2], [0.25, 0.1]].forEach(function (cfg) {
-      const g = new THREE.Mesh(
-        new THREE.TorusGeometry(RING_RADIUS, cfg[0], 16, 160),
-        new THREE.MeshBasicMaterial({
-          color: 0xff1493,
-          transparent: true,
-          opacity: cfg[1],
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-          toneMapped: false
-        })
-      );
-      g.rotation.x = Math.PI / 2;
-      g.position.y = 0.02;
-      g.userData.baseOpacity = cfg[1];
-      scene.add(g);
-      glowRings.push(g);
-    });
+    
 
     // Colourful stage lights
     const stagePinkLight = new THREE.PointLight(0xff1493, 35, 9);
@@ -6635,12 +6617,7 @@ renderer.setClearColor(0x000000, 0);
 
       ring.material.color.setHSL(hue, 1, 0.55);
 
-      glowRings.forEach(function (g, i) {
-        g.material.color.setHSL((hue + i * 0.08) % 1, 1, 0.55);
-        g.material.opacity = dark
-          ? g.userData.baseOpacity * (0.75 + 0.25 * Math.sin(t * 3))
-          : 0.08;
-      });
+      
 
       stagePinkLight.color.setHSL(hue, 1, 0.5);
       blueLight.color.setHSL((hue + 0.33) % 1, 1, 0.5);
