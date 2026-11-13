@@ -6507,36 +6507,32 @@ renderer.setClearColor(0x000000, 0);
     floor.position.y = 0;
     scene.add(floor);
 
-   // RAINBOW NEON RING + GLOW LAYERS
-const RING_RADIUS = 1.15;
-
+    // PINK NEON RING
+    // Main deep-pink stage ring
 const ring = new THREE.Mesh(
-  new THREE.TorusGeometry(RING_RADIUS, 0.03, 16, 160),
-  new THREE.MeshBasicMaterial({ color: 0xff1493, toneMapped: false })
+  new THREE.TorusGeometry(1.7, 0.025, 16, 120),
+  new THREE.MeshBasicMaterial({
+    color: 0xff1493
+  })
 );
+
 ring.rotation.x = Math.PI / 2;
-ring.position.y = 0.02;
+ring.position.y = 0.01;
 scene.add(ring);
 
-const glowRings = [];
-[[0.08, 0.35], [0.15, 0.2], [0.25, 0.1]].forEach(function (cfg) {
-  const g = new THREE.Mesh(
-    new THREE.TorusGeometry(RING_RADIUS, cfg[0], 16, 160),
-    new THREE.MeshBasicMaterial({
-      color: 0xff1493,
-      transparent: true,
-      opacity: cfg[1],
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      toneMapped: false
-    })
-  );
-  g.rotation.x = Math.PI / 2;
-  g.position.y = 0.02;
-  g.userData.baseOpacity = cfg[1];
-  scene.add(g);
-  glowRings.push(g);
-});
+// Pink outer glow
+const pinkGlowRing = new THREE.Mesh(
+  new THREE.TorusGeometry(1.7, 0.075, 16, 120),
+  new THREE.MeshBasicMaterial({
+    color: 0xff1493,
+    transparent: true,
+    opacity: 0.22
+  })
+);
+
+pinkGlowRing.rotation.x = Math.PI / 2;
+pinkGlowRing.position.y = 0.01;
+scene.add(pinkGlowRing);
 
 // Colourful stage lights
 const stagePinkLight = new THREE.PointLight(0xff1493, 35, 9);
@@ -6562,21 +6558,18 @@ scene.add(whiteLight);
 scene.add(whiteLight.target);
 
 
-let stageIsDark = true;
-
 function updateMichaelStageLights() {
-  stageIsDark =
-    !document.body.classList.contains("light-mode") &&
-    !document.documentElement.classList.contains("light-mode");
+  const isDark =
+    document.body.classList.contains("dark-mode") ||
+    document.documentElement.classList.contains("dark-mode") ||
+    document.documentElement.dataset.theme === "dark";
 
-  stagePinkLight.intensity = stageIsDark ? 35 : 0;
-  blueLight.intensity      = stageIsDark ? 30 : 0;
-  purpleLight.intensity    = stageIsDark ? 30 : 0;
-  whiteLight.intensity     = stageIsDark ? 4  : 0;
+    stagePinkLight.intensity = isDark ? 35 : 0;
+  blueLight.intensity = isDark ? 30 : 0;
+  purpleLight.intensity = isDark ? 30 : 0;
+  whiteLight.intensity = isDark ? 4 : 0;
 
-  glowRings.forEach(function (g) {
-    g.material.opacity = stageIsDark ? g.userData.baseOpacity : 0;
-  });
+  pinkGlowRing.material.opacity = isDark ? 0.35 : 0;
 }
 
 updateMichaelStageLights();
@@ -6766,23 +6759,7 @@ function updateCamera() {
         mixer.update(delta);
       }
 
-      const t = clock.elapsedTime;
-const hue = (t * 0.12) % 1;
-
-ring.material.color.setHSL(hue, 1, 0.55);
-
-glowRings.forEach(function (g, i) {
-  g.material.color.setHSL((hue + i * 0.08) % 1, 1, 0.55);
-  if (stageIsDark) {
-    g.material.opacity = g.userData.baseOpacity * (0.75 + 0.25 * Math.sin(t * 3));
-  }
-});
-
-stagePinkLight.color.setHSL(hue, 1, 0.5);
-blueLight.color.setHSL((hue + 0.33) % 1, 1, 0.5);
-purpleLight.color.setHSL((hue + 0.66) % 1, 1, 0.5);
-
-ring.rotation.z += 0.002;
+      ring.rotation.z += 0.002;
 
       renderer.render(scene, camera);
     }
