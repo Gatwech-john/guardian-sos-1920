@@ -6374,6 +6374,34 @@ box-shadow: none;
       background: #ff1493;
     }
 
+#mj-neon-dancer .mj-control {
+  border-width: 2px;
+  animation: mjBtnRainbow 4s linear infinite;
+}
+
+/* each button starts at a different colour */
+#mj-neon-dancer #mj-prev { animation-delay: 0s; }
+#mj-neon-dancer #mj-play { animation-delay: -1.3s; }
+#mj-neon-dancer #mj-next { animation-delay: -2.6s; }
+
+@keyframes mjBtnRainbow {
+  0%   { border-color: #ff0000; color: #ff0000; }
+  17%  { border-color: #ff7a00; color: #ff7a00; }
+  33%  { border-color: #ffff00; color: #ffff00; }
+  50%  { border-color: #00ff00; color: #00ff00; }
+  67%  { border-color: #00ccff; color: #00ccff; }
+  83%  { border-color: #9b30ff; color: #9b30ff; }
+  100% { border-color: #ff0000; color: #ff0000; }
+}
+
+/* when pressed, show a white icon on a rainbow-free dark fill */
+#mj-neon-dancer .mj-control:active {
+  background: #222;
+}
+
+
+
+
     #mj-neon-dancer .mj-sos {
       display: inline-block;
       padding: 15px 35px;
