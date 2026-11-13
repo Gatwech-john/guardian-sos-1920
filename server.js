@@ -294,7 +294,21 @@ const UserSchema = new mongoose.Schema(
     type: [String],
     default: []
 },
+        safetyStatus: {
+            type: String,
+            enum: ["safe", "careful", "help"]
+        },
 
+        safetyStatusUpdatedAt: {
+            type: Date,
+            default: null
+        },
+
+        safetyVisibility: {
+            type: String,
+            enum: ["trusted", "family", "private"],
+            default: "trusted"
+        },
         password: {
             type: String,
             required: true
@@ -4157,10 +4171,105 @@ app.post(
 );
 
 /* ============================================================
-   EMERGENCY CONTACTS
+   SAFETY STATUS (safe / careful / help)
 ============================================================ */
 
+app.put(
+    "/api/safety/status",
+    authenticateToken,
+    async (req, res) => {
+        try {
+            await connectMongoDB();
 
+            const status = String(req.body?.status || "");
+            const visibility = String(req.body?.visibility || "trusted");
+
+            if (!["safe", "careful", "help"].includes(status)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid safety status."
+                });
+            }
+
+            const safeVisibility =
+                ["trusted", "family", "private"].includes(visibility)
+                    ? visibility
+                    : "trusted";
+
+            await User.findByIdAndUpdate(req.user.userId, {
+                $set: {
+                    safetyStatus: status,
+                    safetyStatusUpdatedAt: new Date(),
+                    safetyVisibility: safeVisibility
+                }
+            });
+
+            res.json({ success: true });
+        } catch (error) {
+            console.error("Save safety status error:", error);
+            res.status(500).json({
+                success: false,
+                message: "Unable to save safety status."
+            });
+        }
+    }
+);
+
+app.post(
+    "/api/safety/family-status",
+    authenticateToken,
+    async (req, res) => {
+        try {
+            await connectMongoDB();
+
+            const phones = Array.isArray(req.body?.phones)
+                ? req.body.phones.slice(0, 50)
+                : [];
+
+            const variantsByPhone = {};
+            const allVariants = new Set();
+
+            phones.forEach(function (phone) {
+                const variants = getPhoneVariants(phone);
+                variantsByPhone[phone] = variants;
+                variants.forEach(v => allVariants.add(v));
+            });
+
+            const users = await User.find({
+                _id: { $ne: req.user.userId },
+                phone: { $in: [...allVariants] }
+            }).select("phone safetyStatus safetyStatusUpdatedAt safetyVisibility");
+
+            const statuses = {};
+
+            phones.forEach(function (phone) {
+                const variants = variantsByPhone[phone] || [];
+                const match = users.find(u => variants.includes(u.phone));
+
+                if (
+                    match &&
+                    match.safetyStatus &&
+                    match.safetyVisibility !== "private"
+                ) {
+                    statuses[phone] = {
+                        status: match.safetyStatus,
+                        updatedAt: match.safetyStatusUpdatedAt
+                    };
+                } else {
+                    statuses[phone] = { status: null };
+                }
+            });
+
+            res.json({ success: true, statuses });
+        } catch (error) {
+            console.error("Family status error:", error);
+            res.status(500).json({
+                success: false,
+                message: "Unable to load family status."
+            });
+        }
+    }
+);
 /*
 ------------------------------------------------------------
 ADD EMERGENCY CONTACT

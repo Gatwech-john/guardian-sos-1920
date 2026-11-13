@@ -5858,7 +5858,36 @@ body.light-mode .guardian-confirm-danger {
     }
 }
 
+/* ===== FAMILY MEMBER STATUS LIGHT ===== */
+.family-item .family-avatar{position:relative;overflow:visible}
+.family-item small{display:block}
+.family-status-dot{
+    position:absolute;right:-3px;bottom:-3px;
+    width:14px;height:14px;border-radius:50%;
+    border:2px solid #0d0d0f;
+    background:#8a8a8a;
+}
+.family-status-dot.safe{background:#00df83;box-shadow:0 0 8px #00df83}
+.family-status-dot.careful{background:#ffb52e;box-shadow:0 0 8px #ffb52e}
+.family-status-dot.help{background:#ff3b3b;box-shadow:0 0 10px #ff3b3b;animation:familyHelpBlink 1s infinite}
+.family-status-dot.unknown{background:#8a8a8a}
+.family-item .family-status-text{font-size:10px;font-weight:800;opacity:1}
+.family-status-text.safe{color:#00df83}
+.family-status-text.careful{color:#ffb52e}
+.family-status-text.help{color:#ff3b3b}
+.family-status-text.unknown{color:#8a8a8a}
+@keyframes familyHelpBlink{50%{opacity:.35}}
 
+/* light mode keeps real colours */
+body.light-mode .family-status-dot{border-color:#fff !important}
+body.light-mode .family-status-dot.safe{background-color:#00c46f !important}
+body.light-mode .family-status-dot.careful{background-color:#ff9f0a !important}
+body.light-mode .family-status-dot.help{background-color:#e5222b !important}
+body.light-mode .family-status-dot.unknown{background-color:#8a8a8a !important}
+body.light-mode .family-status-text.safe{color:#00a35a !important}
+body.light-mode .family-status-text.careful{color:#d98200 !important}
+body.light-mode .family-status-text.help{color:#e5222b !important}
+body.light-mode .family-status-text.unknown{color:#666 !important}
 </style>
 </head>
 
@@ -17732,14 +17761,22 @@ document.addEventListener(
     window.closeGuardianPanel=function(id){if($(id))$(id).hidden=true;};
     window.openCheckInPanel=()=>openGuardianPanel('checkInPanel');
     window.openJourneyPanel=()=>openGuardianPanel('journeyPanel');
-    window.openFamilyPanel=()=>{renderFamily();openGuardianPanel('familyPanel');};
+       window.openFamilyPanel=()=>{renderFamily();openGuardianPanel('familyPanel');refreshFamily();};
     window.openLocationPowerPanel=()=>{openGuardianPanel('locationPowerPanel');refreshPowerLocation(false);};
     window.openPrivacyPanel=()=>{loadPrivacy();openGuardianPanel('privacyPanel');};
     window.openInternationalPanel=()=>{loadWorldwide();openGuardianPanel('internationalPanel');};
     window.openSocialProfilePanel=()=>{loadSocialForm();openGuardianPanel('socialProfilePanel');};
 
-    function setStatus(key,label){
+        function syncStatusToServer(){
+        if(!localStorage.getItem('guardianToken')) return;
+        api('/api/safety/status',{
+            method:'PUT',
+            body:{status:GS.status.key,visibility:(GS.profile&&GS.profile.visibility)||'trusted'}
+        }).catch(function(e){console.warn('Status sync failed:',e.message);});
+    }
+    function setStatus(key,label,noSync){
         GS.status={key,label,updatedAt:Date.now()}; save('guardianSafetyStatus',GS.status);
+        if(!noSync) syncStatusToServer();
         $('safetyStatusLabel') && ($('safetyStatusLabel').textContent=label);
         $('safetyStatusTime') && ($('safetyStatusTime').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
         $('globalSafetyText') && ($('globalSafetyText').textContent=label.toUpperCase());
@@ -19157,8 +19194,55 @@ async function restoreActiveJourney() {
 
 }
 
-    function renderFamily(){const el=$('familyList');if(!el)return;if(!GS.family.length){el.innerHTML='<div class="info-box">No family members yet. Add the people you trust most.</div>';return;}el.innerHTML=GS.family.map((f,i)=>'<div class="family-item"><div class="family-avatar">👤</div><div><strong>'+esc(f.name)+'</strong><small>'+esc(f.relation)+' • '+esc(f.phone)+'</small></div><button class="family-remove" onclick="removeFamilyMember('+i+')">Remove</button></div>').join('');}
-    window.addFamilyMember=function(){const name=$('familyName')?.value.trim(),relation=$('familyRelation')?.value.trim(),phone=$('familyPhone')?.value.trim(),role=$('familyRole')?.value;if(!name||!phone){showToast('Name and phone are required.');return;}GS.family.push({name,relation:relation||role,phone,role});save('guardianFamilyCircle',GS.family);['familyName','familyRelation','familyPhone'].forEach(id=>$(id).value='');renderFamily();showToast('Added to your private family circle.');};
+        const STATUS_META={
+        safe:{label:"I'm Safe"},
+        careful:{label:'Be Careful'},
+        help:{label:'I Need Help'},
+        unknown:{label:'Status unavailable'}
+    };
+    let familyStatuses={};
+
+    async function loadFamilyStatuses(){
+        if(!GS.family.length){familyStatuses={};return;}
+        try{
+            const d=await api('/api/safety/family-status',{
+                method:'POST',
+                body:{phones:GS.family.map(f=>f.phone)}
+            });
+            familyStatuses=d.statuses||{};
+        }catch(e){ familyStatuses={}; }
+    }
+
+    function renderFamily(){
+        const el=$('familyList'); if(!el) return;
+        if(!GS.family.length){
+            el.innerHTML='<div class="info-box">No family members yet. Add the people you trust most.</div>';
+            return;
+        }
+        el.innerHTML=GS.family.map((f,i)=>{
+            const s=familyStatuses[f.phone];
+            const key=(s&&s.status&&STATUS_META[s.status])?s.status:'unknown';
+            const label=STATUS_META[key].label;
+            return '<div class="family-item">'+
+                '<div class="family-avatar">👤<span class="family-status-dot '+key+'" title="'+esc(label)+'"></span></div>'+
+                '<div><strong>'+esc(f.name)+'</strong>'+
+                '<small>'+esc(f.relation)+' • '+esc(f.phone)+'</small>'+
+                '<small class="family-status-text '+key+'">'+esc(label)+'</small></div>'+
+                '<button class="family-remove" onclick="removeFamilyMember('+i+')">Remove</button></div>';
+        }).join('');
+    }
+
+    async function refreshFamily(){
+        await loadFamilyStatuses();
+        renderFamily();
+    }
+
+    /* auto-refresh while the Family panel is open */
+    setInterval(function(){
+        const p=$('familyPanel');
+        if(p && !p.hidden && document.visibilityState==='visible') refreshFamily();
+    },10000);
+    window.addFamilyMember=function(){const name=$('familyName')?.value.trim(),relation=$('familyRelation')?.value.trim(),phone=$('familyPhone')?.value.trim(),role=$('familyRole')?.value;if(!name||!phone){showToast('Name and phone are required.');return;}GS.family.push({name,relation:relation||role,phone,role});save('guardianFamilyCircle',GS.family);['familyName','familyRelation','familyPhone'].forEach(id=>$(id).value='');refreshFamily();showToast('Added to your private family circle.');};
     window.removeFamilyMember=function(i){GS.family.splice(i,1);save('guardianFamilyCircle',GS.family);renderFamily();};
 
     function updatePowerLocation(pos){
@@ -19197,7 +19281,10 @@ async function restoreActiveJourney() {
     function applyLanguage(){const t=translations[GS.world.language]||translations.en;document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t[k])el.textContent=t[k];});}
 
     function initializeSafety(){
-    renderBattery();renderConnection();setStatus(GS.status.key,GS.status.label);renderSocialProfile();renderJourney();loadPrivacy();loadWorldwide();updateCheckIn();restoreActiveJourney();
+    renderBattery();renderConnection();
+const hadSavedStatus=!!localStorage.getItem('guardianSafetyStatus');
+setStatus(GS.status.key,GS.status.label,true);
+if(hadSavedStatus) syncStatusToServer();renderSocialProfile();renderJourney();loadPrivacy();loadWorldwide();updateCheckIn();restoreActiveJourney();
 
     window.addEventListener('online',renderConnection);
     window.addEventListener('offline',renderConnection);
