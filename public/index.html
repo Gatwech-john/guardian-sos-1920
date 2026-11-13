@@ -6376,6 +6376,13 @@ box-shadow: none;
   background: transparent !important;
   box-shadow: none !important;
 }
+
+
+.mj-status {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
   </style>
 
   <h2 class="mj-heading">DANGEROUS</h2>
@@ -6744,6 +6751,7 @@ function updateCamera() {
       }
 
       ring.rotation.z += 0.002;
+pinkGlowRing.rotation.z += 0.002;
 
       renderer.render(scene, camera);
     }
