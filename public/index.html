@@ -6531,10 +6531,25 @@ box-shadow: none;
     );
 
     try {
-      renderer = new THREE.WebGLRenderer({
-  antialias: true,
-  alpha: true
+     renderer = new THREE.WebGLRenderer({
+    antialias: false,
+    alpha: true,
+    powerPreference: "low-power",
+    stencil: false,
+    depth: true
 });
+
+renderer.setClearColor(0x000000, 0);
+
+renderer.setPixelRatio(
+    Math.min(window.devicePixelRatio || 1, 1.25)
+);
+
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+stage.insertBefore(renderer.domElement, status);
 
 renderer.setClearColor(0x000000, 0);
 
@@ -6845,23 +6860,87 @@ function updateCamera() {
     });
 
     // ANIMATION LOOP
-    function animate() {
-      animationFrame = requestAnimationFrame(animate);
+   // =====================================================
+// PERFORMANCE-FRIENDLY ANIMATION
+// Only animate while the dancer is visible on Home.
+// =====================================================
 
-      const delta = Math.min(clock.getDelta(), 0.05);
+let animationRunning = false;
 
-      if (mixer && isPlaying) {
+function animate() {
+    if (!animationRunning) return;
+
+    animationFrame = requestAnimationFrame(animate);
+
+    const delta = Math.min(clock.getDelta(), 0.04);
+
+    if (mixer && isPlaying) {
         mixer.update(delta);
-      }
-
-            updateStageColors(clock.elapsedTime);
-
-
-      renderer.render(scene, camera);
     }
 
-    animate();
+    if (isPlaying) {
+        updateStageColors(clock.elapsedTime);
+    }
 
+    renderer.render(scene, camera);
+}
+
+function startDancerAnimation() {
+    if (animationRunning) return;
+
+    animationRunning = true;
+    clock.start();
+
+    renderer.render(scene, camera);
+    animate();
+}
+
+function stopDancerAnimation() {
+    if (!animationRunning) return;
+
+    animationRunning = false;
+
+    cancelAnimationFrame(animationFrame);
+    clock.stop();
+}
+
+// Detect when the dancer enters or leaves the screen.
+const dancerObserver = new IntersectionObserver(
+    function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting && !document.hidden) {
+                startDancerAnimation();
+            } else {
+                stopDancerAnimation();
+            }
+        });
+    },
+    {
+        threshold: 0.1
+    }
+);
+
+dancerObserver.observe(stage);
+
+// Pause when the user switches apps or browser tabs.
+document.addEventListener("visibilitychange", function() {
+    if (document.hidden) {
+        stopDancerAnimation();
+    } else if (stage.getBoundingClientRect().bottom > 0 &&
+               stage.getBoundingClientRect().top < window.innerHeight) {
+        startDancerAnimation();
+    }
+});
+
+// Cleanup
+window.addEventListener("pagehide", function() {
+    stopDancerAnimation();
+    dancerObserver.disconnect();
+
+    window.removeEventListener("resize", updateCamera);
+
+    renderer.dispose();
+}, { once: true });
     // CLEANUP
     window.addEventListener("pagehide", function () {
       cancelAnimationFrame(animationFrame);
