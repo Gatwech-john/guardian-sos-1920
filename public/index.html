@@ -8220,6 +8220,15 @@ window.addEventListener("pagehide", function() {
                         <span class="feature-arrow">›</span>
                     </button>
 
+                    <button class="guardian-feature-card pink" onclick="openVoiceProtectionPanel()">
+                        <span class="feature-icon">🎙️</span>
+                        <span>
+                           <strong>Voice Protection</strong>
+                           <small>Activate SOS by saying Hey Guardian</small>
+                           </span>
+                    <span class="feature-arrow">›</span>
+                     </button>
+
                     <button class="guardian-feature-card amber" onclick="openPrivacyPanel()">
                         <span class="feature-icon">🔐</span>
                         <span><strong>Privacy Center</strong><small>You control what people can see</small></span>
@@ -8251,6 +8260,56 @@ window.addEventListener("pagehide", function() {
                 </div>
 
                 <div class="guardian-active-panels">
+
+                    <div id="voiceProtectionPanel" class="guardian-panel" hidden>
+
+    <div class="panel-head">
+        <div>
+            <span class="small-label">GUARDIAN VOICE SOS</span>
+            <h2>Voice Protection</h2>
+        </div>
+        <button onclick="closeGuardianPanel('voiceProtectionPanel')">×</button>
+    </div>
+
+    <p>
+        Keep Voice Protection active while using your phone.
+        Say "Hey Guardian", followed by "I need help", to request emergency assistance.
+    </p>
+
+    <div class="info-box" style="display:flex;align-items:center;gap:10px;">
+        <span id="voiceProtectionDot"
+              style="width:12px;height:12px;border-radius:50%;background:#888;display:inline-block;flex-shrink:0;">
+        </span>
+
+        <strong id="voiceProtectionStatus">
+            Voice Protection is currently OFF
+        </strong>
+    </div>
+
+    <div class="panel-actions">
+
+        <button
+            class="guardian-primary"
+            id="startVoiceProtectionButton"
+            onclick="startGuardianVoiceProtection()">
+            🎙️ Start Voice Protection
+        </button>
+
+        <button
+            class="guardian-danger"
+            id="stopVoiceProtectionButton"
+            onclick="stopGuardianVoiceProtection()">
+            Stop Voice Protection
+        </button>
+
+    </div>
+
+    <p style="font-size:12px;margin-top:12px;">
+        Keep the Guardian SOS notification visible to confirm that Android's voice service is running.
+    </p>
+
+</div>
+
                     <div id="checkInPanel" class="guardian-panel" hidden>
                         <div class="panel-head"><div><span class="small-label">CHECK ON ME</span><h2>Stay accountable</h2></div><button onclick="closeGuardianPanel('checkInPanel')">×</button></div>
                         <p>Set a timer. Guardian SOS will remind you to confirm that you are safe. If you do not respond, you can activate SOS immediately.</p>
@@ -17845,6 +17904,119 @@ document.addEventListener(
     window.openPrivacyPanel=()=>{loadPrivacy();openGuardianPanel('privacyPanel');};
     window.openInternationalPanel=()=>{loadWorldwide();openGuardianPanel('internationalPanel');};
     window.openSocialProfilePanel=()=>{loadSocialForm();openGuardianPanel('socialProfilePanel');};
+    // =====================================================
+// GUARDIAN VOICE PROTECTION CONTROLS
+// =====================================================
+
+window.openVoiceProtectionPanel = function() {
+
+    openGuardianPanel('voiceProtectionPanel');
+
+    const enabled =
+        localStorage.getItem('guardianVoiceProtectionEnabled') === 'true';
+
+    updateVoiceProtectionDisplay(enabled);
+};
+
+
+function updateVoiceProtectionDisplay(enabled) {
+
+    const dot = document.getElementById('voiceProtectionDot');
+    const status = document.getElementById('voiceProtectionStatus');
+    const startButton = document.getElementById('startVoiceProtectionButton');
+    const stopButton = document.getElementById('stopVoiceProtectionButton');
+
+    if (!dot || !status) return;
+
+    if (enabled) {
+
+        dot.style.background = '#00c853';
+        dot.style.boxShadow = '0 0 10px #00c853';
+
+        status.textContent = 'Voice Protection is ON';
+
+        if (startButton) startButton.disabled = true;
+        if (stopButton) stopButton.disabled = false;
+
+    } else {
+
+        dot.style.background = '#888';
+        dot.style.boxShadow = 'none';
+
+        status.textContent = 'Voice Protection is currently OFF';
+
+        if (startButton) startButton.disabled = false;
+        if (stopButton) stopButton.disabled = true;
+    }
+}
+
+
+window.startGuardianVoiceProtection = function() {
+
+    if (
+        !window.AndroidVoice ||
+        typeof window.AndroidVoice.startVoiceProtection !== 'function'
+    ) {
+
+        alert(
+            'Voice Protection is available in the Guardian SOS Android app.'
+        );
+
+        return;
+    }
+
+    try {
+
+        window.AndroidVoice.startVoiceProtection();
+
+        localStorage.setItem(
+            'guardianVoiceProtectionEnabled',
+            'true'
+        );
+
+        updateVoiceProtectionDisplay(true);
+
+    } catch (error) {
+
+        console.error('Voice Protection start failed:', error);
+
+        alert('Unable to start Voice Protection.');
+    }
+};
+
+
+window.stopGuardianVoiceProtection = function() {
+
+    if (
+        !window.AndroidVoice ||
+        typeof window.AndroidVoice.stopVoiceProtection !== 'function'
+    ) {
+
+        alert(
+            'Voice Protection is available in the Guardian SOS Android app.'
+        );
+
+        return;
+    }
+
+    try {
+
+        window.AndroidVoice.stopVoiceProtection();
+
+        localStorage.setItem(
+            'guardianVoiceProtectionEnabled',
+            'false'
+        );
+
+        updateVoiceProtectionDisplay(false);
+
+    } catch (error) {
+
+        console.error('Voice Protection stop failed:', error);
+
+        alert('Unable to stop Voice Protection.');
+    }
+};
 
         function syncStatusToServer(){
         if(!localStorage.getItem('guardianToken')) return;
