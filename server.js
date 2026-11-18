@@ -1567,7 +1567,9 @@ next();
    GUARDIAN: PENDING CALLS + CALL PUSH (works when app is closed)
 ============================================================ */
 const guardianPendingCalls = new Map();
-const GUARDIAN_CALL_TTL_MS = 45000;
+const guardianCallTimeouts = new Map();
+
+const GUARDIAN_CALL_TTL_MS = 45000; // 45 seconds
 
 async function guardianSendCallPush(calleeId, data) {
     try {
@@ -1639,29 +1641,74 @@ io.on("connection", (socket) => {
         }, 400);
     }
 
-    socket.on("call_user", function (data) {
-        if (!data || !data.userId) return;
-        const calleeKey = String(data.userId);
-        const payload = {
-            callerId: socket.userId,
-            callerName: socket.userName || "Guardian SOS User",
-            callerImage: socket.userProfileImage || "",
-            callType: data.callType || "voice",
-            offer: data.offer || null
-        };
-        const entry = { payload: payload, expires: Date.now() + GUARDIAN_CALL_TTL_MS, ice: [] };
-        guardianPendingCalls.set(calleeKey, entry);
-        setTimeout(function () {
-            if (guardianPendingCalls.get(calleeKey) === entry) guardianPendingCalls.delete(calleeKey);
-        }, GUARDIAN_CALL_TTL_MS + 1000);
+   
+socket.on("call_user", function (data) {
 
-        guardianSendCallPush(data.userId, {
-            type: "CALL",
-            callerId: socket.userId,
-            callerName: payload.callerName,
-            callType: payload.callType
+    if (!data || !data.userId) return;
+
+    const calleeKey = String(data.userId);
+
+    // Only ring users who are currently online.
+    const targetRoom = io.sockets.adapter.rooms.get(
+        "user:" + calleeKey
+    );
+
+    if (!targetRoom || targetRoom.size === 0) {
+
+        socket.emit("call_unavailable", {
+            userId: calleeKey,
+            reason: "offline"
         });
-    });
+
+        return;
+    }
+
+    const payload = {
+        callerId: socket.userId,
+        callerName: socket.userName || "Guardian SOS User",
+        callerImage: socket.userProfileImage || "",
+        callType: data.callType || "voice",
+        offer: data.offer || null
+    };
+
+    const entry = {
+        payload: payload,
+        expires: Date.now() + GUARDIAN_CALL_TTL_MS,
+        ice: [],
+        callerId: String(socket.userId)
+    };
+
+    guardianPendingCalls.set(calleeKey, entry);
+
+    // Clear any previous timeout for this recipient.
+    const oldTimer = guardianCallTimeouts.get(calleeKey);
+
+    if (oldTimer) {
+        clearTimeout(oldTimer);
+    }
+
+    // Silent server-side timeout after 45 seconds.
+    const timeout = setTimeout(function () {
+
+        if (guardianPendingCalls.get(calleeKey) !== entry) {
+            return;
+        }
+
+        guardianPendingCalls.delete(calleeKey);
+        guardianCallTimeouts.delete(calleeKey);
+
+        // Tell caller the call expired.
+        io.to("user:" + entry.callerId).emit("call_timeout");
+
+        // Stop ringing on recipient's device.
+        io.to("user:" + calleeKey).emit("call_ended");
+
+    }, GUARDIAN_CALL_TTL_MS);
+
+    guardianCallTimeouts.set(calleeKey, timeout);
+
+});
+
 
     socket.on("ice_candidate", function (data) {
         if (!data || !data.userId) return;
@@ -2001,7 +2048,14 @@ socket.on(
         if (!data || !data.userId) {
             return;
         }
+// Do not deliver a call to an offline recipient.
+const targetRoom = io.sockets.adapter.rooms.get(
+    "user:" + String(data.userId)
+);
 
+if (!targetRoom || targetRoom.size === 0) {
+    return;
+}
         io.to(
             "user:" +
             data.userId
