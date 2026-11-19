@@ -8569,73 +8569,7 @@ window.addEventListener("pagehide", function() {
                         <div class="info-box">Privacy principle: Guardian SOS should never make your location or personal details public by default.</div>
                     </div>
 
-<div style="
-    margin-top:25px;
-    padding:20px;
-    border:1px solid #ff4444;
-    border-radius:14px;
-    background:#190909;
-">
 
-    <h3 style="color:#ff4444;margin-bottom:10px;">
-        <i class="bi bi-shield-lock-fill"></i>
-        Account Security
-    </h3>
-
-    <p style="color:#ccc;margin-bottom:15px;">
-        Permanently delete your Guardian SOS account and
-        associated account records.
-    </p>
-
-    <label style="display:block;color:white;margin-bottom:8px;">
-        Confirm your current password
-    </label>
-
-   <div class="guardian-password-wrap">
-
-    <input
-        id="deleteAccountPassword"
-        type="password"
-        autocomplete="current-password"
-        placeholder="Enter your password"
-        style="
-            width:100%;
-            padding:13px 48px 13px 13px;
-            border:1px solid #ff4444;
-            border-radius:9px;
-            background:#080808;
-            color:white;
-        "
-    >
-
-    <button
-        type="button"
-        class="password-eye-button"
-        onclick="togglePasswordVisibility('deleteAccountPassword', this)"
-        aria-label="Show password"
-    >
-        <i class="bi bi-eye"></i>
-    </button>
-
-</div>
-
-<button
-    type="button"
-    onclick="deleteMyAccount()"
-    id="deleteAccountButton"
-    class="guardian-delete-button"
->
-    <i class="bi bi-trash3-fill"></i>
-    <span>Permanently Delete My Account</span>
-</button>
-
-</div>
-
-    <small style="display:block;color:#ff8888;margin-top:12px;">
-        Warning: This action cannot be undone.
-    </small>
-
-</div>
 
 
                     <div id="internationalPanel" class="guardian-panel" hidden>
@@ -8646,7 +8580,78 @@ window.addEventListener("pagehide", function() {
                         </div>
                         <div class="international-cards"><div>🌎<strong id="countryCodePreview">+—</strong><small>International calling code</small></div><div>🚨<strong id="emergencyNumberPreview">Local emergency</strong><small>Emergency services vary by country</small></div><div>🕒<strong id="timezonePreview">Device time</strong><small>Current local time zone</small></div></div>
                         <div class="info-box">International phone numbers are displayed with country codes. Emergency numbers are shown as guidance only; always use the official emergency service for your location.</div>
+                    
+
+<!-- ACCOUNT DELETION - INSIDE WORLDWIDE SETTINGS -->
+<div style="
+    margin-top:25px;
+    padding:20px;
+    border:1px solid #ff1493;
+    border-radius:16px;
+    background:#190909;
+">
+
+    <h3 style="color:#ff1493;margin-bottom:10px;">
+        <i class="bi bi-shield-exclamation"></i>
+        Account Deletion
+    </h3>
+
+    <p style="color:#ccc;margin-bottom:15px;line-height:1.6;">
+        Permanently delete your Guardian SOS account.
+        You will need to confirm your current password.
+    </p>
+
+    <label style="display:block;color:white;margin-bottom:8px;">
+        Confirm your current password
+    </label>
+
+    <div class="guardian-password-wrap">
+
+        <input
+            id="deleteAccountPassword"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Enter your password"
+            style="
+                width:100%;
+                padding:13px 48px 13px 13px;
+                border:1px solid #ff1493;
+                border-radius:9px;
+                background:#080808;
+                color:white;
+            "
+        >
+
+        <button
+            type="button"
+            class="password-eye-button"
+            onclick="togglePasswordVisibility('deleteAccountPassword', this)"
+            aria-label="Show password"
+        >
+            <i class="bi bi-eye"></i>
+        </button>
+
+    </div>
+
+    <button
+        type="button"
+        onclick="deleteMyAccount()"
+        id="deleteAccountButton"
+        class="guardian-delete-button"
+    >
+        <i class="bi bi-trash3-fill"></i>
+        <span>Permanently Delete My Account</span>
+    </button>
+
+    <small style="display:block;color:#ff8888;margin-top:12px;text-align:center;">
+        Warning: This action cannot be undone.
+    </small>
+
+</div>
+<!-- END ACCOUNT DELETION -->
+
                     </div>
+
 
                     <div id="socialProfilePanel" class="guardian-panel" hidden>
                         <div class="panel-head"><div><span class="small-label">SOCIAL PROFILE</span><h2>Make your profile yours</h2></div><button onclick="closeGuardianPanel('socialProfilePanel')">×</button></div>
