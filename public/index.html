@@ -5888,6 +5888,54 @@ body.light-mode .family-status-text.safe{color:#00a35a !important}
 body.light-mode .family-status-text.careful{color:#d98200 !important}
 body.light-mode .family-status-text.help{color:#e5222b !important}
 body.light-mode .family-status-text.unknown{color:#666 !important}
+
+
+/* Guardian SOS password visibility controls */
+.input-icon-wrap {
+    position: relative;
+}
+
+.input-icon-wrap input[type="password"],
+.input-icon-wrap input[type="text"] {
+    padding-right: 48px !important;
+}
+
+.password-eye-button {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #ff1493;
+    font-size: 19px;
+    cursor: pointer;
+    padding: 6px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-eye-button:focus {
+    outline: 2px solid #ff1493;
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+.guardian-password-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.guardian-password-wrap input {
+    box-sizing: border-box;
+    padding-right: 48px !important;
+}
+
+.guardian-password-wrap .password-eye-button {
+    right: 10px;
+}
 </style>
 </head>
 
@@ -5916,6 +5964,14 @@ body.light-mode .family-status-text.unknown{color:#666 !important}
                     <div class="input-icon-wrap">
                         <i class="bi bi-lock-fill"></i>
                         <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="Enter your password" aria-label="Password">
+                        <button
+    type="button"
+    class="password-eye-button"
+    onclick="togglePasswordVisibility('loginPassword', this)"
+    aria-label="Show password"
+>
+    <i class="bi bi-eye"></i>
+</button>
                     </div>
                 </div>
 
@@ -5996,6 +6052,14 @@ body.light-mode .family-status-text.unknown{color:#666 !important}
                 <div class="input-icon-wrap">
                     <i class="bi bi-lock-fill"></i>
                     <input type="password" id="newPassword" minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters" aria-label="New Password">
+                    <button
+    type="button"
+    class="password-eye-button"
+    onclick="togglePasswordVisibility('newPassword', this)"
+    aria-label="Show password"
+>
+    <i class="bi bi-eye"></i>
+</button>
                 </div>
             </div>
 
@@ -6003,6 +6067,14 @@ body.light-mode .family-status-text.unknown{color:#666 !important}
                 <div class="input-icon-wrap">
                     <i class="bi bi-lock-fill"></i>
                     <input type="password" id="confirmNewPassword" minlength="8" autocomplete="new-password" placeholder="Confirm new password" aria-label="Confirm New Password">
+                    <button
+    type="button"
+    class="password-eye-button"
+    onclick="togglePasswordVisibility('confirmNewPassword', this)"
+    aria-label="Show password"
+>
+    <i class="bi bi-eye"></i>
+</button>
                 </div>
             </div>
 
@@ -6071,6 +6143,14 @@ body.light-mode .family-status-text.unknown{color:#666 !important}
                     <div class="input-icon-wrap">
                         <i class="bi bi-lock-fill"></i>
                         <input type="password" id="registerPassword" required minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters" aria-label="Password">
+                        <button
+    type="button"
+    class="password-eye-button"
+    onclick="togglePasswordVisibility('registerPassword', this)"
+    aria-label="Show password"
+>
+    <i class="bi bi-eye"></i>
+</button>
                     </div>
                 </div>
 
@@ -8432,6 +8512,8 @@ window.addEventListener("pagehide", function() {
         Confirm your current password
     </label>
 
+   <div class="guardian-password-wrap">
+
     <input
         id="deleteAccountPassword"
         type="password"
@@ -8450,20 +8532,14 @@ window.addEventListener("pagehide", function() {
 
     <button
         type="button"
-        onclick="deleteMyAccount()"
-        style="
-            width:100%;
-            padding:14px;
-            border:none;
-            border-radius:9px;
-            background:#d00000;
-            color:white;
-            font-weight:bold;
-        "
+        class="password-eye-button"
+        onclick="togglePasswordVisibility('deleteAccountPassword', this)"
+        aria-label="Show password"
     >
-        <i class="bi bi-trash3-fill"></i>
-        Permanently Delete My Account
+        <i class="bi bi-eye"></i>
     </button>
+
+</div>
 
     <small style="display:block;color:#ff8888;margin-top:12px;">
         Warning: This action cannot be undone.
@@ -27411,7 +27487,43 @@ document.getElementById("chatImageViewer")?.addEventListener(
     };
 })();
 
+/* =========================================================
+   GUARDIAN SOS - PASSWORD VISIBILITY
+========================================================= */
 
+window.togglePasswordVisibility = function(inputId, button) {
+
+    const passwordInput = document.getElementById(inputId);
+
+    if (!passwordInput || !button) {
+        return;
+    }
+
+    const eyeIcon = button.querySelector("i");
+
+    if (passwordInput.type === "password") {
+
+        passwordInput.type = "text";
+
+        if (eyeIcon) {
+            eyeIcon.className = "bi bi-eye-slash";
+        }
+
+        button.setAttribute("aria-label", "Hide password");
+
+    } else {
+
+        passwordInput.type = "password";
+
+        if (eyeIcon) {
+            eyeIcon.className = "bi bi-eye";
+        }
+
+        button.setAttribute("aria-label", "Show password");
+
+    }
+
+};
 window.deleteMyAccount = async function() {
 
     const passwordInput = document.getElementById(
@@ -27427,14 +27539,17 @@ window.deleteMyAccount = async function() {
         return;
     }
 
-    const confirmed = confirm(
-        "WARNING!\n\n" +
-        "You are about to permanently delete your Guardian SOS account.\n\n" +
-        "Your account records and associated chat history will be deleted.\n\n" +
-        "Do you want to continue?"
-    );
+    const confirmed = await showGuardianConfirm({
+    title: "Permanently Delete Account?",
+    message: "You are about to permanently delete your Guardian SOS account. Your account records and associated chat history will be deleted. This action cannot be undone.",
+    confirmText: "Delete My Account",
+    cancelText: "Keep My Account",
+    icon: '<i class="bi bi-shield-exclamation"></i>'
+});
 
-    if (!confirmed) return;
+if (!confirmed) {
+    return;
+}
 
     try {
 
