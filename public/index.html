@@ -5936,6 +5936,85 @@ body.light-mode .family-status-text.unknown{color:#666 !important}
 .guardian-password-wrap .password-eye-button {
     right: 10px;
 }
+
+/* =========================================
+   GUARDIAN SOS - DEEP PINK DELETE BUTTON
+========================================= */
+
+.guardian-delete-button {
+    width: 100%;
+    max-width: 380px;
+    min-height: 58px;
+    margin: 20px auto;
+    padding: 15px 22px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    background: linear-gradient(
+        135deg,
+        #ff1493,
+        #e60073,
+        #ff1493
+    );
+
+    color: #ffffff;
+    border: 1px solid #ff69b4;
+    border-radius: 14px;
+
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-align: center;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 5px 18px rgba(255, 20, 147, 0.35),
+        0 0 12px rgba(255, 20, 147, 0.18);
+
+    transition: all 0.25s ease;
+}
+
+.guardian-delete-button i {
+    font-size: 21px;
+    flex-shrink: 0;
+}
+
+.guardian-delete-button:hover {
+    transform: translateY(-3px);
+    background: linear-gradient(
+        135deg,
+        #ff69b4,
+        #ff1493,
+        #c90065
+    );
+
+    box-shadow:
+        0 8px 25px rgba(255, 20, 147, 0.5),
+        0 0 18px rgba(255, 20, 147, 0.3);
+}
+
+.guardian-delete-button:active {
+    transform: scale(0.97);
+}
+
+.guardian-delete-button:focus-visible {
+    outline: 3px solid #ff69b4;
+    outline-offset: 4px;
+}
+
+@media (max-width: 480px) {
+    .guardian-delete-button {
+        max-width: 100%;
+        font-size: 13px;
+        min-height: 55px;
+        padding: 13px;
+    }
+}
 </style>
 </head>
 
@@ -8540,15 +8619,14 @@ window.addEventListener("pagehide", function() {
 
 </div>
 
-<!-- KEEP YOUR EXISTING DELETE BUTTON BELOW -->
-
 <button
     type="button"
     onclick="deleteMyAccount()"
     id="deleteAccountButton"
+    class="guardian-delete-button"
 >
-    <i class="bi bi-trash-fill"></i>
-    Permanently Delete My Account
+    <i class="bi bi-trash3-fill"></i>
+    <span>Permanently Delete My Account</span>
 </button>
 
 </div>
