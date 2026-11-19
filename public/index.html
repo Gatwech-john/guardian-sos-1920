@@ -8521,12 +8521,11 @@ window.addEventListener("pagehide", function() {
         placeholder="Enter your password"
         style="
             width:100%;
-            padding:13px;
+            padding:13px 48px 13px 13px;
             border:1px solid #ff4444;
             border-radius:9px;
             background:#080808;
             color:white;
-            margin-bottom:15px;
         "
     >
 
@@ -8538,6 +8537,19 @@ window.addEventListener("pagehide", function() {
     >
         <i class="bi bi-eye"></i>
     </button>
+
+</div>
+
+<!-- KEEP YOUR EXISTING DELETE BUTTON BELOW -->
+
+<button
+    type="button"
+    onclick="deleteMyAccount()"
+    id="deleteAccountButton"
+>
+    <i class="bi bi-trash-fill"></i>
+    Permanently Delete My Account
+</button>
 
 </div>
 
