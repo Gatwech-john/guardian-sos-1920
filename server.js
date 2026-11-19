@@ -1567,9 +1567,7 @@ next();
    GUARDIAN: PENDING CALLS + CALL PUSH (works when app is closed)
 ============================================================ */
 const guardianPendingCalls = new Map();
-const guardianCallTimeouts = new Map();
-
-const GUARDIAN_CALL_TTL_MS = 45000; // 45 seconds
+const GUARDIAN_CALL_TTL_MS = 45000;
 
 async function guardianSendCallPush(calleeId, data) {
     try {
@@ -1641,74 +1639,75 @@ io.on("connection", (socket) => {
         }, 400);
     }
 
-   
-socket.on("call_user", function (data) {
+    socket.on("call_user", function (data) {
+        if (!data || !data.userId) return;
+        const calleeKey = String(data.userId);
+        const payload = {
+            callerId: socket.userId,
+            callerName: socket.userName || "Guardian SOS User",
+            callerImage: socket.userProfileImage || "",
+            callType: data.callType || "voice",
+            offer: data.offer || null
+        };
+       const entry = {
+    payload: payload,
 
-    if (!data || !data.userId) return;
+    expires: Date.now() + GUARDIAN_CALL_TTL_MS,
 
-    const calleeKey = String(data.userId);
+    ice: []
+};
 
-    // Only ring users who are currently online.
-    const targetRoom = io.sockets.adapter.rooms.get(
-        "user:" + calleeKey
-    );
+guardianPendingCalls.set(
+    calleeKey,
+    entry
+);
 
-    if (!targetRoom || targetRoom.size === 0) {
 
-        socket.emit("call_unavailable", {
-            userId: calleeKey,
-            reason: "offline"
-        });
+// Automatically expire unanswered calls after 45 seconds.
+setTimeout(function() {
 
+    if (
+        guardianPendingCalls.get(calleeKey) !== entry
+    ) {
         return;
     }
 
-    const payload = {
-        callerId: socket.userId,
-        callerName: socket.userName || "Guardian SOS User",
-        callerImage: socket.userProfileImage || "",
-        callType: data.callType || "voice",
-        offer: data.offer || null
-    };
+    guardianPendingCalls.delete(calleeKey);
 
-    const entry = {
-        payload: payload,
-        expires: Date.now() + GUARDIAN_CALL_TTL_MS,
-        ice: [],
-        callerId: String(socket.userId)
-    };
-
-    guardianPendingCalls.set(calleeKey, entry);
-
-    // Clear any previous timeout for this recipient.
-    const oldTimer = guardianCallTimeouts.get(calleeKey);
-
-    if (oldTimer) {
-        clearTimeout(oldTimer);
-    }
-
-    // Silent server-side timeout after 45 seconds.
-    const timeout = setTimeout(function () {
-
-        if (guardianPendingCalls.get(calleeKey) !== entry) {
-            return;
+    // Notify the caller.
+    io.to(
+        "user:" + String(socket.userId)
+    ).emit(
+        "call_timeout",
+        {
+            userId: calleeKey,
+            message: "No answer"
         }
+    );
 
-        guardianPendingCalls.delete(calleeKey);
-        guardianCallTimeouts.delete(calleeKey);
+    // Stop the recipient's incoming-call screen.
+    io.to(
+        "user:" + calleeKey
+    ).emit(
+        "call_ended"
+    );
 
-        // Tell caller the call expired.
-        io.to("user:" + entry.callerId).emit("call_timeout");
+    console.log(
+        "Guardian SOS call expired:",
+        socket.userId,
+        "->",
+        calleeKey
+    );
 
-        // Stop ringing on recipient's device.
-        io.to("user:" + calleeKey).emit("call_ended");
+}, GUARDIAN_CALL_TTL_MS);
 
-    }, GUARDIAN_CALL_TTL_MS);
-
-    guardianCallTimeouts.set(calleeKey, timeout);
-
-});
-
+        guardianSendCallPush(data.userId, {
+            type: "CALL",
+            callerId: socket.userId,
+            callerName: payload.callerName,
+            callType: payload.callType
+        });
+    });
 
     socket.on("ice_candidate", function (data) {
         if (!data || !data.userId) return;
@@ -2048,14 +2047,25 @@ socket.on(
         if (!data || !data.userId) {
             return;
         }
-// Do not deliver a call to an offline recipient.
-const targetRoom = io.sockets.adapter.rooms.get(
-    "user:" + String(data.userId)
-);
+        // Check whether the recipient has an active connection.
+        const targetRoom = io.sockets.adapter.rooms.get(
+            "user:" + String(data.userId)
+        );
 
-if (!targetRoom || targetRoom.size === 0) {
-    return;
-}
+        const recipientOnline =
+            !!targetRoom && targetRoom.size > 0;
+
+        socket.emit("call_status", {
+            userId: String(data.userId),
+            status: recipientOnline ? "ringing" : "offline"
+        });
+
+        // Do not send a live incoming call to an offline user.
+        // The existing pending-call and push-notification
+        // system will handle that situation.
+        if (!recipientOnline) {
+            return;
+        }
         io.to(
             "user:" +
             data.userId
@@ -9450,6 +9460,175 @@ app.get(
                 "index.html"
             )
         );
+
+    }
+);
+
+
+/* ============================================================
+   PERMANENT ACCOUNT DELETION
+============================================================ */
+
+app.delete(
+    "/api/account",
+    authenticateToken,
+    async (req, res) => {
+
+        try {
+
+            await connectMongoDB();
+
+            const userId = req.user.userId;
+
+            const user = await User.findById(userId);
+
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Account not found."
+                });
+            }
+
+            // Require the current password.
+            const password = String(req.body.password || "");
+
+            if (!password) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Enter your password to confirm deletion."
+                });
+            }
+
+            const passwordMatches = await bcrypt.compare(
+                password,
+                user.password
+            );
+
+            if (!passwordMatches) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Incorrect password."
+                });
+            }
+
+            // Find conversations before deleting them.
+            const chatConversations =
+                await ChatConversation.find({
+                    participants: userId
+                }).select("_id");
+
+            const chatConversationIds =
+                chatConversations.map(c => c._id);
+
+            const oldConversations =
+                await Conversation.find({
+                    participants: userId
+                }).select("_id");
+
+            const oldConversationIds =
+                oldConversations.map(c => c._id);
+
+            // Delete emergency and safety information.
+            await Promise.all([
+
+                EmergencyContact.deleteMany({
+                    userId: userId
+                }),
+
+                SOSEvent.deleteMany({
+                    userId: userId
+                }),
+
+                Location.deleteMany({
+                    userId: userId
+                }),
+
+                Journey.deleteMany({
+                    $or: [
+                        { ownerUserId: userId },
+                        { guardianUserId: userId }
+                    ]
+                })
+
+            ]);
+
+            // Delete Guardian SOS chat information.
+            await Promise.all([
+
+                ChatMessage.deleteMany({
+                    $or: [
+                        { senderId: userId },
+                        { recipientId: userId },
+                        {
+                            conversationId: {
+                                $in: chatConversationIds
+                            }
+                        }
+                    ]
+                }),
+
+                ChatConversation.deleteMany({
+                    participants: userId
+                }),
+
+                ChatFile.deleteMany({
+                    uploadedBy: userId
+                })
+
+            ]);
+
+            // Delete legacy chat information.
+            await Promise.all([
+
+                Message.deleteMany({
+                    $or: [
+                        { senderId: userId },
+                        {
+                            conversationId: {
+                                $in: oldConversationIds
+                            }
+                        }
+                    ]
+                }),
+
+                Conversation.deleteMany({
+                    participants: userId
+                })
+
+            ]);
+
+            // Remove pending email verification.
+            await EmailVerification.deleteOne({
+                email: user.email
+            });
+
+            // Remove the user account.
+            await User.deleteOne({
+                _id: userId
+            });
+
+            // Disconnect all active sessions.
+            io.to("user:" + String(userId)).emit(
+                "account_deleted"
+            );
+
+            io.in("user:" + String(userId)).disconnectSockets(true);
+
+            res.json({
+                success: true,
+                message: "Your Guardian SOS account has been deleted."
+            });
+
+        } catch (error) {
+
+            console.error("Account deletion error:", error);
+
+            res.status(500).json({
+                success: false,
+                message: "Unable to delete your account. Please try again."
+            });
+
+        }
 
     }
 );

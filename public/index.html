@@ -8410,6 +8410,68 @@ window.addEventListener("pagehide", function() {
                         <div class="info-box">Privacy principle: Guardian SOS should never make your location or personal details public by default.</div>
                     </div>
 
+<div style="
+    margin-top:25px;
+    padding:20px;
+    border:1px solid #ff4444;
+    border-radius:14px;
+    background:#190909;
+">
+
+    <h3 style="color:#ff4444;margin-bottom:10px;">
+        <i class="bi bi-shield-lock-fill"></i>
+        Account Security
+    </h3>
+
+    <p style="color:#ccc;margin-bottom:15px;">
+        Permanently delete your Guardian SOS account and
+        associated account records.
+    </p>
+
+    <label style="display:block;color:white;margin-bottom:8px;">
+        Confirm your current password
+    </label>
+
+    <input
+        id="deleteAccountPassword"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Enter your password"
+        style="
+            width:100%;
+            padding:13px;
+            border:1px solid #ff4444;
+            border-radius:9px;
+            background:#080808;
+            color:white;
+            margin-bottom:15px;
+        "
+    >
+
+    <button
+        type="button"
+        onclick="deleteMyAccount()"
+        style="
+            width:100%;
+            padding:14px;
+            border:none;
+            border-radius:9px;
+            background:#d00000;
+            color:white;
+            font-weight:bold;
+        "
+    >
+        <i class="bi bi-trash3-fill"></i>
+        Permanently Delete My Account
+    </button>
+
+    <small style="display:block;color:#ff8888;margin-top:12px;">
+        Warning: This action cannot be undone.
+    </small>
+
+</div>
+
+
                     <div id="internationalPanel" class="guardian-panel" hidden>
                         <div class="panel-head"><div><span class="small-label">WORLDWIDE SETTINGS</span><h2>Guardian SOS everywhere</h2></div><button onclick="closeGuardianPanel('internationalPanel')">×</button></div>
                         <div class="form-grid-two">
@@ -19502,7 +19564,50 @@ async function restoreActiveJourney() {
     }
     window.refreshPowerLocation=function(show=true){if(!navigator.geolocation){showToast('Location is not supported by this device.');return;}navigator.geolocation.getCurrentPosition(updatePowerLocation,e=>showToast('Unable to get location: '+e.message),{enableHighAccuracy:true,timeout:15000,maximumAge:5000});if(show)showToast('Getting your precise location…');};
     window.toggleLocationWatch=function(){const b=$('locationWatchButton');if(GS.watchId!==null){navigator.geolocation.clearWatch(GS.watchId);GS.watchId=null;b.textContent='Start Live Watch';showToast('Live location watch stopped.');return;}if(!navigator.geolocation){showToast('Location is not supported.');return;}GS.watchId=navigator.geolocation.watchPosition(updatePowerLocation,e=>showToast('Live location error: '+e.message),{enableHighAccuracy:true,maximumAge:3000,timeout:15000});b.textContent='Stop Live Watch';showToast('Live location watch started.');};
-    window.sharePowerLocation=function(){if(!GS.lastLocation){refreshPowerLocation(false);showToast('Getting location first…');return;}const url='https://maps.google.com/?q='+GS.lastLocation.lat+','+GS.lastLocation.lng;if(navigator.share){navigator.share({title:'My Guardian SOS location',text:'My current location from Guardian SOS',url}).catch(()=>{});}else{navigator.clipboard?.writeText(url);showToast('Location link copied.');}};
+    
+window.sharePowerLocation = function() {
+
+    if (!GS.privacy || GS.privacy.location !== true) {
+
+        showToast(
+            "Location sharing is disabled. Enable it in Privacy Center first."
+        );
+
+        return;
+    }
+
+    if (!GS.lastLocation) {
+
+        refreshPowerLocation(false);
+
+        showToast("Getting location first...");
+
+        return;
+    }
+
+    const url =
+        "https://maps.google.com/?q=" +
+        GS.lastLocation.lat + "," +
+        GS.lastLocation.lng;
+
+    if (navigator.share) {
+
+        navigator.share({
+            title: "My Guardian SOS location",
+            text: "My current location from Guardian SOS",
+            url: url
+        }).catch(() => {});
+
+    } else {
+
+        navigator.clipboard?.writeText(url);
+
+        showToast("Location link copied.");
+
+    }
+
+};
+
 
     function loadPrivacy(){['Location','Online','Read','Discover'].forEach(k=>{const key=k.toLowerCase();if($('privacy'+k))$('privacy'+k).checked=!!GS.privacy[key];});}
     window.savePrivacySettings=function(){GS.privacy={location:$('privacyLocation').checked,online:$('privacyOnline').checked,read:$('privacyRead').checked,discover:$('privacyDiscover').checked};save('guardianPrivacy',GS.privacy);showToast('Privacy settings saved on this device.');};
@@ -19798,6 +19903,12 @@ let activeCallType = "voice";
 let callTimerInterval = null;
 let callConnectedAt = null;
 
+// Guardian SOS unanswered-call protection
+let callNoAnswerTimeout = null;
+let incomingCallTimeout = null;
+
+const GUARDIAN_CALL_RING_TIMEOUT = 45000;
+
 function formatCallDuration(totalSeconds) {
 
     const hours =
@@ -19907,6 +20018,61 @@ function stopCallTimer() {
     }
 }
 
+/* =========================================================
+   GUARDIAN SOS - 45 SECOND UNANSWERED CALL LIMIT
+========================================================= */
+
+function stopCallNoAnswerTimeout() {
+
+    if (callNoAnswerTimeout) {
+
+        clearTimeout(callNoAnswerTimeout);
+
+        callNoAnswerTimeout = null;
+
+    }
+
+}
+
+
+function stopIncomingCallTimeout() {
+
+    if (incomingCallTimeout) {
+
+        clearTimeout(incomingCallTimeout);
+
+        incomingCallTimeout = null;
+
+    }
+
+}
+
+
+function startCallNoAnswerTimeout() {
+
+    stopCallNoAnswerTimeout();
+
+    callNoAnswerTimeout = setTimeout(function() {
+
+        if (!activeCallUserId) {
+            return;
+        }
+
+        console.log(
+            "Guardian SOS: 45 seconds elapsed without an answer."
+        );
+
+        setCallStatus("No answer");
+
+        showToast(
+            "No answer. Call ended."
+        );
+
+        endCurrentCall();
+
+    }, GUARDIAN_CALL_RING_TIMEOUT);
+
+}
 let pendingIncomingOffer = null;
 
 /* ============================================================
@@ -24219,8 +24385,12 @@ async function startCall(
 
 
         setCallStatus(
-            "Calling..."
-        );
+    "Ringing..."
+);
+
+
+// Start invisible 45-second unanswered-call timer.
+startCallNoAnswerTimeout();
 
 
     } catch (error) {
@@ -24251,6 +24421,42 @@ function showIncomingCall(
 
     pendingIncomingOffer =
         data;
+        stopIncomingCallTimeout();
+
+incomingCallTimeout = setTimeout(function() {
+
+    if (!pendingIncomingOffer) {
+        return;
+    }
+
+    console.log(
+        "Incoming call expired after 45 seconds."
+    );
+
+    stopCallRingtone();
+
+    if (chatSocket && chatSocket.connected) {
+
+        chatSocket.emit(
+            "reject_call",
+            {
+                userId: pendingIncomingOffer.callerId
+            }
+        );
+
+    }
+
+    const incomingScreen = document.getElementById(
+        "incomingCallScreen"
+    );
+
+    if (incomingScreen) {
+        incomingScreen.style.display = "none";
+    }
+
+    pendingIncomingOffer = null;
+
+}, GUARDIAN_CALL_RING_TIMEOUT);
 
     const screen =
         document.getElementById(
@@ -24347,7 +24553,7 @@ if ("vibrate" in navigator) {
 
 
 async function acceptIncomingCall() {
-
+stopIncomingCallTimeout();
     stopCallRingtone();
 
 
@@ -24596,6 +24802,7 @@ async function acceptIncomingCall() {
 
 
 function rejectIncomingCall() {
+    stopIncomingCallTimeout();
 stopCallRingtone();
     if (
         pendingIncomingOffer &&
@@ -24641,6 +24848,45 @@ function setupCallSocketEvents() {
         return;
     }
 
+        chatSocket.off("call_status");
+
+    chatSocket.on("call_status", function(data) {
+
+        if (!data) {
+            return;
+        }
+
+        if (data.status === "ringing") {
+
+            setCallStatus("Ringing...");
+
+        } else {
+
+            setCallStatus("Calling...");
+
+        }
+
+    });
+
+    chatSocket.off("call_timeout");
+
+chatSocket.on("call_timeout", function(data) {
+
+    if (!activeCallUserId) {
+        return;
+    }
+
+    stopCallNoAnswerTimeout();
+
+    setCallStatus("No answer");
+
+    showToast(
+        "No answer. Call ended."
+    );
+
+    endCurrentCall();
+
+});
 
     /*
      * INCOMING CALL
@@ -24699,7 +24945,7 @@ function setupCallSocketEvents() {
     chatSocket.on(
         "call_answered",
         async function(data) {
-
+stopCallNoAnswerTimeout();
             try {
 
                 if (
@@ -24878,7 +25124,7 @@ function setupCallSocketEvents() {
     chatSocket.on(
         "call_rejected",
         function() {
-
+stopCallNoAnswerTimeout();
             setCallStatus(
                 "Call rejected"
             );
@@ -24911,8 +25157,23 @@ function setupCallSocketEvents() {
                 endCurrentCall,
                 500
             );
+            stopCallNoAnswerTimeout();
+stopIncomingCallTimeout();
+
+stopCallRingtone();
+
+const incomingScreen = document.getElementById(
+    "incomingCallScreen"
+);
+
+if (incomingScreen) {
+    incomingScreen.style.display = "none";
+}
+
+pendingIncomingOffer = null;
 
         }
+        
     );
 
     /*
@@ -25633,7 +25894,8 @@ if (
 
 
 function endCurrentCall() {
-
+stopCallNoAnswerTimeout();
+stopIncomingCallTimeout();
     const userToEnd =
         activeCallUserId;
     if (
@@ -27148,6 +27410,88 @@ document.getElementById("chatImageViewer")?.addEventListener(
         }
     };
 })();
+
+
+window.deleteMyAccount = async function() {
+
+    const passwordInput = document.getElementById(
+        "deleteAccountPassword"
+    );
+
+    const password = passwordInput
+        ? passwordInput.value
+        : "";
+
+    if (!password) {
+        showToast("Enter your password first.");
+        return;
+    }
+
+    const confirmed = confirm(
+        "WARNING!\n\n" +
+        "You are about to permanently delete your Guardian SOS account.\n\n" +
+        "Your account records and associated chat history will be deleted.\n\n" +
+        "Do you want to continue?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+
+        showToast("Deleting your account...");
+
+        const result = await api(
+            "/api/account",
+            {
+                method: "DELETE",
+                body: {
+                    password: password
+                }
+            }
+        );
+
+        if (!result.success) {
+            throw new Error(
+                result.message || "Account deletion failed."
+            );
+        }
+
+        // Disconnect the current chat session.
+        if (chatSocket) {
+            chatSocket.disconnect();
+        }
+
+        // Clear authentication.
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+
+        // Clear Guardian SOS local preferences.
+        Object.keys(localStorage).forEach(function(key) {
+
+            if (key.startsWith("guardian")) {
+                localStorage.removeItem(key);
+            }
+
+        });
+
+        showToast("Your account has been deleted.");
+
+        setTimeout(function() {
+            window.location.reload();
+        }, 1000);
+
+    } catch (error) {
+
+        console.error("Account deletion error:", error);
+
+        showToast(
+            error.message || "Unable to delete your account."
+        );
+
+    }
+
+};
+
 </script>
 </body>
 </html>
